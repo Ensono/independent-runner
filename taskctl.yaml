@@ -38,6 +38,26 @@ contexts:
         - -Command
     quote: "'"
 
+  dotnet:
+    executable:
+      bin: docker
+      args:
+        - run
+        - --rm
+        - -v
+        - ${PWD}:/app
+        - -v
+        - /var/run/docker.sock:/var/run/docker.sock
+        - -e
+        - PSModulePath=/app/src/modules
+        - -w
+        - /app
+        - russellseymour/runner-pwsh-dotnet:0.0.3
+        - pwsh
+        - -NoProfile
+        - -Command
+    quote: "'"    
+
 tasks:
 
   clean:
@@ -63,6 +83,12 @@ tasks:
     description: Build the PowerShell module
     command:
       - Build-PowerShellModule -Path /app/src/modules -name AmidoBuild -target outputs/module
+
+  convert:
+    context: dotnet
+    description: Create HTML report from coverage doc
+    command:
+      - Invoke-DotNet -Coverage -Pattern pester-coverage.xml -Path /app -Source /app/src/modules/AmidoBuild -Target /app/outputs/tests
 
 pipelines:
 

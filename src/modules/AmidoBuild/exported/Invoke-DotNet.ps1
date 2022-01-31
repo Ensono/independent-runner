@@ -15,7 +15,7 @@ function Invoke-DotNet() {
         [Alias("folder", "project", "workingDirectory")]
         [string]
         # Directory that the build should be performed in
-        $path,       
+        $path,
 
         [Parameter(
             ParameterSetName="coverage"
@@ -48,6 +48,13 @@ function Invoke-DotNet() {
         [string]
         # Target folder for outputs
         $target = "coverage",
+
+        [Parameter(
+            ParameterSetName="coverage"
+        )]
+        [string]
+        # Target folder for outputs
+        $source,
 
         [Parameter(
             ParameterSetName="tests"
@@ -100,7 +107,13 @@ function Invoke-DotNet() {
             }
 
             # Find all the files that match the pattern for coverage
-            $coverFiles = Find-Projects -Pattern $pattern -Path $path
+            if (![IO.Path]::IsPathRooted($pattern)) {
+                $coverFiles = Find-Projects -Pattern $pattern -Path $path
+            } else {
+                if (Test-Path -Path $pattern) {
+                    $coverFiles = @(,(Get-ChildItem -Path $pattern))
+                }
+            }
 
             # Test to see if any cover files have been found, if not output an error
             # and return
@@ -113,11 +126,20 @@ function Invoke-DotNet() {
             $list = $coverFiles | ForEach-Object { $_.FullName }
 
             # Build up the command that should be executed
-            $cmd = "{0} -reports:{1} -targetdir:{2} -reporttypes:{3} {4}" -f $tool,
-                ($list -join ";"),
-                $target,
-                $type,
-                $arguments
+            $cmdParts = @(
+                $tool
+                "-reports:{0}" -f ($list -join ";")
+                "-targetDir:{0}" -f $target
+                "-reporttypes:{0}" -f $type
+            )
+
+            if (![String]::IsNullOrEmpty($source)) {
+                $cmdParts += "-sourcedirs:{0}" -f $source
+            }
+
+            $cmdParts += $arguments
+
+            $cmd = $cmdParts -join " "
         }
 
         "custom" {

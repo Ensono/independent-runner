@@ -68,13 +68,13 @@ stages:
         - task: PublishTestResults@2
           inputs:
             testResultsFormat: JUnit
-            testResultsFiles: $(Build.SourcesDirectory)/outputs/tests/pester-unittests-results.xml
+            testResultsFiles: $(Build.SourcesDirectory)/outputs/tests/pester-unittest-results.xml
             testRunTitle: UnitTests
 
         - task: PublishCodeCoverageResults@1
           inputs:
-            codeCoverageTool: JaCoCo
-            summaryFileLocation: $(Build.SourcesDirectory)/outputs/tests/pester-coverage.xml
+            codeCoverageTool: 'Cobertura'
+            summaryFileLocation: $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
 
         # Upload the documentation
         - task: PublishBuildArtifacts@1
