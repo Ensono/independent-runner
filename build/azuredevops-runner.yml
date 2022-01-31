@@ -64,6 +64,11 @@ stages:
             script: |
               taskctl docs
 
+        - task: Bash@3
+          inputs: inline
+          script: |
+            tree $(Build.SourcesDirectory)/outputs
+
         # Upload tests and the coverage results
         - task: PublishTestResults@2
           inputs:
