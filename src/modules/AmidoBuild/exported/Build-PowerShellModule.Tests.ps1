@@ -91,6 +91,8 @@ Describe "Build-PowerShellModule" {
 
             $outputDir = New-Item -ItemType Directory -Path ([IO.Path]::Combine($testFolder, "outputs"))
 
+            Push-Location -path $outputDir
+
             # Create files in the src directory to mimic the module files
             $name = "MyModule"
             $modulesDir = New-Item -ItemType Directory -Path ([IO.Path]::Combine($testFolder, "src", "modules"))
@@ -128,6 +130,7 @@ Describe "Get-Test" {
         }
 
         AfterEach {
+            Pop-Location
             Remove-Item -Path $testFolder -Force -Recurse
         }
 
@@ -137,14 +140,14 @@ Describe "Get-Test" {
             Build-PowerShellModule -Path $modulesDir -Name MyModule -Target $outputDir.FullName
 
             # Check that the necessary files exist
-            Test-Path -Path ([IO.Path]::Combine($outputDir.FullName, ("{0}.psd1" -f $name))) | Should -Be $true
-            Test-Path -Path ([IO.Path]::Combine($outputDir.FullName, ("{0}.psm1" -f $name))) | Should -Be $true
+            Test-Path -Path ([IO.Path]::Combine($outputDir.FullName, "MyModule", ("{0}.psd1" -f $name))) | Should -Be $true
+            Test-Path -Path ([IO.Path]::Combine($outputDir.FullName, "MyModule", ("{0}.psm1" -f $name))) | Should -Be $true
 
             # The PSM file contains the functions in the files
-            Get-Content -Path ([IO.Path]::Combine($outputDir.FullName, ("{0}.psm1" -f $name))) -Raw | Should -BeLike "*function Get-Test()*"
+            Get-Content -Path ([IO.Path]::Combine($outputDir.FullName, "MyModule", ("{0}.psm1" -f $name))) -Raw | Should -BeLike "*function Get-Test()*"
 
             # It does not contain the test files
-            Get-Content -Path ([IO.Path]::Combine($outputDir.FullName, ("{0}.psm1" -f $name))) -Raw | Should -Not -BeLike "*Describe `"Get-Test`""
+            Get-Content -Path ([IO.Path]::Combine($outputDir.FullName, "MyModule", ("{0}.psm1" -f $name))) -Raw | Should -Not -BeLike "*Describe `"Get-Test`""
         }
 
         It "will create the module with a valid session object" {
@@ -153,11 +156,11 @@ Describe "Get-Test" {
             Build-PowerShellModule -Path $modulesDir -Name MyModule -Target $outputDir.FullName -SessionName "MyModuleSession" -SessionObject @{"commands" = @{"list" = @(); file = ""}}
 
             # Check that the necessary files exist
-            Test-Path -Path ([IO.Path]::Combine($outputDir.FullName, ("{0}.psd1" -f $name))) | Should -Be $true
-            Test-Path -Path ([IO.Path]::Combine($outputDir.FullName, ("{0}.psm1" -f $name))) | Should -Be $true            
+            Test-Path -Path ([IO.Path]::Combine($outputDir.FullName, "MyModule", ("{0}.psd1" -f $name))) | Should -Be $true
+            Test-Path -Path ([IO.Path]::Combine($outputDir.FullName, "MyModule", ("{0}.psm1" -f $name))) | Should -Be $true            
 
             # The PSM file contains the functions in the files
-            Get-Content -Path ([IO.Path]::Combine($outputDir.FullName, ("{0}.psm1" -f $name))) -Raw | Should -BeLike '*$MyModuleSession = @{*commands*'
+            Get-Content -Path ([IO.Path]::Combine($outputDir.FullName, "MyModule", ("{0}.psm1" -f $name))) -Raw | Should -BeLike '*$MyModuleSession = @{*commands*'
 
         }
     }
