@@ -1,0 +1,38 @@
+== Tools
+
+In order to make the independent runner a reality a number of decisions had to be made about the tools that are going to be used.
+
+https://amidodevelopment.atlassian.net/wiki/spaces/TEC/pages/3432415252/Independent+Pipeline+Runner[ADR 0044] was raised for the independent runner.
+
+=== Language
+
+The existing pipelines use a lot of Bash scripts to achieve the work of the task. However Bash is not a cross platform scripting language and it is not easy to unit test Bash scripts. Finally Bash scripts are very susceptible to line endings so even if the script is run on WLS in Windows it may not work as the file has been edited in Windows and has `\r\n` line endings.
+
+PowerShell is now cross platform and as everything is an object, the problem of line endings goes away. It also has a fully developed and established testing framework called https://pester.dev[Pester]. This will allow all of the functions and cmdlets that are developed to be properly tested.
+
+All of the functions that are to be used in the pipeline will be built as a PowerShell module. This will be made available as a downloadable module eventually and will be baked into the Docker images required for the builds.
+
+NOTE: During development the module is being used as is from a directory in the `github.com/amido/stacks-dotnet` repo. This is in the `russellseymour/independent-pipeline`` branch.
+
+=== Runner
+
+Three tools have been evaluated for the independent runner.
+
+1. Taskfile - https://taskfile.dev
+2. Taskctl - https://github.com/taskctl/taskctl
+3. Psake - https://psake.readthedocs.io/en/latest/
+
+Initially Taskfile was seen as the best tool to use, and indeed this was the runner that was used for the POC. However there were a couple of issues that made it hard to work with
+
+1. It was not possible to get the output from one task into another
+2. There was no support for running a task in a different context, so it was not possible to meet the objective of providing a known environment for the tasks.
+
+As PowerShell has been chosen as the main scripting language for the builds, it made sense to look at Psake which is a task runner built on PowerShell. Unfortunately Psake does not support running things in a different environment easily. Additionally people would have to learn how PowerShell works in order to modify the pipeline.
+
+Finally Taskctl was researched and adopted. This is because of several factors:
+
+- configuration file is yaml based
+- outputs from previous tasks can be retrieved by subsequent tasks
+- allows the use of contexts to run tasks, meaning that our own Docker containers can be used to provide a known environment
+- Not only can tasks be defined, but pipelines as well. This means that the different stages can be defined within the configuration can called as required by the operator (be it humand or a CI/CD agent)
+- Taskctl has the ability to produce graphs of the pipelines that have been configured

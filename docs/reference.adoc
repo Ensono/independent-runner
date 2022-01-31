@@ -1,0 +1,14 @@
+== Reference
+
+This section contains information about commands and processes that can be run in conjunction with the independent runner.
+
+=== Generate Pipeline Graph
+
+Taskctl has a the ability to create a dependency graph for each of the pipelines that have been configured.
+
+NOTE: The graph command will output a dot file that needs to be rendered by Graphviz, this needs to be installed for the following commands to work.
+
+[source,bash]
+----
+taskctl graph build | dot Tpng -o build_pipeline.png
+----

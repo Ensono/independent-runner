@@ -1,0 +1,111 @@
+
+# Set the build name which will define the Build Number
+name: 0.0$(Rev:.r)
+
+# Set the agent pool that stages should be run in
+pool:
+  vmImage: ubuntu-20.04
+
+variables:
+  - name: moduleName
+    value: AmidoBuild
+
+# Configure the stages
+stages:
+
+  - stage: Build
+
+    jobs:
+
+    - job: UnitTests
+
+      steps:
+
+        # Install Taskctl for the build to run
+        - task: Bash@3
+          displayName: Install Taskctl
+          inputs:
+            targetType: inline
+            script: |
+              wget https://github.com/taskctl/taskctl/releases/download/${{ variables.TaskctlVersion }}/taskctl_${{ variables.TaskctlVersion }}_linux_amd64.tar.gz -O /tmp/taskctl.tar.gz
+              tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl 
+
+        # Ensure that no outputs already exist
+        - task: Bash@3
+          displayName: Clean outputs
+          inputs:
+            targetType: inline
+            script: |
+              taskctl clean
+
+        # Run the Taskctl pipeline to execute the tests
+        - task: Bash@3
+          displayName: Execute tests
+          inputs:
+            targetType: inline
+            script: |
+              taskctl tests
+
+        # Run the task to generate the PowerShell module files
+        - task: Bash@3
+          displayName: Generate PowerShell Module
+          inputs:
+            targetType: inline
+            script: |
+              taskctl build
+
+        # Generate the documentation
+        - task: Bash@3
+          displayName: Generate Documentation
+          inputs:
+            targetType: inline
+            script: |
+              taskctl docs
+
+        # Upload tests and the coverage results
+        - task: PublishTestResults@2
+          inputs:
+            testResultsFormat: JUnit
+            testResultsFiles: $(Build.SourcesDirectory)/outputs/tests/pester-unittests-results.xml
+            testRunTitle: UnitTests
+
+        - task: PublishCodeCoverageResults@1
+          inputs:
+            codeCoverageTool: JaCoCo
+            summaryFileLocation: $(Build.SourcesDirectory)/outputs/tests/pester-coverage.xml
+
+        # Upload the documentation
+        - task: PublishBuildArtifacts@1
+          displayName: Publish Documentation
+          inputs:
+            pathToPublish: $(Build.SourcesDirectory)/outputs/docs
+            artifactName: docs
+
+        # Upload the module files
+        - task: PublishBuildArtifacts@1
+          displayName: Publish Modules
+          inputs:
+            pathToPublish: $(Build.SourcesDirectory)/outputs/module
+            artifactName: modules
+
+  - stage: Release
+
+    jobs:
+
+    - job: CreateGHRelease
+
+      steps:
+
+        # Download the necessary artifacts from the previous stage
+        # - documentation
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            artifact: 'docs'
+            patterns: '**/*.pdf'
+            path: $(Build.SourcesDirectory)/artifacts/docs
+
+        # - module
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            artifact: 'modules'
+            path: $(Build.SourcesDirectory)/artifacts/modules

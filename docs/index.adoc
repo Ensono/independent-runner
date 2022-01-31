@@ -1,0 +1,15 @@
+:source-highlighter: rouge
+:pdf-theme: styles/theme.yml
+:table-stripes: even
+:listing-caption: Listing
+:icons: font
+
+include::objectives.adoc[]
+
+include::tools.adoc[]
+
+include::pipelines.adoc[]
+
+include::docker_images.adoc[]
+
+include::reference.adoc[]

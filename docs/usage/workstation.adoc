@@ -1,0 +1,47 @@
+=== Workstation
+
+All of the pipelines and tasks that are configured in `taskctl` can be run on a local workstation, as long as `taskctl` and Docker are installed.
+
+Some pipelines require additional configuration using environment variables, whilst others can just be run as is.
+
+==== Pipeline: Build
+
+By default the pipeline will attempt to push the image to the a specified container registry. When running locally this is not always desired, but the pipeline will expect to do this. It can be overridden so that this step is not performed by setting en environment variable.
+
+.Build pipeline environment variables
+[options="header",cols="1,2"]
+|===
+| Name | Description
+| NO_PUSH | The presence of this variable will stop the cmdlet from attempting to push to a container registry. It does not matter what the value is.
+|===
+
+To perform a full local build of the application, run the following command from the root of the project:
+
+[source,powershell]
+----
+taskctl build
+----
+
+The following screenshot shows an example of running this pipeline:
+
+image::../images/pipeline_build.gif[]
+
+==== Pipeline: Infrastructure
+
+In order to run the pipeline for the infrastructure build a number of environment variables must be configured. These are settings that allow Terraform to communicate with the state and also to perform the deployment into Azure for example.
+
+To access Azure, the independent runner requires a Service Principal with the details from it being set as environment variables.
+
+NOTE: In the following code example initials of the user creating the Service Principal are being used to identify the objecct in AAD.
+
+[source=powershell]
+----
+$sp = New-AzADServicePrincipal -DisplayName "RJS-IndependentRunner"
+
+# Set environment variables for authentication
+$env:ARM_CLIENT_ID = $sp.Id
+$env:ARM_CLIENT_SECRET = [System.Net.NetworkCredential]::new("", $sp.Secret).Password
+$env:ARM_SUBSCRIPTION_ID = (Get-AzContext).Subscription
+$env:ARM_TENANT_ID = (Get-AzContext).Tenant
+
+----

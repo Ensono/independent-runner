@@ -1,0 +1,22 @@
+:fn-docker: footnote:docker[Currently Docker is the recommended engine, however we are looking at supporting other `containerd` based engines]
+
+== Objectives
+
+The objectives of using an independent build runner are as follows:
+
+* Allow build pipelines to be run on a developer workstation
+* Make it easier to adopt other SaaS build pipelines for Amido Stacks
+* Remove ambiguity that can arise when running on an unknown platform
+* Use PowerShell as the language to run the functions and scripts
+* Provide the ability to unit test build stages as appropriate
+
+One of the biggest problems that we have had with pipelines in the past is that they are very much based on Azure DevOps. This means that we are locked into one vendor and it is impossible to test any changes in the pipeline without running it in Azure DevOps.
+
+By adopting an independent runner that can be run on any platform we remove the dependency on a specific CI/CD system. Additionally we can apply development best practices to the functions that make up the pipeline so that we have confidence in all the working parts.
+
+PowerShell is a cross-platform testable language that we can use for _all_ builds be it for .NET, Java or Node. Due to PowerShell's approach for all items being an object the problem of line endings in Windows and Linux is eliminated.
+
+It is not possible to remove all of the configuration for each of the supported CI/CD systems, but the configuration for each is very much reduced. Now it is just has to bootstrap the independent runner and then it will run in the same way as on a local machine.
+
+As the pipeline can now be run on (more or less) any platform the environments in which it can run on is vastly increased, which means we cannot guarantee that all the tools will be in place. To address this issue each of the tasks will run in a container which _does_ contain all of the necessary tools and applications. This then means that any platform the pipeline is run on just needs to have the independent runner and Docker{fn-docker} installed.
+
