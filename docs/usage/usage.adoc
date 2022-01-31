@@ -1,0 +1,45 @@
+== Usage
+
+By using the independent runner it is possible to run the configured pipelines using `taskctl` on a local workstation or in a CI/CD platform.
+
+Whenever the pipeline is run all of the environment variables set in the session will be made available in the container running the task. This is achieved by writing all of the env vars into a file that Docker reads whenever the container is started.
+
+NOTE: To avoid problems with finding tools and apps in the container the PATH environment variable is not copied into the container.
+
+This is achieved by using the `before` parameter of the pipeline context and then Docker reads this file in. For example:
+
+.Taskctl context configuration
+[[project_settings_file,{listing-caption} {counter:refnum}]]
+[source,yaml]
+----
+  powershell:
+    executable:
+      quote: "'"
+      env:
+        arguments: "-v q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover" // <1>
+      before: env | grep -v PATH > envfile
+
+      bin: docker
+      args:
+        - run
+        - --rm
+        - -v
+        - ${PWD}:/app
+        - -e
+        - PSModulePath=/app/build/scripts/modules
+        - -w
+        - /app
+        - --env-file
+        - envfile // <2>
+        - russellseymour/runner-pwsh-dotnet:0.0.3
+        - pwsh
+        - -NoProfile
+        - -Command
+
+
+----
+
+<1> Get all of the env vars in the session and write out to a file called envfile
+<2> Read in the key value pairs file that has been created by the `before` parameter
+
+include::workstation.adoc[]
