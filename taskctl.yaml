@@ -84,7 +84,7 @@ tasks:
     command:
       - Build-PowerShellModule -Path /app/src/modules -name AmidoBuild -target outputs/module
 
-  convert:
+  tests:coverage_report:
     context: dotnet
     description: Create HTML report from coverage doc
     command:
@@ -97,8 +97,9 @@ pipelines:
 
   tests:
     - task: tests:unit
-    - task: convert
-      depends_on: tests:unit
+    - task: tests:coverage_report
+      depends_on:
+        - tests:unit
 
   build:
     - task: generate
