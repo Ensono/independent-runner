@@ -75,7 +75,7 @@ stages:
         # Upload tests and the coverage results
         - task: PublishTestResults@2
           inputs:
-            testResultsFormat: JUnit
+            testResultsFormat: NUnit
             testResultsFiles: '**/pester-unittest-results.xml'
             testRunTitle: UnitTests
 
