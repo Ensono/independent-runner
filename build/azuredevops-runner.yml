@@ -65,13 +65,6 @@ stages:
             script: |
               taskctl docs
 
-        - task: Bash@3
-          inputs: 
-            targetType: inline
-            script: |
-              tree $(Build.SourcesDirectory)/outputs
-              cat $(Build.SourcesDirectory)/outputs/tests/pester-unittest-results.xml
-
         # Upload tests and the coverage results
         - task: PublishTestResults@2
           inputs:
