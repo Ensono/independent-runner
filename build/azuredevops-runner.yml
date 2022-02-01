@@ -46,7 +46,8 @@ stages:
           inputs:
             targetType: inline
             script: |
-              taskctl tests
+              taskctl tests:unit
+              taskctl tests:coverage_report
 
         # Run the task to generate the PowerShell module files
         - task: Bash@3
