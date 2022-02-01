@@ -74,7 +74,7 @@ stages:
         - task: PublishTestResults@2
           inputs:
             testResultsFormat: JUnit
-            testResultsFiles: $(Build.SourcesDirectory)/outputs/tests/pester-unittest-results.xml
+            testResultsFiles: '**/pester-unittest-results.xml'
             testRunTitle: UnitTests
 
         - task: PublishCodeCoverageResults@1

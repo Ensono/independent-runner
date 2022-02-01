@@ -97,6 +97,8 @@ pipelines:
 
   tests:
     - task: tests:unit
+    - task: convert
+      depends_on: tests:unit
 
   build:
     - task: generate
