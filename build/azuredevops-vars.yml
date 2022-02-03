@@ -11,7 +11,7 @@ variables:
   - name: DASHBOARD_VERSION
     value: $(Build.BuildNumber)
   - name: DASHBOARD_TAGS
-    value: environment=$(Build.StageName),source=$(Build.SourceBranchName),app=$(Build.DefinitionName),requestedby=$(Build.RequestedFor)
+    value: environment=$(System.StageName),source=$(Build.SourceBranchName),app=$(Build.DefinitionName)
   - name: DASHBOARD_MEASUREMENT
     value: deployment # Static definition within Influx Config
 
