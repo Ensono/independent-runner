@@ -16,5 +16,5 @@ param (
 # Import helper functions
 # N/A
 
-$data -match "^[0-9a-zA-Z=-]+(,[0-9a-zA-Z=-]+)*$"
+$data -match "^[0-9a-zA-Z=-.]+(,[0-9a-zA-Z=-.]+)*$"
 }
