@@ -58,6 +58,7 @@ contexts:
         - -NoProfile
         - -Command
     quote: "'"
+    before: env | grep -v PATH > envfile
 
   dotnet:
     executable:
@@ -116,7 +117,6 @@ tasks:
     description: Update the Deployment Dashboard
     command:
       - Update-InfluxDashboard
-    before: env | grep -v PATH > envfile
 
   publish:github:
     context: powershell
