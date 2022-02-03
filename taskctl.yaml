@@ -122,7 +122,7 @@ tasks:
     context: powershell
     description: Publish Release to GitHub
     command:
-      - Write-Information 'PUBLISH GOES HERE' #TODO: Update this to actually publish to GitHub!
+      - Write-Information PublishGHRelease #TODO: Update this to actually publish to GitHub!
 
 pipelines:
 

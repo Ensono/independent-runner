@@ -43,11 +43,11 @@ Update Deployment Dashboard Details
         return
     }
 
-    write-information "$influx_server"
     # Confirm influx server is HTTPS web address
     $result = $false
     $result = Confirm-IsWebAddress $influx_server
     if (!$result) {
+        Write-Information -MessageData ("influx server: {0}" -f $influx_server)
         Write-Error -Message "supplied server parameter is not a valid HTTPS address"
         return
     }
@@ -57,6 +57,7 @@ Update Deployment Dashboard Details
     $result = $false
     $result = Confirm-CSL $tags
     if (!$result) {
+        Write-Information -MessageData ("tags: {0}" -f $tags)
         Write-Error -Message "tags parameter is not a valid comma-separated list as a string"
         return
     }
@@ -66,6 +67,7 @@ Update Deployment Dashboard Details
     $result = $false
     $result = Confirm-SemVer $version
     if (!$result) {
+        Write-Information -MessageData ("version: {0}" -f $version)
         Write-Error -Message "Influx Version is not a valid semantic version string"
         return
     }
