@@ -7,10 +7,7 @@ pool:
   vmImage: ubuntu-20.04
 
 variables:
-  - name: TaskctlVersion
-    value: 1.4.2
-  - name: moduleName
-    value: AmidoBuild
+  - template: azuredevops-vars.yml
 
 # Configure the stages
 stages:
@@ -119,3 +116,11 @@ stages:
           inputs:
             artifact: 'modules'
             path: $(Build.SourcesDirectory)/artifacts/modules
+
+        # publish to GitHub and Build Dashboard TODO: enable actual GH release publishing in taskctl file.
+        - task: Bash@3
+          displayName: Update Deployment Dashboard
+          inputs:
+            targetType: inline
+            script: |
+              taskctl release

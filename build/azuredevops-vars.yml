@@ -1,0 +1,23 @@
+# This file holds the variables that will be consumed
+# by the build
+variables:
+  - name: TaskctlVersion
+    value: 1.4.2
+  - name: moduleName
+    value: AmidoBuild
+
+# Dashboard
+
+  - name: DASHBOARD_VERSION
+    value: $(Build.BuildNumber)
+  - name: DASHBOARD_TAGS
+    value: environment=$(Build.StageName),source=$(Build.SourceBranchName),app=$(Build.DefinitionName),requestedby=$(Build.RequestedFor)
+  - name: DASHBOARD_MEASUREMENT
+    value: deployment # Static definition within Influx Config
+
+  - group: amido-stacks-influx-credentials-prod
+    # The following variables should be populated in the connected variable group:
+    # DASHBOARD_INFLUX_ORG
+    # DASHBOARD_INFLUX_BUCKET
+    # DASHBOARD_INFLUX_TOKEN
+    # DASHBOARD_INFLUX_SERVER
