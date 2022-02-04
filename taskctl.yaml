@@ -18,7 +18,7 @@ contexts:
         - -Command
     quote: "'"
 
-  powershell:
+  powershell_test:
     executable:
       bin: docker
       args:
@@ -37,6 +37,28 @@ contexts:
         - -NoProfile
         - -Command
     quote: "'"
+
+  powershell:
+    executable:
+      bin: docker
+      args:
+        - run
+        - --env-file envfile
+        - --rm
+        - -v
+        - ${PWD}:/app
+        - -v
+        - /var/run/docker.sock:/var/run/docker.sock
+        - -e
+        - PSModulePath=/app/src/modules
+        - -w
+        - /app
+        - russellseymour/runner-pwsh:0.0.4
+        - pwsh
+        - -NoProfile
+        - -Command
+    quote: "'"
+    before: env | grep -v PATH > envfile
 
   dotnet:
     executable:
@@ -72,23 +94,35 @@ tasks:
       - Build-Documentation -BasePath /app -Pdf -Title "Independent Runner" -AttributeFile /app/build/config/pdf-config.ps1
       - Build-Documentation -BasePath /app -MD -MDX
 
-  tests:unit:
-    context: powershell
-    description: Run PowerShell unit tests and coverage on the module
-    command:
-      - /app/build/scripts/Invoke-PesterTests.ps1 -Path /app/src/modules/AmidoBuild -UnitTests -Coverage
-
   generate:
     context: powershell
     description: Build the PowerShell module
     command:
-      - Build-PowerShellModule -Path /app/src/modules -name AmidoBuild -target outputs/module
+      - Build-PowerShellModule -Path /app/src/modules -name AmidoBuild -target /app/outputs/module
+
+  tests:unit:
+    context: powershell_test
+    description: Run PowerShell unit tests and coverage on the module
+    command:
+      - /app/build/scripts/Invoke-PesterTests.ps1 -Path /app/src/modules/AmidoBuild -UnitTests -Coverage
 
   tests:coverage_report:
     context: dotnet
     description: Create HTML report from coverage doc
     command:
       - Invoke-DotNet -Coverage -Pattern pester-coverage.xml -Path /app -Source /app/src/modules/AmidoBuild -Target /app/outputs/tests
+
+  publish:dashboard:
+    context: powershell
+    description: Update the Deployment Dashboard
+    command:
+      - Update-InfluxDashboard
+
+  publish:github:
+    context: powershell
+    description: Publish Release to GitHub
+    command:
+      - Write-Information PublishGHRelease #TODO: Update this to actually publish to GitHub!
 
 pipelines:
 
@@ -103,7 +137,11 @@ pipelines:
 
   build:
     - task: generate
-
+  
+  release:
+    - task: publish:dashboard
+    - task: publish:github
+    
   all:
     - task: clean
     - pipeline: docs
@@ -115,4 +153,4 @@ pipelines:
     - pipeline: build
       depends_on:
         - clean
-    
+    # NB: `release` is not declared here, as it must be run as a discrete pipeline to ensure tests/etc. are passed.
