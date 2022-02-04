@@ -1,2 +1,4 @@
 local
 outputs
+envfile
+.DS_Store

@@ -7,10 +7,7 @@ pool:
   vmImage: ubuntu-20.04
 
 variables:
-  - name: TaskctlVersion
-    value: 1.4.2
-  - name: moduleName
-    value: AmidoBuild
+  - template: azuredevops-vars.yml
 
 # Configure the stages
 stages:
@@ -103,9 +100,7 @@ stages:
     jobs:
 
     - job: CreateGHRelease
-
       steps:
-
         # Download the necessary artifacts from the previous stage
         # - documentation
         - task: DownloadPipelineArtifact@2
@@ -119,3 +114,23 @@ stages:
           inputs:
             artifact: 'modules'
             path: $(Build.SourcesDirectory)/artifacts/modules
+
+    - job: UpdateDashboard
+      dependsOn: CreateGHRelease
+      steps:
+        - checkout: self
+        # Install Taskctl for the build to run
+        - task: Bash@3
+          displayName: Install Taskctl
+          inputs:
+            targetType: inline
+            script: |
+              wget https://github.com/taskctl/taskctl/releases/download/${{ variables.TaskctlVersion }}/taskctl_${{ variables.TaskctlVersion }}_linux_amd64.tar.gz -O /tmp/taskctl.tar.gz
+              tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl 
+        # publish to GitHub and Build Dashboard TODO: enable actual GH release publishing in taskctl file.
+        - task: Bash@3
+          displayName: Update Deployment Dashboard
+          inputs:
+            targetType: inline
+            script: |
+              taskctl release
