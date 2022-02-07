@@ -29,6 +29,8 @@ variables:
     value: "amido"
   - name: REPOSITORY
     value: "independent-runner"
+  - name: ELIGIBLE_BRANCH
+    value: "main"
   - name: ARTIFACTS_DIR
     value: "artifacts/"
   - group: amido-stacks-github-credentials
