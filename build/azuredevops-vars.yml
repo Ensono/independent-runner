@@ -28,7 +28,7 @@ variables:
   - name: OWNER
     value: "amido"
   - name: REPOSITORY
-    value: "$(Build.Repository.Name)"
+    value: "independent-runner"
   - name: ARTIFACTS_DIR
     value: "$(Build.SourcesDirectory)/artifacts/"
   - group: amido-stacks-github-credentials
