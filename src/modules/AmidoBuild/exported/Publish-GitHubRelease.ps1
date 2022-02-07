@@ -54,7 +54,11 @@ function Publish-GitHubRelease() {
 
         [string]
         # Eligible branch for which the GitHub Release should be created
-        $eligiblebranch = $env:ELIGIBLE_BRANCH,
+        $eligibleBranch = $env:ELIGIBLE_BRANCH,
+
+        [string]
+        # Supplied so CI services running with a detached head can declare what the source branch is.
+        $declaredCurrentBranch = $env:DECLARED_CURRENT_BRANCH,
 
         [bool]
         # Set if the release is a Draft, e.g. not visible to users
@@ -72,15 +76,17 @@ function Publish-GitHubRelease() {
 
     # Check if the current branch is eligible for creating a release in GitHub.
     # TODO: potential requirement for wildcard matches release branches. 
-    $currentBranch = Invoke-External "git rev-parse --abbrev-ref HEAD"
+    
+    $computedCurrentBranch = Invoke-External "git rev-parse --abbrev-ref HEAD"
     if ([string]::IsNullOrEmpty($env:ELIGIBLE_BRANCH)) { # Backwards compatibility for existing function usage with no eligible branch declaration.
-        Write-Information -MessageData ("No eligible branch declared, running on, current branch is: {0}" -f $currentBranch)
+        Write-Information -MessageData ("No eligible branch specified, proceeding.")
     } else {
-        if ($currentBranch -ne $eligibleBranch) { 
-            Write-Information -MessageData ("Skipping GitHub release creation; set to trigger on branch: {0}, current branch is: {1}" -f $eligibleBranch, $currentBranch)
+        if ($declaredCurrentBranch -ne $eligibleBranch -Or $computedCurrentBranch -ne $eligibleBranch) { # If neither the declared or computed branches match the eligible branch, return
+            Write-Information -MessageData ("Skipping GitHub release creation; set to trigger on branch: {0}, declared branch is: {1}, computed branch is: {2}" -f $eligibleBranch, $declaredCurrentBranch, $computedCurrentBranch)
             return
         }
     }
+    Write-Information -MessageData ("Publishing GitHub release for {0}" -f $eligibleBranch)
 
     # As environment variables cannot be easily used for the boolean values
     # check to see if they have been set and overwite the values if they have
