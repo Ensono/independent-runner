@@ -7,17 +7,31 @@ variables:
     value: AmidoBuild
 
 # Dashboard
-
   - name: DASHBOARD_VERSION
     value: $(Build.BuildNumber)
   - name: DASHBOARD_TAGS
     value: environment=$(System.StageName),source=$(Build.SourceBranchName),app=$(Build.DefinitionName)
   - name: DASHBOARD_MEASUREMENT
     value: deployment # Static definition within Influx Config
-
   - group: amido-stacks-influx-credentials-prod
-    # The following variables should be populated in the connected variable group:
-    # DASHBOARD_INFLUX_ORG
-    # DASHBOARD_INFLUX_BUCKET
-    # DASHBOARD_INFLUX_TOKEN
-    # DASHBOARD_INFLUX_SERVER
+    # Group should contain: 
+      # DASHBOARD_INFLUX_ORG
+      # DASHBOARD_INFLUX_BUCKET
+      # DASHBOARD_INFLUX_TOKEN
+      # DASHBOARD_INFLUX_SERVER
+
+# GitHub Release
+  - name: VERSION_NUMBER
+    value: "$(Build.BuildNumber)"
+  - name: COMMIT_ID
+    value: "$(Build.SourceVersion)"
+  - name: OWNER
+    value: "amido"
+  - name: REPOSITORY
+    value: "$(Build.Repository.Name)"
+  - name: ARTIFACTS_DIR
+    value: "./outputs"
+  - group: amido-stacks-github-credentials
+    # Group should contain: 
+      # API_KEY
+
