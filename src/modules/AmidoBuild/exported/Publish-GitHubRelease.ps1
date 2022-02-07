@@ -41,7 +41,7 @@ function Publish-GitHubRelease() {
         $artifactsList = @(),
 
         [string]
-        # Username to use to perform the release under
+        # The owner username of the repository
         $owner = $env:OWNER,
 
         [string]
@@ -58,7 +58,11 @@ function Publish-GitHubRelease() {
 
         [bool]
         # Pre-release of an upcoming major release
-        $preRelease = $true
+        $preRelease = $true,
+
+        [bool]
+        # Auto-generate release Notes
+        $generateReleaseNotes = $false
 
     )
 
@@ -85,7 +89,7 @@ function Publish-GitHubRelease() {
     # if the artifactsList is empty, get all the files in the specified artifactsDir
     # otherwise find the files that have been specified
     if ($artifactsList.Count -eq 0) {
-        $artifactsList = Get-ChildItem -Path $artifactsDir -Recurse
+        $artifactsList = Get-ChildItem -Path $artifactsDir -Recurse -File
     } else {
         $files = $artifactsList
         $artifactsList = @()
@@ -103,6 +107,7 @@ function Publish-GitHubRelease() {
         body = $notes
         draft = $draft
         prerelease = $preRelease
+        generate_release_notes = $generateReleaseNotes
     }
 
     # Create the Base64encoded string for the APIKey to be used in the header of the API call
@@ -128,6 +133,7 @@ function Publish-GitHubRelease() {
     # Create the release by making the API call, artifacts will be uploaded afterwards
     Write-Information -MessageData ("Creating release for: {0}" -f $version)
     try {
+        Write-Information ($releaseArgs | Format-Table | Out-String) 
         $result = Invoke-WebRequest @releaseArgs
     } catch {
         Write-Error -Message $_.Exception.Message
@@ -156,7 +162,6 @@ function Publish-GitHubRelease() {
             ContentType = "application/octet-stream"
             InFile = $uploadFile
         }
-
         # Perform the upload of the artifact
         try {
             $result = Invoke-WebRequest @uploadArgs
