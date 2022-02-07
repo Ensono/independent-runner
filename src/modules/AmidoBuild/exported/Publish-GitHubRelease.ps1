@@ -49,8 +49,12 @@ function Publish-GitHubRelease() {
         $apikey = $env:API_KEY,
 
         [string]
-        # GithUB repository that the release is for
+        # GitHub repository that the release is for
         $repository = $env:REPOSITORY,
+
+        [string]
+        # Eligible branch for which the GitHub Release should be created
+        $eligiblebranch = $env:ELIGIBLE_BRANCH,
 
         [bool]
         # Set if the release is a Draft, e.g. not visible to users
@@ -65,6 +69,18 @@ function Publish-GitHubRelease() {
         $generateReleaseNotes = $false
 
     )
+
+    # Check if the current branch is eligible for creating a release in GitHub.
+    # TODO: potential requirement for wildcard matches release branches. 
+    $currentBranch = Invoke-External "git rev-parse --abbrev-ref HEAD"
+    if ([string]::IsNullOrEmpty($env:ELIGIBLE_BRANCH)) { # Backwards compatibility for existing function usage with no eligible branch declaration.
+        Write-Information -MessageData ("No eligible branch declared, running on, current branch is: {0}" -f $currentBranch)
+    } else {
+        if ($currentBranch -ne $eligibleBranch) { 
+            Write-Information -MessageData ("Skipping GitHub release creation; set to trigger on branch: {0}, current branch is: {1}" -f $eligibleBranch, $currentBranch)
+            return
+        }
+    }
 
     # As environment variables cannot be easily used for the boolean values
     # check to see if they have been set and overwite the values if they have
