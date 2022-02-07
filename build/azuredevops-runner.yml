@@ -98,13 +98,8 @@ stages:
   - stage: Release
 
     jobs:
-
-    - job: CreateGHRelease
-      steps:
-
-
-    - job: UpdateDashboard
-      dependsOn: CreateGHRelease
+    
+    - job: Publish
       steps:
         - checkout: self # Local use of Powershell Modules
 
