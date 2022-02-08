@@ -96,6 +96,7 @@ stages:
             artifactName: modules
 
   - stage: Release
+    condition: and(succeeded('Build'), or( eq(variables['Build.SourceBranch'], 'refs/heads/main')), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')))
 
     jobs:
     
@@ -127,8 +128,10 @@ stages:
 
         # Publish to GitHub and Build Dashboard
         - task: Bash@3
-          displayName: Update Deployment Dashboard
+          displayName: Publish Release
           inputs:
             targetType: inline
             script: |
               taskctl release
+          env: 
+            PUBLISH_RELEASE: $true

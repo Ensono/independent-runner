@@ -29,12 +29,8 @@ variables:
     value: "amido"
   - name: REPOSITORY
     value: "independent-runner"
-  - name: ELIGIBLE_BRANCH
-    value: "main"
   - name: ARTIFACTS_DIR
     value: "artifacts/"
-  - name: DECLARED_CURRENT_BRANCH
-    value: "$(Build.SourceBranchName)"
   - group: amido-stacks-github-credentials
     # Group should contain: 
       # API_KEY
