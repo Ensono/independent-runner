@@ -112,11 +112,14 @@ tasks:
     command:
       - Invoke-DotNet -Coverage -Pattern pester-coverage.xml -Path /app -Source /app/src/modules/AmidoBuild -Target /app/outputs/tests
 
-  publish:dashboard:
+  update:dashboard:
     context: powershell
     description: Update the Deployment Dashboard
     command:
       - Update-InfluxDashboard
+    # TODO: Currently handled by ADO pipeline var, captured in Story 4122
+    # env: 
+    #  PUBLISH_RELEASE: $true
 
   publish:github:
     context: powershell
@@ -141,7 +144,7 @@ pipelines:
     - task: generate
   
   release:
-    - task: publish:dashboard
+    - task: update:dashboard
     - task: publish:github
     
   all:
