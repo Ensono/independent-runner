@@ -96,7 +96,7 @@ stages:
             artifactName: modules
 
   - stage: Release
-    condition: and(succeeded('Build'), or( eq(variables['Build.SourceBranch'], 'refs/heads/main')), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'))
+    condition: and(succeeded('Build'), eq(variables['Build.SourceBranch'], 'refs/heads/main'))  # On main branch runs after a successful build
 
     jobs:
     
