@@ -98,9 +98,11 @@ stages:
   - stage: Release
 
     jobs:
-
-    - job: CreateGHRelease
+    
+    - job: Publish
       steps:
+        - checkout: self # Local use of Powershell Modules
+
         # Download the necessary artifacts from the previous stage
         # - documentation
         - task: DownloadPipelineArtifact@2
@@ -108,17 +110,12 @@ stages:
             artifact: 'docs'
             patterns: '**/*.pdf'
             path: $(Build.SourcesDirectory)/artifacts/docs
-
         # - module
         - task: DownloadPipelineArtifact@2
           inputs:
             artifact: 'modules'
             path: $(Build.SourcesDirectory)/artifacts/modules
 
-    - job: UpdateDashboard
-      dependsOn: CreateGHRelease
-      steps:
-        - checkout: self
         # Install Taskctl for the build to run
         - task: Bash@3
           displayName: Install Taskctl
@@ -127,10 +124,14 @@ stages:
             script: |
               wget https://github.com/taskctl/taskctl/releases/download/${{ variables.TaskctlVersion }}/taskctl_${{ variables.TaskctlVersion }}_linux_amd64.tar.gz -O /tmp/taskctl.tar.gz
               tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl 
-        # publish to GitHub and Build Dashboard TODO: enable actual GH release publishing in taskctl file.
+
+        # Publish to GitHub and Build Dashboard
         - task: Bash@3
-          displayName: Update Deployment Dashboard
+          displayName: Publish Release
           inputs:
             targetType: inline
             script: |
               taskctl release
+          ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}: # On main branch runs
+            env: 
+              PUBLISH_RELEASE: $true

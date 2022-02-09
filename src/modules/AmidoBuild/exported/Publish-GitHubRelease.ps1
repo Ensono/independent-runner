@@ -41,7 +41,7 @@ function Publish-GitHubRelease() {
         $artifactsList = @(),
 
         [string]
-        # Username to use to perform the release under
+        # The owner username of the repository
         $owner = $env:OWNER,
 
         [string]
@@ -49,8 +49,12 @@ function Publish-GitHubRelease() {
         $apikey = $env:API_KEY,
 
         [string]
-        # GithUB repository that the release is for
+        # GitHub repository that the release is for
         $repository = $env:REPOSITORY,
+
+        [bool]
+        # Eligible branch for which the GitHub Release should be created
+        $publishRelease = $false,
 
         [bool]
         # Set if the release is a Draft, e.g. not visible to users
@@ -58,9 +62,27 @@ function Publish-GitHubRelease() {
 
         [bool]
         # Pre-release of an upcoming major release
-        $preRelease = $true
+        $preRelease = $true,
+
+        [bool]
+        # Auto-generate release Notes
+        $generateReleaseNotes = $false
 
     )
+
+    # Check whether to actually create the release
+    # TODO: export this to separate configuration cmdlet
+    
+    if ([string]::IsNullOrEmpty($env:PUBLISH_RELEASE)) {
+        $publishRelease = $false
+    } else {
+        $publishRelease = $true
+    }
+
+    if (!$publishRelease) {
+        Write-Information -MessageData ("publishRelease parameter not specified or set to false, exiting.")
+        return
+    }
 
     # As environment variables cannot be easily used for the boolean values
     # check to see if they have been set and overwite the values if they have
@@ -85,7 +107,7 @@ function Publish-GitHubRelease() {
     # if the artifactsList is empty, get all the files in the specified artifactsDir
     # otherwise find the files that have been specified
     if ($artifactsList.Count -eq 0) {
-        $artifactsList = Get-ChildItem -Path $artifactsDir -Recurse
+        $artifactsList = Get-ChildItem -Path $artifactsDir -Recurse -File
     } else {
         $files = $artifactsList
         $artifactsList = @()
@@ -103,6 +125,7 @@ function Publish-GitHubRelease() {
         body = $notes
         draft = $draft
         prerelease = $preRelease
+        generate_release_notes = $generateReleaseNotes
     }
 
     # Create the Base64encoded string for the APIKey to be used in the header of the API call
@@ -156,7 +179,6 @@ function Publish-GitHubRelease() {
             ContentType = "application/octet-stream"
             InFile = $uploadFile
         }
-
         # Perform the upload of the artifact
         try {
             $result = Invoke-WebRequest @uploadArgs
