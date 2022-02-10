@@ -73,7 +73,7 @@ function Publish-GitHubRelease() {
     # Check whether to actually create the release
     # TODO: export this to separate configuration cmdlet
     
-    if ([string]::IsNullOrEmpty($env:PUBLISH_RELEASE)) {
+    if ([string]::IsNullOrEmpty($env:PUBLISH_RELEASE) -and !$publishRelease) {
         $publishRelease = $false
     } else {
         $publishRelease = $true
