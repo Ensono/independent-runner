@@ -63,7 +63,7 @@ function Build-DockerImage() {
     }
 
     if ([string]::IsNullOrEmpty($tag)) {
-        $tag = "workstation-0.0.1"
+        $tag = "0.0.1-workstation"
         Write-Information -MessageData ("No tag has been specified for the image, a default one has been set: {0}" -f $tag)
     }
 
