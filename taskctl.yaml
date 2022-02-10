@@ -2,88 +2,88 @@
 
 import:
 # Contexts
-- https://raw.githubusercontent.com/amido/stacks-pipeline-templates/875d45a6e44aeca0ff51db864a24631a81b2cd2c/taskctl/contexts.yml
+# - https://raw.githubusercontent.com/amido/stacks-pipeline-templates/875d45a6e44aeca0ff51db864a24631a81b2cd2c/taskctl/contexts.yml
 
-# contexts:
-#   docsenv:
-#     executable:
-#       bin: docker
-#       args:
-#         - run
-#         - --rm
-#         - -v
-#         - ${PWD}:/app
-#         - -e
-#         - PSModulePath=/app/src/modules        
-#         - -w
-#         - /app
-#         - russellseymour/pandoc-asciidoctor
-#         - pwsh
-#         - -NoProfile
-#         - -Command
-#     quote: "'"
+contexts:
+  docsenv:
+    executable:
+      bin: docker
+      args:
+        - run
+        - --rm
+        - -v
+        - ${PWD}:/app
+        - -e
+        - PSModulePath=/app/src/modules        
+        - -w
+        - /app
+        - russellseymour/pandoc-asciidoctor
+        - pwsh
+        - -NoProfile
+        - -Command
+    quote: "'"
 
-#   powershell_test:
-#     executable:
-#       bin: docker
-#       args:
-#         - run
-#         - --rm
-#         - -v
-#         - ${PWD}:/app
-#         - -v
-#         - /var/run/docker.sock:/var/run/docker.sock
-#         - -e
-#         - PSModulePath=/app/src/modules
-#         - -w
-#         - /app
-#         - russellseymour/runner-pwsh:0.0.4
-#         - pwsh
-#         - -NoProfile
-#         - -Command
-#     quote: "'"
+  powershell_test:
+    executable:
+      bin: docker
+      args:
+        - run
+        - --rm
+        - -v
+        - ${PWD}:/app
+        - -v
+        - /var/run/docker.sock:/var/run/docker.sock
+        - -e
+        - PSModulePath=/app/src/modules
+        - -w
+        - /app
+        - russellseymour/runner-pwsh:0.0.4
+        - pwsh
+        - -NoProfile
+        - -Command
+    quote: "'"
 
-#   powershell:
-#     executable:
-#       bin: docker
-#       args:
-#         - run
-#         - --env-file envfile
-#         - --rm
-#         - -v
-#         - ${PWD}:/app
-#         - -v
-#         - /var/run/docker.sock:/var/run/docker.sock
-#         - -e
-#         - PSModulePath=/app/src/modules
-#         - -w
-#         - /app
-#         - russellseymour/runner-pwsh:0.0.4
-#         - pwsh
-#         - -NoProfile
-#         - -Command
-#     quote: "'"
-#     before: env | grep -v PATH > envfile
+  powershell:
+    executable:
+      bin: docker
+      args:
+        - run
+        - --env-file envfile
+        - --rm
+        - -v
+        - ${PWD}:/app
+        - -v
+        - /var/run/docker.sock:/var/run/docker.sock
+        - -e
+        - PSModulePath=/app/src/modules
+        - -w
+        - /app
+        - russellseymour/runner-pwsh:0.0.4
+        - pwsh
+        - -NoProfile
+        - -Command
+    quote: "'"
+    before: env | grep -v PATH > envfile
 
-#   dotnet:
-#     executable:
-#       bin: docker
-#       args:
-#         - run
-#         - --rm
-#         - -v
-#         - ${PWD}:/app
-#         - -v
-#         - /var/run/docker.sock:/var/run/docker.sock
-#         - -e
-#         - PSModulePath=/app/src/modules
-#         - -w
-#         - /app
-#         - russellseymour/runner-pwsh-dotnet:0.0.3
-#         - pwsh
-#         - -NoProfile
-#         - -Command
-#     quote: "'"    
+  dotnet:
+    executable:
+      bin: docker
+      args:
+        - run
+        - --rm
+        - -v
+        - ${PWD}:/app
+        - -v
+        - /var/run/docker.sock:/var/run/docker.sock
+        - -e
+        - PSModulePath=/app/src/modules
+        - -w
+        - /app
+        - russellseymour/runner-pwsh-dotnet:0.0.3
+        - pwsh
+        - -NoProfile
+        - -Command
+    quote: "'"    
 
 tasks:
 
