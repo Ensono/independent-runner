@@ -82,6 +82,13 @@ Describe "Build-DockerImage" {
 
             Should -Invoke -CommandName Write-Error -Times 1
         }
+
+        It "must error if trying to push to a generic registry and do not specify DOCKER_USERNAME or DOCKER_PASSWORD env vars" {
+
+            Build-DockerImage -Name unittests -Push -Generic
+
+            Should -Invoke -CommandName Write-Error -Times 1
+        }
     }
 
     Context "Build without push" {
