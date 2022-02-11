@@ -133,7 +133,8 @@ tasks:
       - Publish-GitHubRelease -artifactsList "AmidoBuild.psd1","AmidoBuild.psm1","Independent Runner.pdf"
     env:
       generateReleaseNotes: $true
-
+      # TODO: Currently handled by ADO pipeline var, captured in Story 4122
+      #  PUBLISH_RELEASE: $true
 pipelines:
 
   docs:

@@ -52,9 +52,9 @@ function Publish-GitHubRelease() {
         # GitHub repository that the release is for
         $repository = $env:REPOSITORY,
 
-        [bool]
-        # Eligible branch for which the GitHub Release should be created
-        $publishRelease = $false,
+        [string]
+        # Whether we should actually push data for this release
+        $publishRelease = $env:PUBLISH_RELEASE,
 
         [bool]
         # Set if the release is a Draft, e.g. not visible to users
@@ -70,17 +70,9 @@ function Publish-GitHubRelease() {
 
     )
 
-    # Check whether to actually create the release
-    # TODO: export this to separate configuration cmdlet
-    
-    if ([string]::IsNullOrEmpty($env:PUBLISH_RELEASE) -and !$publishRelease) {
-        $publishRelease = $false
-    } else {
-        $publishRelease = $true
-    }
-
-    if (!$publishRelease) {
-        Write-Information -MessageData ("publishRelease parameter not specified or set to false, exiting.")
+    # Check whether we should actually publish
+    if ($publishRelease -ne "true" -Or $publishRelease -ne $true) {
+        Write-Information -MessageData ("Neither publishRelease parameter nor PUBLISH_RELEASE environment variable set to `'true`', exiting.")
         return
     }
 
