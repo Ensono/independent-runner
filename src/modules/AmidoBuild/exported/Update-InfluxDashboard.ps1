@@ -33,15 +33,27 @@ Update Deployment Dashboard Details
 
         [string]
         # Bucket Name for InfluxDB
-        $influx_bucket = $env:DASHBOARD_INFLUX_BUCKET
+        $influx_bucket = $env:DASHBOARD_INFLUX_BUCKET,
+
+        [string]
+        # Whether we should actually push data for this release
+        $publishRelease = $env:PUBLISH_RELEASE
     )
 
+    # Check whether we should actually publish
+    if ($publishRelease -ne "true" -Or $publishRelease -ne $true) {
+        Write-Information -MessageData ("Neither publishRelease parameter nor PUBLISH_RELEASE environment variable set to `'true`', exiting.")
+        return
+    }
+    
     # Validate all parameters are supplied
     $result = Confirm-Parameters -list @("measurement", "tags", "version", "influx_server", "influx_token", "influx_org", "influx_bucket")
     if (!$result) {
         Write-Error -Message "Missing parameters"
         return
     }
+
+
 
     # Confirm influx server is HTTPS web address
     $result = $false

@@ -16,7 +16,7 @@ Describe "Publish-GitHubRelease" {
             # Mock commands
             Mock -CommandName Write-Error -MockWith {} -ParameterFilter { $Message.ToLower().Contains("version") }
             Mock -CommandName Write-Error -MockWith {} -ParameterFilter { $Message.ToLower().Contains("unable to call api")}
-            Mock -CommandName Write-Information -MockWith {} -ParameterFilter { $Message.ToLower().Contains("publishrelease parameter not specified")}
+            Mock -CommandName Write-Information -MockWith {}
 
             Mock -CommandName Invoke-WebRequest -MockWith { throw "Unable to call API" } -ParameterFilter { $Uri.AbsoluteUri.ToLower().Contains("api.github.com/repos/amido/pester")}
         }
@@ -107,7 +107,7 @@ Describe "Publish-GitHubRelease" {
             Remove-Item -Path $testFolder -Recurse -Force
         }
 
-        It "with the specified artifacts" {
+        It "with the specified artifacts and command line publishing" {
 
             $splat = @{
                 version = "100.98.99"
@@ -120,6 +120,26 @@ Describe "Publish-GitHubRelease" {
             }
 
             Publish-GitHubRelease @splat
+
+            Should -Invoke -CommandName Invoke-WebRequest -Times 2
+        }
+        It "with the specified artifacts and environment variable publishing" {
+
+            $env:PUBLISH_RELEASE = 'true'
+            
+            $splat = @{
+                version = "100.98.99"
+                commitId = "hjggh66"
+                owner = "amido"
+                apiKey = "1245356"
+                repository = "pester"
+                artifactsDir = $testfolder
+                
+            }
+
+            Publish-GitHubRelease @splat
+            
+            $env:PUBLISH_RELEASE = $null
 
             Should -Invoke -CommandName Invoke-WebRequest -Times 2
         }
