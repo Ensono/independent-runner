@@ -99,6 +99,7 @@ function Build-DockerImage() {
     # Create the cmd to execute
     $cmd = "docker build {0}" -f ($arguments -Join " ")
 
+    Write-Information -MessageData ("Running: {0}" -f $cmd)
     Invoke-External -Command $cmd
 
     if ($LASTEXITCODE -ne 0) {
@@ -132,16 +133,24 @@ function Build-DockerImage() {
         }
         # Run command to login to the docker registry to do the push
         # The Invoke-External function will need to be updated to obfruscate sensitive information
+        Write-Information -MessageData ("Logging in")
         Invoke-External -Command $cmd
 
         if ($LASTEXITCODE -ne 0) {
             exit $LASTEXITCODE
         }
 
-        # Finally push the image
+        # Push the image with the desired tag
         $cmd = "docker push {0}/{1}:{2}" -f $registry, $name, $tag
+        Write-Information -MessageData ("Running: {0}" -f $cmd)
         Invoke-External -Command $cmd
 
+        # Push the image with the latest tag
+        $cmd = "docker push {0}/{1}:latest" -f $registry, $name
+        Write-Information -MessageData ("Running: {0}" -f $cmd)
+        Invoke-External -Command $cmd
+
+                
         $LASTEXITCODE
 
     }
