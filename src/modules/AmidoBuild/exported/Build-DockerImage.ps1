@@ -57,8 +57,13 @@ function Build-DockerImage() {
         [switch]
         # Push the image to a generic, non-Azure registry.
         # Make sure you have env vars for DOCKER_PASSWORD and DOCKER_USERNAME.
-        $generic
-
+        $generic,
+        [Parameter(
+            ParameterSetName="push"
+        )]
+        [switch]
+        # Add the latest tag
+        $latest
     )
 
     # Check mandatory parameters
@@ -98,7 +103,6 @@ function Build-DockerImage() {
 
     # Create the cmd to execute
     $cmd = "docker build {0}" -f ($arguments -Join " ")
-
     Invoke-External -Command $cmd
 
     if ($LASTEXITCODE -ne 0) {
@@ -138,9 +142,15 @@ function Build-DockerImage() {
             exit $LASTEXITCODE
         }
 
-        # Finally push the image
+        # Push the image with the desired tag
         $cmd = "docker push {0}/{1}:{2}" -f $registry, $name, $tag
         Invoke-External -Command $cmd
+
+        # Push the image with the latest tag if latest flag is declared
+        if ($latest.IsPresent) {
+            $cmd = "docker push {0}/{1}:latest" -f $registry, $name
+            Invoke-External -Command $cmd
+        }
 
         $LASTEXITCODE
 
