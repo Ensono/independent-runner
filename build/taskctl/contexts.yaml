@@ -17,7 +17,7 @@ contexts:
         - -Command
     quote: "'"  
 
-  powershell_test:
+  powershell_test: # Explicitly does not use embedded module, in order to test modules locally here.
     executable:
       bin: docker
       args:
@@ -31,7 +31,8 @@ contexts:
         - PSModulePath=/app/src/modules
         - -w
         - /app
-        - russellseymour/runner-pwsh:0.0.4
+        - williamamido/runner-pwsh-pester:0.3.0-local
+        # - russellseymour/runner-pwsh:0.0.4
         - pwsh
         - -NoProfile
         - -Command
