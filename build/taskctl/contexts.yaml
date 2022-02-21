@@ -32,7 +32,7 @@ contexts:
         - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh-pester:0.3.38-pester # TODO: Revert to main branch image
+        - amidostacks/runner-pwsh-pester:0.3.39-main
         - pwsh
         - -NoProfile
         - -Command
@@ -53,7 +53,7 @@ contexts:
         - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh:0.3.37-main
+        - amidostacks/runner-pwsh:0.3.39-main
         - pwsh
         - -NoProfile
         - -Command
@@ -75,7 +75,7 @@ contexts:
         - PSModulePath=/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh:0.3.37-main
+        - amidostacks/runner-pwsh:0.3.39-main
         - pwsh
         - -NoProfile
         - -Command
@@ -96,7 +96,7 @@ contexts:
         - PSModulePath=/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh:0.3.37-main
+        - amidostacks/runner-pwsh:0.3.39-main
         - pwsh
         - -NoProfile
         - -Command
