@@ -1,0 +1,103 @@
+
+contexts:
+  docsenv:
+    executable:
+      bin: docker
+      args:
+        - run
+        - --rm
+        - -v
+        - ${PWD}:/app
+        - -e
+        - PSModulePath=/app/src/modules        
+        - -w
+        - /app
+        - russellseymour/pandoc-asciidoctor
+        - pwsh
+        - -NoProfile
+        - -Command
+    quote: "'"
+
+  powershell_test:
+    executable:
+      bin: docker
+      args:
+        - run
+        - --rm
+        - -v
+        - ${PWD}:/app
+        - -v
+        - /var/run/docker.sock:/var/run/docker.sock
+        - -e
+        - PSModulePath=/app/src/modules
+        - -w
+        - /app
+        - amidostacks/runner-pwsh-pester:0.3.38-pester # TODO: Revert to main branch image
+        - pwsh
+        - -NoProfile
+        - -Command
+    quote: "'"
+
+  powershell_localmodule:
+    executable:
+      bin: docker
+      args:
+        - run
+        - --env-file envfile
+        - --rm
+        - -v
+        - ${PWD}:/app
+        - -v
+        - /var/run/docker.sock:/var/run/docker.sock
+        - -e
+        - PSModulePath=/app/src/modules
+        - -w
+        - /app
+        - amidostacks/runner-pwsh:0.3.37-main
+        - pwsh
+        - -NoProfile
+        - -Command
+    quote: "'"
+    before: env | grep -v PATH > envfile
+
+  powershell:
+    executable:
+      bin: docker
+      args:
+        - run
+        - --env-file envfile
+        - --rm
+        - -v
+        - ${PWD}:/app
+        - -v
+        - /var/run/docker.sock:/var/run/docker.sock
+        - -e
+        - PSModulePath=/modules
+        - -w
+        - /app
+        - amidostacks/runner-pwsh:0.3.37-main
+        - pwsh
+        - -NoProfile
+        - -Command
+    quote: "'"
+    before: env | grep -v PATH > envfile
+
+  dotnet:
+    executable:
+      bin: docker
+      args:
+        - run
+        - --rm
+        - -v
+        - ${PWD}:/app
+        - -v
+        - /var/run/docker.sock:/var/run/docker.sock
+        - -e
+        - PSModulePath=/modules
+        - -w
+        - /app
+        - amidostacks/runner-pwsh:0.3.37-main
+        - pwsh
+        - -NoProfile
+        - -Command
+    quote: "'"    
