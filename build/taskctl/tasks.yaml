@@ -22,7 +22,8 @@ tasks:
     context: powershell_test
     description: Run PowerShell unit tests and coverage on the module
     command:
-      - /app/build/scripts/Invoke-PesterTests.ps1 -Path /app/src/modules/AmidoBuild -UnitTests -Coverage
+      - . src/modules/AmidoBuild/exported/Invoke-PesterTests.ps1 # This is deliberately sourced locally to avoid circular logic on building and testing the module
+      - Invoke-PesterTests -Path /app/src/modules/AmidoBuild -UnitTests -Coverage
 
   tests:coverage_report:
     context: dotnet
