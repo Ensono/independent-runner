@@ -7,10 +7,7 @@ pool:
   vmImage: ubuntu-20.04
 
 variables:
-  - name: TaskctlVersion
-    value: 1.4.2
-  - name: moduleName
-    value: AmidoBuild
+  - template: azuredevops-vars.yml
 
 # Configure the stages
 stages:
@@ -94,10 +91,10 @@ stages:
   - stage: Release
 
     jobs:
-
-    - job: CreateGHRelease
-
+    
+    - job: Publish
       steps:
+        - checkout: self # Local use of Powershell Modules
 
         # Download the necessary artifacts from the previous stage
         # - documentation
@@ -106,9 +103,30 @@ stages:
             artifact: 'docs'
             patterns: '**/*.pdf'
             path: $(Build.SourcesDirectory)/artifacts/docs
-
         # - module
         - task: DownloadPipelineArtifact@2
           inputs:
             artifact: 'modules'
             path: $(Build.SourcesDirectory)/artifacts/modules
+
+        # Install Taskctl for the build to run
+        - task: Bash@3
+          displayName: Install Taskctl
+          inputs:
+            targetType: inline
+            script: |
+              wget https://github.com/taskctl/taskctl/releases/download/${{ variables.TaskctlVersion }}/taskctl_${{ variables.TaskctlVersion }}_linux_amd64.tar.gz -O /tmp/taskctl.tar.gz
+              tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl 
+
+        # Publish to GitHub and Build Dashboard
+        - task: Bash@3
+          displayName: Publish Release
+          inputs:
+            targetType: inline
+            script: |
+              taskctl release
+          ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}: # On main branch runs
+            env: 
+              PUBLISH_RELEASE: $true
+              DASHBOARD_INFLUX_TOKEN: $(DASHBOARD_INFLUX_TOKEN) # requires explicit mapping to be used as an env var
+
