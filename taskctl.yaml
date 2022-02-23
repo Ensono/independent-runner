@@ -1,94 +1,6 @@
-
-contexts:
-  docsenv:
-    executable:
-      bin: docker
-      args:
-        - run
-        - --rm
-        - -v
-        - ${PWD}:/app
-        - -e
-        - PSModulePath=/app/src/modules        
-        - -w
-        - /app
-        - russellseymour/pandoc-asciidoctor
-        - pwsh
-        - -NoProfile
-        - -Command
-    quote: "'"
-
-  powershell:
-    executable:
-      bin: docker
-      args:
-        - run
-        - --rm
-        - -v
-        - ${PWD}:/app
-        - -v
-        - /var/run/docker.sock:/var/run/docker.sock
-        - -e
-        - PSModulePath=/app/src/modules
-        - -w
-        - /app
-        - russellseymour/runner-pwsh:0.0.4
-        - pwsh
-        - -NoProfile
-        - -Command
-    quote: "'"
-
-  dotnet:
-    executable:
-      bin: docker
-      args:
-        - run
-        - --rm
-        - -v
-        - ${PWD}:/app
-        - -v
-        - /var/run/docker.sock:/var/run/docker.sock
-        - -e
-        - PSModulePath=/app/src/modules
-        - -w
-        - /app
-        - russellseymour/runner-pwsh-dotnet:0.0.3
-        - pwsh
-        - -NoProfile
-        - -Command
-    quote: "'"    
-
-tasks:
-
-  clean:
-    description: Clean the output directory
-    command:
-      - rm -rf outputs
-
-  _docs:
-    description: Build Docs
-    context: docsenv
-    command:
-      - Build-Documentation -BasePath /app -Pdf -Title "Independent Runner" -AttributeFile /app/build/config/pdf-config.ps1
-      - Build-Documentation -BasePath /app -MD -MDX
-
-  tests:unit:
-    context: powershell
-    description: Run PowerShell unit tests and coverage on the module
-    command:
-      - /app/build/scripts/Invoke-PesterTests.ps1 -Path /app/src/modules/AmidoBuild -UnitTests -Coverage
-
-  generate:
-    context: powershell
-    description: Build the PowerShell module
-    command:
-      - Build-PowerShellModule -Path /app/src/modules -name AmidoBuild -target outputs/module
-
-  tests:coverage_report:
-    context: dotnet
-    description: Create HTML report from coverage doc
-    command:
-      - Invoke-DotNet -Coverage -Pattern pester-coverage.xml -Path /app -Source /app/src/modules/AmidoBuild -Target /app/outputs/tests
+import:
+- ./build/taskctl/contexts.yaml
+- ./build/taskctl/tasks.yaml
 
 pipelines:
 
@@ -103,7 +15,11 @@ pipelines:
 
   build:
     - task: generate
-
+  
+  release:
+    - task: update:dashboard
+    - task: publish:github
+    
   all:
     - task: clean
     - pipeline: docs
@@ -115,4 +31,4 @@ pipelines:
     - pipeline: build
       depends_on:
         - clean
-    
+    # NB: `release` is not declared here, as it must be run as a discrete pipeline to ensure tests/etc. are passed.

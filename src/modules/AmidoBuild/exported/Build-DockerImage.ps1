@@ -50,8 +50,20 @@ function Build-DockerImage() {
         )]
         [switch]
         # Push the image to the specified registry
-        $push
-
+        $push,
+        [Parameter(
+            ParameterSetName="push"
+        )]
+        [switch]
+        # Push the image to a generic, non-Azure registry.
+        # Make sure you have env vars for DOCKER_PASSWORD and DOCKER_USERNAME.
+        $generic,
+        [Parameter(
+            ParameterSetName="push"
+        )]
+        [switch]
+        # Add the latest tag
+        $latest
     )
 
     # Check mandatory parameters
@@ -63,7 +75,7 @@ function Build-DockerImage() {
     }
 
     if ([string]::IsNullOrEmpty($tag)) {
-        $tag = "workstation-0.0.1"
+        $tag = "0.0.1-workstation"
         Write-Information -MessageData ("No tag has been specified for the image, a default one has been set: {0}" -f $tag)
     }
 
@@ -74,6 +86,10 @@ function Build-DockerImage() {
         return
     }
 
+    if ($generic.IsPresent -and ([string]::IsNullOrEmpty($env:DOCKER_USERNAME) -Or [string]::IsNullOrEmpty($env:DOCKER_PASSWORD))) {
+        Write-Error -Message "Pushing to a generic registry requires environment variables DOCKER_USERNAME and DOCKER_PASSWORD to be set"
+        return
+    }
     # Create an array to store the arguments to pass to docker
     $arguments = @()
     $arguments += $buildArgs
@@ -87,7 +103,6 @@ function Build-DockerImage() {
 
     # Create the cmd to execute
     $cmd = "docker build {0}" -f ($arguments -Join " ")
-
     Invoke-External -Command $cmd
 
     if ($LASTEXITCODE -ne 0) {
@@ -97,34 +112,45 @@ function Build-DockerImage() {
     # Proceed if a registry has been specified
     if (![String]::IsNullOrEmpty($registry) -and $push.IsPresent -and !(Test-Path -Path env:\NO_PUSH)) {
 
-        # Ensure that the module is available and loaded
-        $moduleName = "Az.ContainerRegistry"
-        $module = Get-Module -ListAvailable -Name $moduleName
-        if ([string]::IsNullOrEmpty($module)) {
-            Write-Error -Message ("{0} module is not available" -f $moduleName)
-            exit 2
+        if (!$generic) {
+            # Ensure that the module is available and loaded
+            $moduleName = "Az.ContainerRegistry"
+            $module = Get-Module -ListAvailable -Name $moduleName
+            if ([string]::IsNullOrEmpty($module)) {
+                Write-Error -Message ("{0} module is not available" -f $moduleName)
+                exit 2
+            } else {
+                Import-Module -Name $moduleName
+            }
+
+            # Login to azure
+            Connect-Azure
+
+            # Get the credentials for the registry
+            $creds = Get-AzContainerRegistryCredential -Name $registry -ResourceGroup $group
+        
+            $cmd = "docker login {0} -u {1} -p {2}" -f $registry, $creds.UserName, $creds.Password
+
         } else {
-            Import-Module -Name $moduleName
+            $cmd = "docker login {0} -u {1} -p {2}" -f $registry, $env:DOCKER_USERNAME, $env:DOCKER_PASSWORD
         }
-
-        # Login to azure
-        Connect-Azure
-
-        # Get the credentials for the registry
-        $creds = Get-AzContainerRegistryCredential -Name $registry -ResourceGroup $group
-
         # Run command to login to the docker registry to do the push
         # The Invoke-External function will need to be updated to obfruscate sensitive information
-        $cmd = "docker login {0} -u {1} -p {2}" -f $registry, $creds.Username, $creds.Password
         Invoke-External -Command $cmd
 
         if ($LASTEXITCODE -ne 0) {
             exit $LASTEXITCODE
         }
 
-        # Finally push the image
+        # Push the image with the desired tag
         $cmd = "docker push {0}/{1}:{2}" -f $registry, $name, $tag
         Invoke-External -Command $cmd
+
+        # Push the image with the latest tag if latest flag is declared
+        if ($latest.IsPresent) {
+            $cmd = "docker push {0}/{1}:latest" -f $registry, $name
+            Invoke-External -Command $cmd
+        }
 
         $LASTEXITCODE
 

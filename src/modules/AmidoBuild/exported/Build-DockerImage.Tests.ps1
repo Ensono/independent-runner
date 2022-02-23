@@ -82,6 +82,13 @@ Describe "Build-DockerImage" {
 
             Should -Invoke -CommandName Write-Error -Times 1
         }
+
+        It "must error if trying to push to a generic registry and do not specify DOCKER_USERNAME or DOCKER_PASSWORD env vars" {
+
+            Build-DockerImage -Name unittests -Push -Generic
+
+            Should -Invoke -CommandName Write-Error -Times 1
+        }
     }
 
     Context "Build without push" {
@@ -132,4 +139,31 @@ Describe "Build-DockerImage" {
             $Session.commands.list[2] | Should -BeLike "*docker* push docker.io/pester-tests:unittests"
         }
     }
+
+    Context "Build image and push including latest" {
+
+        BeforeEach {
+            # Reset the commands list to an empty array
+            $global:Session.commands.list = @()            
+        }
+        
+        It "will build and push the image to the specified registry with a latest tag" {
+
+            # Call the function under test
+            Build-DockerImage -name pester-tests -tag "unittests" -registry "docker.io" -push -latest
+
+            # Check the build command
+            $Session.commands.list[0] | Should -BeLike "*docker* build . -t pester-tests:unittests -t docker.io/pester-tests:unittests -t docker.io/pester-tests:latest"
+
+            # Check that docker logs into the registry
+            $Session.commands.list[1] | Should -BeLike "*docker* login docker.io -u pester -p pester123"
+
+            # Ensure that the image is pushed to the registry with specific tag
+            $Session.commands.list[2] | Should -BeLike "*docker* push docker.io/pester-tests:unittests"
+
+            # Ensure that the image is pushed to the registry with latest tag
+            $Session.commands.list[3] | Should -BeLike "*docker* push docker.io/pester-tests:latest"
+        }
+    }
+
 }
