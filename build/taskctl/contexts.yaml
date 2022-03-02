@@ -32,7 +32,7 @@ contexts:
         - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh-pester:0.3.39-main
+        - amidostacks/runner-pwsh:0.3.52-airdrop
         - pwsh
         - -NoProfile
         - -Command
@@ -53,7 +53,7 @@ contexts:
         - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh:0.3.39-main
+        - amidostacks/runner-pwsh:0.3.52-airdrop
         - pwsh
         - -NoProfile
         - -Command
@@ -75,7 +75,7 @@ contexts:
         - PSModulePath=/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh:0.3.39-main
+        - amidostacks/runner-pwsh:0.3.52-airdrop
         - pwsh
         - -NoProfile
         - -Command
@@ -96,7 +96,7 @@ contexts:
         - PSModulePath=/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh:0.3.39-main
+        - amidostacks/runner-pwsh-dotnet:0.3.52-airdrop
         - pwsh
         - -NoProfile
         - -Command
