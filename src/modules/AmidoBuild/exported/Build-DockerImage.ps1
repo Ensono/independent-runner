@@ -38,7 +38,7 @@ function Build-DockerImage() {
             ParameterSetName="push"
         )]
         [string]
-        # Docker registry to push the image to
+        # Docker registry FQDN to push the image to
         $registry = $env:DOCKER_CONTAINER_REGISTRY_NAME,
 
         [string]
@@ -126,8 +126,11 @@ function Build-DockerImage() {
             # Login to azure
             Connect-Azure
 
+            # Rewrite Registry value to obtain Azure Resourece Name:
+            $registryName = $registry.split(".")[0]
+
             # Get the credentials for the registry
-            $creds = Get-AzContainerRegistryCredential -Name $registry -ResourceGroup $group
+            $creds = Get-AzContainerRegistryCredential -Name $registryName -ResourceGroup $group
         
             $cmd = "docker login {0} -u {1} -p {2}" -f $registry, $creds.UserName, $creds.Password
 
