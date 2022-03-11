@@ -49,11 +49,9 @@ function Invoke-Kubectl() {
     switch ($provider) {
         "Azure" {
             Invoke-Login -Azure -k8s -k8sName $target -resourceGroup $identifier
-            return $LASTEXITCODE
         }
         "AWS" {
             Invoke-Login  -AWS -k8s -k8sName $target -region $identifier
-            return $LASTEXITCODE
         }
         default {
             Write-Error -Message ("Cloud provider not supported for login: {0}" -f $provider)
@@ -68,7 +66,6 @@ function Invoke-Kubectl() {
     # build up and execute the commands that need to be run
     switch ($PSCmdlet.ParameterSetName) {
         "apply" {
-
             # Check that some arguments have been set
             if ($arguments.Count -eq 0) {
                 Write-Error -Message "No manifest files have been specified"
@@ -89,14 +86,12 @@ function Invoke-Kubectl() {
         }
 
         "custom" {
-
             # Build up the command that is to be run
             $commands = "{0} {1}" -f $kubectl, ($arguments -join " ")
         }
 
 
         "rollout" {
-
             # Build up the full kubectl command
             $commands = "{0} rollout {1}" -f $kubectl, ($arguments -join " ")
             
