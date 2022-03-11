@@ -119,7 +119,6 @@ function Invoke-Login() {
 
                 # Connect to Azure
                 Connect-Azure -clientId $username -secret $password -subscription $subscriptionId -tenantId $tenantId
-                return $LASTEXITCODE
                 # Set the subscription that should be used
                 # Set-AzContext -Subscription $subscriptionId
 
@@ -139,7 +138,7 @@ function Invoke-Login() {
                         Write-Error -Message ("Required K8S parameters are missing: {0}" -f ($missing -join ", "))
                     } else {
                     
-                    Import-AzAksCredential -ResourceGroupName $resourceGroup -Name $k8sName
+                    Import-AzAksCredential -ResourceGroupName $resourceGroup -Name $k8sName -Force
                     }
                 }
             }
