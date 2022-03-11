@@ -30,11 +30,35 @@ function Invoke-Kubectl() {
         [string[]]
         [Alias("properties")]
         # Arguments to pass to the kubectl command
-        $arguments
+        $arguments,
+
+        [string]
+        # Cloud Provider
+        $provider = "Azure",
+
+        [string]
+        # Target K8S cluster
+        $target = "example_cluster",
+
+        [string]
+        # Unique identifier for K8S in a given cloud: region for AWS, resourceGroup for Azure, project for GKE
+        $identifier = "example_identifier"
+
     )
 
-    # Login to cloud
-    Invoke-Login
+    switch ($provider) {
+        "Azure" {
+            Invoke-Login -Azure -k8s -k8sName $target -resourceGroup $identifier
+            return $LASTEXITCODE
+        }
+        "AWS" {
+            Invoke-Login  -AWS -k8s -k8sName $target -region $identifier
+            return $LASTEXITCODE
+        }
+        default {
+            Write-Error -Message ("Cloud provider not supported for login: {0}" -f $provider)
+        }
+    } 
 
     # Find the kubectl command to use
     $kubectl = Find-Command -Name "kubectl"
