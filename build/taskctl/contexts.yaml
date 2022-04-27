@@ -58,7 +58,7 @@ contexts:
         - -NoProfile
         - -Command
     quote: "'"
-    before: env | grep -v PATH | grep -v SOURCEVERSIONMESSAGE > envfile
+    before: env | grep -v PATH | awk -F '=' '{print $1 "=" "\"" $2 "\""}' > envfile
 
   powershell:
     executable:
@@ -80,7 +80,7 @@ contexts:
         - -NoProfile
         - -Command
     quote: "'"
-    before: env | grep -v PATH | grep -v SOURCEVERSIONMESSAGE > envfile
+    before: env | grep -v PATH | awk -F '=' '{print $1 "=" "\"" $2 "\""}' > envfile
 
   dotnet:
     executable:
