@@ -58,7 +58,7 @@ contexts:
         - -NoProfile
         - -Command
     quote: "'"
-    before: env | grep -v PATH | awk -F '=' '{print $1 "=" "\"" $2 "\""}' > envfile
+    before: env | grep -v PATH > envfile
 
   powershell:
     executable:
