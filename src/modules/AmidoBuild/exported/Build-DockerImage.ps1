@@ -90,6 +90,12 @@ function Build-DockerImage() {
         Write-Error -Message "Pushing to a generic registry requires environment variables DOCKER_USERNAME and DOCKER_PASSWORD to be set"
         return
     }
+
+    # Ensure that the name and the tagare lowercase so that Docker does not 
+    # throw an error with invalid strings
+    $name = $name.ToLower()
+    $tag = $tag.ToLower()
+
     # Create an array to store the arguments to pass to docker
     $arguments = @()
     $arguments += $buildArgs

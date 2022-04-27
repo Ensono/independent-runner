@@ -115,6 +115,15 @@ Describe "Build-DockerImage" {
 
             $Session.commands.list[0] | Should -BeLike "*docker* build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests -t pesterreg/pester-tests:latest"
         }
+
+        It "will correctly change the case of the input to create a valid image" {
+            
+            # Call the function under test
+            Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg"
+
+            $Session.commands.list[0] | Should -BeLikeExactly "*docker* build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests -t pesterreg/pester-tests:latest"
+
+        }
     }
 
     Context "Build image and push" {
