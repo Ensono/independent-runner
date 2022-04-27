@@ -43,7 +43,6 @@ tasks:
     context: powershell
     description: Publish Release to GitHub
     command:
-      - "dir env:"
       - Publish-GitHubRelease -artifactsList "AmidoBuild.psd1","AmidoBuild.psm1","Independent Runner.pdf"
     env:
       generateReleaseNotes: $true
