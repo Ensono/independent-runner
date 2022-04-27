@@ -43,10 +43,32 @@ Describe "Invoke-Login" {
         Remove-Variable -Name Session -Scope Global
     }
 
+
+
     Context "No cloud platform is specified" {
 
         it "will error" {
-            Invoke-Login
+            try { 
+                Invoke-Login
+            }
+            catch {
+                $err = $true
+            }
+            write-host $err
+            $err | Should -Be $true # This syntax is used because [ParameterBindingException] which is returned is not able to be captured by the Pester `Should -Throw` syntax
+        }
+    }
+
+    Context "No cloud platform details are specified" {
+
+        it "will error" {
+            Invoke-Login -Azure
+
+            Should -Invoke -CommandName Write-Error -Times 1
+        }
+
+        it "will error" {
+            Invoke-Login -AWS
 
             Should -Invoke -CommandName Write-Error -Times 1
         }
@@ -63,8 +85,8 @@ Describe "Invoke-Login" {
 
         it "will login to Azure" {
 
-            $secure = ConvertTo-SecureString -AsPlainText -String xxxx
-            Invoke-Login -Azure -TenantId xxxx -SubscriptionId xxxx -username xxxx -password $secure
+            # $secure = ConvertTo-SecureString -AsPlainText -String xxxx
+            Invoke-Login -Azure -TenantId xxxx -SubscriptionId xxxx -username xxxx -password xxxx
 
             Should -Invoke -CommandName Connect-Azure -Times 1
             Should -Invoke -CommandName Import-AzAksCredential -Times 0
@@ -73,7 +95,7 @@ Describe "Invoke-Login" {
         it "will log into Azure and get AKS credentials" {
 
             $secure = ConvertTo-SecureString -AsPlainText -String xxxx
-            Invoke-Login -Azure -TenantId xxxx -SubscriptionId xxxx -username xxxx -password $secure -aks
+            Invoke-Login -Azure -TenantId xxxx -SubscriptionId xxxx -username xxxx -password $secure -k8s -k8sname xxxx -resourceGroup yyyy
 
             Should -Invoke -CommandName Connect-Azure -Times 1
             Should -Invoke -CommandName Import-AzAksCredential -Times 1           
