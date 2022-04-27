@@ -22,15 +22,15 @@ variables:
 
 # GitHub Release
   - name: VERSION_NUMBER
-    value: "$(Build.BuildNumber)"
+    value: $(Build.BuildNumber)
   - name: COMMIT_ID
-    value: "$(Build.SourceVersion)"
+    value: $(Build.SourceVersion)
   - name: OWNER
-    value: "amido"
+    value: amido
   - name: REPOSITORY
-    value: "independent-runner"
+    value: independent-runner
   - name: ARTIFACTS_DIR
-    value: "artifacts/"
+    value: artifacts/
   - group: amido-stacks-github-credentials
     # Group should contain: 
       # API_KEY
