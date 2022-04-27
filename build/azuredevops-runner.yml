@@ -125,7 +125,7 @@ stages:
             targetType: inline
             script: |
               taskctl release
-          ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}: # On main branch runs
+          # ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}: # On main branch runs
             env: 
               PUBLISH_RELEASE: $true
               DASHBOARD_INFLUX_TOKEN: $(DASHBOARD_INFLUX_TOKEN) # requires explicit mapping to be used as an env var
