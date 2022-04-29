@@ -53,7 +53,7 @@ function Invoke-External {
         if ($execute) {
 
             # Output the command being called
-            Write-Information -Message $command
+            Write-Information -MessageData $command
 
             $output = Invoke-Expression -Command $command
 
