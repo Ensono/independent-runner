@@ -16,54 +16,105 @@ buildargs and whether the image should be pushed to a registry.
 In order to push to a registry the function will first use the Connect-Azure function and then
 get the regsitry credentials using the Get-AzContainerRegistryCredential cmdlet.
 
+AWS command reference: https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html
 #>
 
 function Build-DockerImage() {
     [CmdletBinding()]
     param (
+      [Parameter(
+          ParameterSetName="build"
+      )]
+      [string]
+      # Arguments for docker build
+      $buildargs = ".",
 
-        [string]
-        # Arguments for docker build
-        $buildargs = ".",
+      [Parameter(
+        ParameterSetName="build",
+        Mandatory=$true
+      )]
+      [string]
+      # Name of the docker image
+      $name = $env:DOCKER_IMAGE_NAME,
 
-        [string]
-        # Name of the docker image
-        $name = $env:DOCKER_IMAGE_NAME,
+      [Parameter(
+        ParameterSetName="build"
+      )]
+      [string]
+      # Image tag
+      $tag = $env:DOCKER_IMAGE_TAG,
 
-        [string]
-        # Image tag
-        $tag = $env:DOCKER_IMAGE_TAG,
+      [Parameter(
+        ParameterSetName="build"
+      )]
+      [switch]
+      # Add the latest tag
+      $latest,
 
-        [Parameter(
-            ParameterSetName="push"
-        )]
-        [string]
-        # Docker registry FQDN to push the image to
-        $registry = $env:DOCKER_CONTAINER_REGISTRY_NAME,
+      [Parameter(
+        ParameterSetName="build"
+      )]
+      [Parameter(
+        ParameterSetName="push"
+      )]
+      [string]
+      # Docker registry FQDN to push the image to. For AWS this is in the format `<aws_account_id>.dkr.ecr.<region>.amazonaws.com`. For Azure this is in the format `<acr_name>.azurecr.io`
+      $registry = $env:DOCKER_CONTAINER_REGISTRY_NAME,
 
-        [string]
-        # Resource group the container registry can be found in
-        $group = $env:REGISTRY_RESOURCE_GROUP,
+      [Parameter(
+        ParameterSetName="build"
+      )]
+      [Parameter(
+          ParameterSetName="push"
+      )]
+      [switch]
+      # Push the image to the specified registry
+      $push,
 
-        [Parameter(
-            ParameterSetName="push"
-        )]
-        [switch]
-        # Push the image to the specified registry
-        $push,
-        [Parameter(
-            ParameterSetName="push"
-        )]
-        [switch]
-        # Push the image to a generic, non-Azure registry.
-        # Make sure you have env vars for DOCKER_PASSWORD and DOCKER_USERNAME.
-        $generic,
-        [Parameter(
-            ParameterSetName="push"
-        )]
-        [switch]
-        # Add the latest tag
-        $latest
+      [string]
+      [Parameter(
+        ParameterSetName="build"
+      )]
+      [Parameter(
+          ParameterSetName="push"
+      )]
+      [Parameter(
+          ParameterSetName="aws"
+      )]
+      [Parameter(
+          ParameterSetName="azure"
+      )]
+      [ValidateSet('azure','aws','generic')]
+      # Determine which provider to use for the push
+      $provider,
+
+      [string]
+      [Parameter(
+        ParameterSetName="build"
+      )]
+      [Parameter(
+        ParameterSetName="azure"
+      )]
+      [Parameter(
+        ParameterSetName="push"
+      )]
+      # Resource group  in Azure that the container registry can be found in
+      $group = $env:REGISTRY_RESOURCE_GROUP,
+
+      [string]
+      [Parameter(
+        ParameterSetName="build"
+      )]
+      [Parameter(
+        ParameterSetName="aws"
+      )]
+      [Parameter(
+        ParameterSetName="push"
+      )]
+      # Region in AWS that the container registry can be found in
+      $region = $env:ECR_REGION
+
+
     )
 
     # Check mandatory parameters
@@ -71,7 +122,7 @@ function Build-DockerImage() {
     # variable has been set the parameter will not see this as a value
     if ([string]::IsNullOrEmpty($name)) {
         Write-Error -Message "A name for the Docker image must be specified"
-        return
+        return 1
     }
 
     if ([string]::IsNullOrEmpty($tag)) {
@@ -81,17 +132,27 @@ function Build-DockerImage() {
 
     # If the push switch has been specified then check that a registry
     # has been specified
-    if ($push.IsPresent -and [string]::IsNullOrEmpty($registry) -and !(Test-Path -Path env:\NO_PUSH)) {
-        Write-Error -Message "A registry to push the image to must be specified"
-        return
+    if ($push.IsPresent -and ([string]::IsNullOrEmpty($provider) -or ([string]::IsNullOrEmpty($registry) -and !(Test-Path -Path env:\NO_PUSH)))) {
+        Write-Error -Message "A provider and a registry to push the image to must be specified"
+        return 1
     }
 
-    if ($generic.IsPresent -and ([string]::IsNullOrEmpty($env:DOCKER_USERNAME) -Or [string]::IsNullOrEmpty($env:DOCKER_PASSWORD))) {
+    if ($provider -eq "generic" -and ([string]::IsNullOrEmpty($env:DOCKER_USERNAME) -Or [string]::IsNullOrEmpty($env:DOCKER_PASSWORD))) {
         Write-Error -Message "Pushing to a generic registry requires environment variables DOCKER_USERNAME and DOCKER_PASSWORD to be set"
         return
     }
 
-    # Ensure that the name and the tagare lowercase so that Docker does not 
+    elseif ($provider -eq "azure" -and ([string]::IsNullOrEmpty($env:REGISTRY_RESOURCE_GROUP)) -and ([string]::IsNullOrEmpty($group))) {
+      Write-Error -Message "Pushing to an azure registry requires environment variable REGISTRY_RESOURCE_GROUP or group parameter to be set (authentication must be dealt with via 'invoke-login.ps1'"
+      return
+    }
+
+    elseif ($provider -eq "aws" -and ([string]::IsNullOrEmpty($env:AWS_ACCESS_KEY_ID) -Or [string]::IsNullOrEmpty($env:AWS_SECRET_ACCESS_KEY) -Or [string]::IsNullOrEmpty($region))) {
+      Write-Error -Message "Pushing to an AWS registry requires environment variable ECR_REGION or region parameter defined, and both environment variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY to be set"
+      return
+  }
+
+    # Ensure that the name and the tagare lowercase so that Docker does not
     # throw an error with invalid strings
     $name = $name.ToLower()
     $tag = $tag.ToLower()
@@ -118,7 +179,8 @@ function Build-DockerImage() {
     # Proceed if a registry has been specified
     if (![String]::IsNullOrEmpty($registry) -and $push.IsPresent -and !(Test-Path -Path env:\NO_PUSH)) {
 
-        if (!$generic) {
+      switch ($provider) {
+        "azure" {
             # Ensure that the module is available and loaded
             $moduleName = "Az.ContainerRegistry"
             $module = Get-Module -ListAvailable -Name $moduleName
@@ -137,12 +199,18 @@ function Build-DockerImage() {
 
             # Get the credentials for the registry
             $creds = Get-AzContainerRegistryCredential -Name $registryName -ResourceGroup $group
-        
+
             $cmd = "docker login {0} -u {1} -p {2}" -f $registry, $creds.UserName, $creds.Password
 
-        } else {
+        }
+        "generic"  {
             $cmd = "docker login {0} -u {1} -p {2}" -f $registry, $env:DOCKER_USERNAME, $env:DOCKER_PASSWORD
         }
+        "aws" {
+            $cmd =  "aws ecr get-login-password --region {0} | docker login --username AWS --password-stawdin {1}" -f $region, $registry
+
+        }
+      }
         # Run command to login to the docker registry to do the push
         # The Invoke-External function will need to be updated to obfruscate sensitive information
         Invoke-External -Command $cmd
