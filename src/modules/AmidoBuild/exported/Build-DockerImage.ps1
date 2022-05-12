@@ -207,7 +207,9 @@ function Build-DockerImage() {
             $cmd = "docker login {0} -u {1} -p {2}" -f $registry, $env:DOCKER_USERNAME, $env:DOCKER_PASSWORD
         }
         "aws" {
+
             $cmd =  "aws ecr get-login-password --region {0} | docker login --username AWS --password-stdin {1}" -f $region, $registry
+
         }
       }
         # Run command to login to the docker registry to do the push
