@@ -135,6 +135,14 @@ Describe "Build-DockerImage" {
             $Session.commands.list[0] | Should -BeLikeExactly "*docker* build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests -t pesterreg/pester-tests:latest"
 
         }
+
+        It "will remove quotes surrounding build args when passing to Docker" {
+
+            # Call the function to test
+            Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -BuildArgs "`"--build-arg functionName=PesterFunction .`""
+
+            $Session.commands.list[0] | Should -BeLikeExactly "*docker* build --build-arg functionName=PesterFunction . -t pester-tests:unittests -t pesterreg/pester-tests:unittests -t pesterreg/pester-tests:latest"
+        }
     }
 
     Context "Build image and push to generic registry" {

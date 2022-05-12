@@ -159,7 +159,7 @@ function Build-DockerImage() {
 
     # Create an array to store the arguments to pass to docker
     $arguments = @()
-    $arguments += $buildArgs
+    $arguments += $buildArgs.Trim("`"", " ")
     $arguments += "-t {0}:{1}" -f $name, $tag
 
     # if the registry name has been set, add t to the tasks
