@@ -147,7 +147,7 @@ function Build-DockerImage() {
       return
     }
 
-    elseif ($provider -eq "aws" -and ([string]::IsNullOrEmpty($env:AWS_ACCESS_KEY_ID) -Or [string]::IsNullOrEmpty($env:AWS_SECRET_ACCESS_KEY) -Or [string]::IsNullOrEmpty($region))) {
+    elseif ($provider -eq "aws" -and ([string]::IsNullOrEmpty($env:AWS_ACCESS_KEY_ID) -Or [string]::IsNullOrEmpty($env:AWS_SECRET_ACCESS_KEY) -Or ([string]::IsNullOrEmpty($region) -And [string]::IsNullOrEmpty($env:ECR_REGION)))) {
       Write-Error -Message "Pushing to an AWS registry requires environment variable ECR_REGION or region parameter defined, and both environment variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY to be set"
       return
   }
@@ -207,7 +207,8 @@ function Build-DockerImage() {
             $cmd = "docker login {0} -u {1} -p {2}" -f $registry, $env:DOCKER_USERNAME, $env:DOCKER_PASSWORD
         }
         "aws" {
-            $cmd =  "aws ecr get-login-password --region {0} | docker login --username AWS --password-stawdin {1}" -f $region, $registry
+
+            $cmd =  "aws ecr get-login-password --region {0} | docker login --username AWS --password-stdin {1}" -f $region, $registry
 
         }
       }
