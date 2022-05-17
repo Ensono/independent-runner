@@ -74,7 +74,7 @@ function Invoke-Terraform() {
         [string[]]
         [Alias("backend", "properties")]
         # Arguments to pass to the terraform command
-        $arguments
+        $arguments = $env:TF_BACKEND
 
     )
 
@@ -85,9 +85,14 @@ function Invoke-Terraform() {
     if (@("init").Contains($PSCmdlet.ParameterSetName)) {
 
         # Check that some backend properties have been set
+        # If they have not then raise an error
+        # If they have then check to see if one argument has been raised and if it has split on the comma in case
+        #   all the configs have been passed in as one string
         if ($arguments.Count -eq 0) {
             Write-Error -Message "No properties have been specified for the backend" -ErrorAction Stop
             return
+        } elseif ($arguments.Count -eq 1) {
+            $arguments = $arguments -split ","
         }
     }
 
