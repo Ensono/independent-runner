@@ -41,10 +41,23 @@ Describe "Invoke-Terraform" {
         It "will initialise Terraform with the supplied arguments" {
 
             # run the function to call terraform with some arguments for the backend
-            Invoke-Terraform -init -Backend "key=tfstate"
+            Invoke-Terraform -init -Backend "key=tfstate,access_key=123456"
 
             # check that the generated command is correct
-            $Session.commands.list[0] | Should -BeLike "*terraform* init -backend-config='key=tfstate'"
+            $Session.commands.list[0] | Should -BeLike "*terraform* init -backend-config='key=tfstate' -backend-config='access_key=123456'"
+        }
+
+        It "will initialise Terraform using the environment variable for the backend config" {
+
+            # Set the environment variable to use for the backend parameter
+            $env:TF_BACKEND = "key=tfstate,access_key=123456"
+
+            Invoke-Terraform -init -Backend "key=tfstate,access_key=123456"
+
+            # check that the generated command is correct
+            $Session.commands.list[0] | Should -BeLike "*terraform* init -backend-config='key=tfstate' -backend-config='access_key=123456'"    
+            
+            Remove-Item Env:\TF_BACKEND
         }
     }
 
