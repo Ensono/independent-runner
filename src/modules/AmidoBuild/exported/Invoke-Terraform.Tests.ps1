@@ -38,7 +38,7 @@ Describe "Invoke-Terraform" {
             Should -Invoke Write-Error
         }
 
-        It "will initialise Terraform with the supplied arguments" {
+        It "will initialise Terraform with the supplied argument" {
 
             # run the function to call terraform with some arguments for the backend
             Invoke-Terraform -init -Backend "key=tfstate,access_key=123456"
@@ -46,6 +46,15 @@ Describe "Invoke-Terraform" {
             # check that the generated command is correct
             $Session.commands.list[0] | Should -BeLike "*terraform* init -backend-config='key=tfstate' -backend-config='access_key=123456'"
         }
+
+        It "will initialise Terraform with the supplied argument using a ; as the delimiter in the string" {
+
+            # run the function to call terraform with some arguments for the backend
+            Invoke-Terraform -init -Backend "key=tfstate;access_key=123456" -Delimiter ";"
+
+            # check that the generated command is correct
+            $Session.commands.list[0] | Should -BeLike "*terraform* init -backend-config='key=tfstate' -backend-config='access_key=123456'"
+        }        
 
         It "will initialise Terraform using the environment variable for the backend config" {
 
@@ -58,6 +67,14 @@ Describe "Invoke-Terraform" {
             $Session.commands.list[0] | Should -BeLike "*terraform* init -backend-config='key=tfstate' -backend-config='access_key=123456'"    
             
             Remove-Item Env:\TF_BACKEND
+        }
+
+        It "will initialise Terraform using an array of backend arguments" {
+
+            Invoke-Terraform -init -Backend @("key=tfstate", "access_key=123456")
+
+            # check that the generated command is correct
+            $Session.commands.list[0] | Should -BeLike "*terraform* init -backend-config='key=tfstate' -backend-config='access_key=123456'"              
         }
     }
 
@@ -106,6 +123,11 @@ Describe "Invoke-Terraform" {
 
         It "will run the plan command with the specified arguments" {
             Invoke-Terraform -plan -Path $testFolder -arguments "-input=false", "-out=tfplan"
+            $Session.commands.list[0] | Should -BeLike "*terraform* plan -input=false -out=tfplan"
+        }
+
+        It "will run the plan command with the specified string" {
+            Invoke-Terraform -plan -Path $testFolder -arguments "-input=false,-out=tfplan"
             $Session.commands.list[0] | Should -BeLike "*terraform* plan -input=false -out=tfplan"
         }
     }

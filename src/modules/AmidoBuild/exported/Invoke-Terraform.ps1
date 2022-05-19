@@ -74,12 +74,21 @@ function Invoke-Terraform() {
         [string[]]
         [Alias("backend", "properties")]
         # Arguments to pass to the terraform command
-        $arguments = $env:TF_BACKEND
+        $arguments = $env:TF_BACKEND,
+
+        [string]
+        # Delimiter to use to split backend config that has been passed as one string
+        $delimiter = ","
 
     )
 
     # set flag to state if the dir was changed
     $changedDir = $false
+
+    # If the arguments is one element in the array split on the delimiter
+    if ($arguments.Count -eq 1) {
+        $arguments = $arguments -split $delimiter
+    }
 
     # Check parameters exist for certain cmds
     if (@("init").Contains($PSCmdlet.ParameterSetName)) {
@@ -91,8 +100,6 @@ function Invoke-Terraform() {
         if ($arguments.Count -eq 0) {
             Write-Error -Message "No properties have been specified for the backend" -ErrorAction Stop
             return
-        } elseif ($arguments.Count -eq 1) {
-            $arguments = $arguments -split ","
         }
     }
 
