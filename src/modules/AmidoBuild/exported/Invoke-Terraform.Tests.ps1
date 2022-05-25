@@ -24,6 +24,7 @@ Describe "Invoke-Terraform" {
         # Mock Write-Error so that when a function cannot find what it requires, the
         # error is generates can be caught
         Mock -CommandName Write-Error -MockWith { }
+        Mock -CommandName Write-Warning -MockWith { }
     }
 
     Context "Initialise" {
@@ -61,7 +62,7 @@ Describe "Invoke-Terraform" {
             # Set the environment variable to use for the backend parameter
             $env:TF_BACKEND = "key=tfstate,access_key=123456"
 
-            Invoke-Terraform -init -Backend "key=tfstate,access_key=123456"
+            Invoke-Terraform -init
 
             # check that the generated command is correct
             $Session.commands.list[0] | Should -BeLike "*terraform* init -backend-config='key=tfstate' -backend-config='access_key=123456'"    
@@ -83,6 +84,11 @@ Describe "Invoke-Terraform" {
         BeforeEach {
             # Reset the commands list to an empty array
             $global:Session.commands.list = @()
+        }
+
+        It "will display a warning if no arguments are set" {
+            Invoke-Terraform -workspace
+            Should -Invoke -CommandName Write-Warning -Times 1
         }
 
         It "Will create a new workspace if it does not exist" {
@@ -130,6 +136,19 @@ Describe "Invoke-Terraform" {
             Invoke-Terraform -plan -Path $testFolder -arguments "-input=false,-out=tfplan"
             $Session.commands.list[0] | Should -BeLike "*terraform* plan -input=false -out=tfplan"
         }
+
+        It "will will run the the plan command using an environment variable for the arguments" {
+
+            # Set the environment variable to use for the backend parameter
+            $env:TF_BACKEND = "-input=false,-out=tfplan"
+
+            Invoke-Terraform -plan -Path $testFolder
+
+            # check that the generated command is correct
+            $Session.commands.list[0] | Should -BeLike "*terraform* plan -input=false -out=tfplan"
+            
+            Remove-Item Env:\TF_BACKEND
+        }        
     }
 
     Context "Apply" {
