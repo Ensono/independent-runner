@@ -134,6 +134,7 @@ stages:
             targetType: inline
             script: |
               wget https://github.com/amido/stacks-envfile/releases/download/v${{ variables.StacksEnvfileVersion }}/stacks-envfile-linux-amd64-${{ variables.StacksEnvfileVersion }} -O /usr/local/bin/envfile
+              chmod +x /usr/local/bin/envfile
 
         # Publish to GitHub and Build Dashboard
         - task: Bash@3
