@@ -96,7 +96,7 @@ contexts:
         - PSModulePath=/modules
         - -w
         - /app
-        - runner-pwsh-dotnet
+        - amidostacks/runner-pwsh-dotnet:0.3.137-main
         - pwsh
         - -NoProfile
         - -Command
