@@ -2,3 +2,4 @@ local
 outputs
 envfile
 .DS_Store
+docs/reference
