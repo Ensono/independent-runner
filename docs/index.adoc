@@ -12,4 +12,6 @@ include::pipelines.adoc[]
 
 include::docker_images.adoc[]
 
+include::cmdref.adoc[]
+
 include::reference.adoc[]
