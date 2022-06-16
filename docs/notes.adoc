@@ -10,6 +10,24 @@ The README for the Taskctl projects suggests that it is possible to define globa
 
 Variables can be set on a task as well as when that task is called in a pipeline. It appears that even variables set on a task are not available so have to be duplicated on the call to the task in the pipeline.
 
-
 === Creation of env file
 
+In order to pass environment variables to the container that is running the task an environment file is required. The way that this is passed in can be seen in the `build/taskctl/contexts.yaml`, it is a extra parameter to the Docker command:
+
+```yaml
+  powershell_localmodule:
+    executable:
+      bin: docker
+      args:
+        - run
+        - --env-file envfile
+  ...
+```
+
+This file is generated before the command is run in Docker by the `before` command in the same file:
+
+```yaml
+    before: envfile -e home,path
+```
+
+This is an Amido built binary that can be download from https://github.com/amido/stacks-envfile. The very small cross platform application that generates a valid envfile for Docker. This has to be installed before the tasks are run.

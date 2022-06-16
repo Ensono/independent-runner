@@ -32,7 +32,7 @@ contexts:
         - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh:0.3.54-versionbump
+        - amidostacks/runner-pwsh:0.3.137-main
         - pwsh
         - -NoProfile
         - -Command
@@ -53,12 +53,12 @@ contexts:
         - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh:0.3.54-versionbump
+        - amidostacks/runner-pwsh:0.3.137-main
         - pwsh
         - -NoProfile
         - -Command
     quote: "'"
-    before: env | grep -v PATH > envfile
+    before: envfile -e home,path
 
   powershell:
     executable:
@@ -75,12 +75,12 @@ contexts:
         - PSModulePath=/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh:0.3.54-versionbump
+        - amidostacks/runner-pwsh:0.3.137-main
         - pwsh
         - -NoProfile
         - -Command
     quote: "'"
-    before: env | grep -v PATH > envfile
+    before: envfile -e home,path
 
   dotnet:
     executable:
@@ -96,7 +96,7 @@ contexts:
         - PSModulePath=/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh-dotnet:0.3.54-versionbump
+        - amidostacks/runner-pwsh-dotnet:0.3.137-main
         - pwsh
         - -NoProfile
         - -Command

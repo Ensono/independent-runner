@@ -3,6 +3,8 @@
 variables:
   - name: TaskctlVersion
     value: 1.4.2
+  - name: StacksEnvfileVersion
+    value: 0.0.16
   - name: moduleName
     value: AmidoBuild
 

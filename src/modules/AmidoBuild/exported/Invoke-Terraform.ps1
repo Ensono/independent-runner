@@ -97,7 +97,7 @@ function Invoke-Terraform() {
         # If they have not then raise an error
         # If they have then check to see if one argument has been raised and if it has split on the comma in case
         #   all the configs have been passed in as one string
-        if ($arguments.Count -eq 0) {
+        if ($arguments.Count -eq 0 -or ($arguments.Count -eq 1 -and [String]::IsNullOrEmpty($arguments[0]))) {
             Write-Error -Message "No properties have been specified for the backend" -ErrorAction Stop
             return
         }
@@ -120,8 +120,15 @@ function Invoke-Terraform() {
 
     # If a path has been specified and it is a directory
     # change to that path
-    if (![string]::IsNullOrEmpty($path) -and (Get-Item $path) -is [System.IO.DirectoryInfo]) {
-        Push-Location -Path $path
+    if (![string]::IsNullOrEmpty($path)) {
+
+        # determine if the path is a file, and if so get the dir
+        $dir = $path
+        if (!((Get-Item -Path $dir) -is [System.IO.DirectoryInfo])) {
+            $dir = Split-Path -Path $dir -Parent
+        }
+
+        Push-Location -Path $dir
         $changedDir = $true
     }
 
@@ -236,15 +243,19 @@ function Invoke-Terraform() {
         # Create or select the terraform workspace
         "workspace" {
 
-            Write-Information -MessageData ("Attempting to select workspace: {0}" -f $arguments[0])
-            $command = "{0} workspace select {1}" -f $terraform, $arguments[0]
-            Invoke-External -Command $command
-
-            # if the lastexitcode is 1 then create the workspace
-            if ($LASTEXITCODE -eq 1) {
-                Write-Information -MessageData "Creating workspace as it does not exist"
-                $command = "{0} workspace new {1}" -f $terraform, $arguments[0]
+            if ([String]::IsNullOrEmpty($arguments)) {
+                Write-Warning -Message "No workspace name specified to create or switch to."
+            } else {
+                Write-Information -MessageData ("Attempting to select workspace: {0}" -f $arguments[0])
+                $command = "{0} workspace select {1}" -f $terraform, $arguments[0]
                 Invoke-External -Command $command
+
+                # if the lastexitcode is 1 then create the workspace
+                if ($LASTEXITCODE -eq 1) {
+                    Write-Information -MessageData "Creating workspace as it does not exist"
+                    $command = "{0} workspace new {1}" -f $terraform, $arguments[0]
+                    Invoke-External -Command $command
+                }
             }
         }
 

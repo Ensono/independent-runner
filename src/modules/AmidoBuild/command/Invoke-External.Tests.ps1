@@ -1,9 +1,12 @@
+
 Describe "Invoke-External" {
 
     BeforeAll {
 
         # Import function under test
         . $PSScriptRoot/Invoke-External.ps1
+
+        . $PSScriptRoot/Stop-Task.ps1
 
         # Create the testFolder
         $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
