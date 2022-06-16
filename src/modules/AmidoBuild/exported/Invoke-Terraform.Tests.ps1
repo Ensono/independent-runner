@@ -137,7 +137,7 @@ Describe "Invoke-Terraform" {
             $Session.commands.list[0] | Should -BeLike "*terraform* plan -input=false -out=tfplan"
         }
 
-        It "will will run the the plan command using an environment variable for the arguments" {
+        It "will run the the plan command using an environment variable for the arguments" {
 
             # Set the environment variable to use for the backend parameter
             $env:TF_BACKEND = "-input=false,-out=tfplan"
