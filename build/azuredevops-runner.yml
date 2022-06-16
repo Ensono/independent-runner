@@ -29,6 +29,15 @@ stages:
               wget https://github.com/taskctl/taskctl/releases/download/${{ variables.TaskctlVersion }}/taskctl_${{ variables.TaskctlVersion }}_linux_amd64.tar.gz -O /tmp/taskctl.tar.gz
               tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl 
 
+        # Install Stacks Envfile to generate the envfile to be used by docker
+        - task: Bash@3
+          displayName: Install Envfile
+          inputs:
+            targetType: inline
+            script: |
+              wget https://github.com/amido/stacks-envfile/releases/download/v${{ variables.StacksEnvfileVersion }}/stacks-envfile-linux-amd64-${{ variables.StacksEnvfileVersion }} -O /usr/local/bin/envfile
+              chmod +x /usr/local/bin/envfile
+
         # Ensure that no outputs already exist
         - task: Bash@3
           displayName: Clean outputs
@@ -117,6 +126,15 @@ stages:
             script: |
               wget https://github.com/taskctl/taskctl/releases/download/${{ variables.TaskctlVersion }}/taskctl_${{ variables.TaskctlVersion }}_linux_amd64.tar.gz -O /tmp/taskctl.tar.gz
               tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl 
+
+        # Install Stacks Envfile to generate the envfile to be used by docker
+        - task: Bash@3
+          displayName: Install Envfile
+          inputs:
+            targetType: inline
+            script: |
+              wget https://github.com/amido/stacks-envfile/releases/download/v${{ variables.StacksEnvfileVersion }}/stacks-envfile-linux-amd64-${{ variables.StacksEnvfileVersion }} -O /usr/local/bin/envfile
+              chmod +x /usr/local/bin/envfile
 
         # Publish to GitHub and Build Dashboard
         - task: Bash@3

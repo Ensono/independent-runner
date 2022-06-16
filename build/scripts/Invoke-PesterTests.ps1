@@ -28,7 +28,7 @@ param (
 
     [string]
     # Verbsoity of the tests
-    $verbosity = "Detailed"
+    $verbosity = "Normal"
 
 )
 

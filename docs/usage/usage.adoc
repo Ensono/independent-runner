@@ -17,7 +17,7 @@ This is achieved by using the `before` parameter of the pipeline context and the
       quote: "'"
       env:
         arguments: "-v q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover" // <1>
-      before: env | grep -v PATH > envfile
+      before: envfile -e PATH
 
       bin: docker
       args:
