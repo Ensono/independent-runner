@@ -40,6 +40,12 @@ tasks:
     # env: 
     #  PUBLISH_RELEASE: $true
 
+  setup:environment:
+    context: powershell
+    description: Ensure that the environment is configured correctly
+    command:
+      - Confirm-Environment -Path /app/build/config/stage_envvars.yml
+
   publish:github:
     context: powershell
     description: Publish Release to GitHub

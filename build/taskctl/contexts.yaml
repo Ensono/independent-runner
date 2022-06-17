@@ -72,7 +72,7 @@ contexts:
         - -v
         - /var/run/docker.sock:/var/run/docker.sock
         - -e
-        - PSModulePath=/modules
+        - PSModulePath=/app/src/modules
         - -w
         - /app
         - amidostacks/runner-pwsh:0.3.137-main
@@ -93,7 +93,7 @@ contexts:
         - -v
         - /var/run/docker.sock:/var/run/docker.sock
         - -e
-        - PSModulePath=/modules
+        - PSModulePath=/app/src/modules
         - -w
         - /app
         - amidostacks/runner-pwsh-dotnet:0.3.137-main
