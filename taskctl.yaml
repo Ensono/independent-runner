@@ -17,8 +17,13 @@ pipelines:
     - task: generate
   
   release:
+    - task: setup:environment
     - task: update:dashboard
+      depends_on:
+        - setup:environment
     - task: publish:github
+      depends_on:
+        - setup:environment
     
   all:
     - task: clean
