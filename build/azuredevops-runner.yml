@@ -147,4 +147,5 @@ stages:
             STAGE: release
             PUBLISH_RELEASE: $true
             DASHBOARD_INFLUX_TOKEN: $(DASHBOARD_INFLUX_TOKEN) # requires explicit mapping to be used as an env var
+            VERSION_NUMBER: $(BUILD_BUILDNUMBER)
 

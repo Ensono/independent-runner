@@ -10,6 +10,6 @@ stages:
       - name: API_KEY
       - name: PUBLISH_RELEASE
       - name: COMMIT_ID
-      - name: VERSION
+      - name: VERSION_NUMBER
       - name: ARTIFACTS_DIR
       - name: REPOSITORY
