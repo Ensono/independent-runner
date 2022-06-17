@@ -1,0 +1,15 @@
+default:
+  variables:
+    - name: STAGE
+
+stages:
+
+  - name: release
+    variables:
+      - name: OWNER
+      - name: API_KEY
+      - name: PUBLISH_RELEASE
+      - name: COMMIT_ID
+      - name: VERSION
+      - name: ARTIFACTS_DIR
+      - name: REPOSITORY
