@@ -143,9 +143,10 @@ stages:
             targetType: inline
             script: |
               taskctl release
-          env: 
-            STAGE: release
-            PUBLISH_RELEASE: "true"
-            DASHBOARD_INFLUX_TOKEN: $(DASHBOARD_INFLUX_TOKEN) # requires explicit mapping to be used as an env var
-            VERSION_NUMBER: $(BUILD_BUILDNUMBER)
+          ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}: # On main branch runs
+            env: 
+              STAGE: release
+              PUBLISH_RELEASE: "true"
+              DASHBOARD_INFLUX_TOKEN: $(DASHBOARD_INFLUX_TOKEN) # requires explicit mapping to be used as an env var
+              VERSION_NUMBER: $(BUILD_BUILDNUMBER)
 
