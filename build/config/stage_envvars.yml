@@ -1,6 +1,5 @@
 default:
   variables:
-    - name: STAGE
 
 stages:
 
