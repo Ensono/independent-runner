@@ -144,6 +144,7 @@ stages:
             script: |
               taskctl release
           env: 
+            STAGE: release
             PUBLISH_RELEASE: $true
             DASHBOARD_INFLUX_TOKEN: $(DASHBOARD_INFLUX_TOKEN) # requires explicit mapping to be used as an env var
 
