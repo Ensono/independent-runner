@@ -77,7 +77,7 @@ function Confirm-Environment() {
 
     # Check that the specified path exists
     if (!(Test-Path -Path $path)) {
-        Write-Error -Message ("Specified file does not exist: {0}" -f $path)
+        Stop-Task -Message ("Specified file does not exist: {0}" -f $path)
         return
     }
 
@@ -95,12 +95,12 @@ function Confirm-Environment() {
     $stageVars = ConvertFrom-Yaml -Yaml $stage_variables
 
     # Attempt to get the default variables to check for
-    $required = @{}
+    $required = @()
     if ($stageVars.ContainsKey("default")) {
 
         # get the default variables
         if($stageVars["default"].ContainsKey("variables")) {
-            $required = $stageVars["default"]["variables"] | ForEach-Object { $_.Name }
+            $required += $stageVars["default"]["variables"] | ForEach-Object { $_.Name }
         }
 
         # get the credentials for the cloud if they have been specified
