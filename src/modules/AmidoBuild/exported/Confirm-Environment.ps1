@@ -127,6 +127,9 @@ function Confirm-Environment() {
         Write-Warning -Message "No stage has been specified, using default environment variables"
     }
 
+    # ensure that required does not contain "empty" items
+    $required = $required | Where-Object { $_ -match '\S' }
+
     # Iterate around all the required variables and ensure that they exist in enviornment
     # If any of them do not then add to the missing array
     foreach ($envname in $required) {
