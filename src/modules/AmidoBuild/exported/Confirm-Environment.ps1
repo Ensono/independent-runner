@@ -100,7 +100,7 @@ function Confirm-Environment() {
 
         # get the default variables
         if($stageVars["default"].ContainsKey("variables")) {
-            $required += $stageVars["default"]["variables"] | ForEach-Object { $_.Name }
+            $required += $stageVars["default"]["variables"] | Where-Object { $_.Required -ne $false } | ForEach-Object { $_.Name }
         }
 
         # get the credentials for the cloud if they have been specified
