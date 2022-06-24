@@ -26,10 +26,12 @@ function Confirm-Environment() {
         name: <NAME>
         variables: [{}]
 
-    Each of the `[{}]` denotes an array of the following object
+    Each of the `[{}]` in variables denotes an array of the following object
 
         name: ""
         description: ""
+        required: boolean
+        cloud: <CLOUD>
 
     When thisd function runs it merges the default variables, the cloud cerdential variables
     and the stage variables and checks to see that they have been set. If they have not it will
@@ -49,6 +51,18 @@ function Confirm-Environment() {
     This variable is not checked for by this function as it is required by this function. If not
     specified a warning will be displayed stating that no stage has been specified amd will operate
     with the default variables.
+
+    .PARAMETER passthru
+    This forces the return of the missing variables as an object. It is up to the calling function
+    to process this response and detremine if variables are missing.
+
+    The primary use for this is for testing, but it can be used in other situations.
+
+    .PARAMETER format
+    Specifies the output format of the passthru. If not specified then a PSObject will be returned.
+
+    If "json" is specifed the missing variables are returned in a JSON string
+
     
     #>
 
@@ -69,7 +83,16 @@ function Confirm-Environment() {
         # Stage being run which determines the variables to be chcked for
         # This stage will be merged with the default check
         # If not specified then only the deafult stage will be checked
-        $stage = $env:STAGE
+        $stage = $env:STAGE,
+
+        [switch]
+        # Pass the results throught the pipeline
+        $passthru,
+
+        [string]
+        # Specify the output format if using the passthtu option, if not specfied
+        # a PSObject is retruned
+        $format
     )
 
     # Ensure that the $stage and the $cloud are specified
@@ -100,13 +123,13 @@ function Confirm-Environment() {
 
         # get the default variables
         if($stageVars["default"].ContainsKey("variables")) {
-            $required += $stageVars["default"]["variables"] | Where-Object { $_.Required -ne $false } | ForEach-Object { $_.Name }
+            $required += $stageVars["default"]["variables"] | Where-Object { $_.Required -ne $false -and ([string]::IsNullOrEmpty($_.cloud) -or $_.cloud -contains $cloud)} | ForEach-Object { $_ }
         }
 
         # get the credentials for the cloud if they have been specified
         if ($stageVars["default"].ContainsKey("credentials") -and
             $stageVars["default"]["credentials"].ContainsKey($cloud)) {
-            $required += $stageVars["default"]["credentials"][$cloud] | Where-Object { $_.Required -ne $false } | ForEach-Object { $_.Name }
+            $required += $stageVars["default"]["credentials"][$cloud] | Where-Object { $_.Required -ne $false } | ForEach-Object { $_ }
         }
     }
 
@@ -120,7 +143,7 @@ function Confirm-Environment() {
         if ([String]::IsNullOrEmpty($_stage)) {
             Write-Warning -Message ("Specified stage is unknown: {0}" -f $stage)
         } else {
-            $required += $_stage["variables"] | Where-Object { $_.Required -ne $false } | ForEach-Object { $_.Name }
+            $required += $_stage["variables"] | Where-Object { $_.Required -ne $false -and ([string]::IsNullOrEmpty($_.cloud) -or $_.cloud -contains $cloud)} | ForEach-Object { $_ }
         }
 
     } else {
@@ -128,19 +151,19 @@ function Confirm-Environment() {
     }
 
     # ensure that required does not contain "empty" items
-    $required = $required | Where-Object { $_ -match '\S' }
+    $required = $required | Where-Object { $_.Name -match '\S' }
 
     # Iterate around all the required variables and ensure that they exist in enviornment
     # If any of them do not then add to the missing array
-    foreach ($envname in $required) {
+    foreach ($envvar in $required) {
 
         try {
 
             # In some cases all of the environment variables have been capitalised, this is to do with TaskCtl.
             # Check for the existence of the variable in UPPER case as well, if it exists create the var with
             # the correct name and then remove the UPPER case value
-            $path = [IO.Path]::Combine("env:", $envname)
-            $pathUpper = [IO.Path]::Combine("env:", $envname.ToUpper())
+            $path = [IO.Path]::Combine("env:", $envvar.Name)
+            $pathUpper = [IO.Path]::Combine("env:", $envvar.Name.ToUpper())
 
             if ((Test-Path -Path $pathUpper) -and !(Test-Path -Path $path)) {
                 New-Item -Path $path -Value (Get-ChildItem -Path $pathUpper).Value
@@ -150,15 +173,56 @@ function Confirm-Environment() {
             $dummy = Get-ChildItem -path $path -ErrorAction Stop
         } catch {
             # The variable does not exist
-            $missing += $envname
+            $missing += $envvar
         }
     }
 
     # If there are missing values provide an error messahe and stop the task
     if ($missing.count -gt 0) {
 
-        # As there is an error the task in Taskctl needs to be stopped
-        Stop-Task -Message ("The following environment variables are missing and must be provided: {0}" -f ($missing -join "`n"))
+        if ($passthru.IsPresent) {
 
+            switch ($format) {
+                "json" {
+                    Write-Output (ConvertTo-Json $missing)
+                    break
+                }
+
+                default {
+                    $missing
+                }
+            }
+            
+        } else {
+
+            # determine the length of the longest string
+            $length = 0
+            foreach ($item in $missing) {
+                if ($item.name.length -gt $length) {
+                    $length = $item.name.length
+                }
+            }            
+
+            $message = @()
+            foreach ($item in $missing) {
+            
+                # determine how many whitespaces are required for this name lenght to pad it out
+                $padding = $length - $item.name.length
+            
+                $sb = [System.Text.StringBuilder]::new()
+                [void]$sb.Append($item.name)
+            
+                if (![string]::IsNullOrEmpty($item.description)) {
+                    $whitespace = " " * $padding
+                    [void]$sb.Append($whitespace)
+                    [void]$sb.Append(" - {0}" -f $item.description)
+                }
+            
+                $message += $sb.ToString()
+            }
+
+            # As there is an error the task in Taskctl needs to be stopped
+            Stop-Task -Message ("The following environment variables are missing and must be provided: `n`t{0}" -f ($message -join "`n`t"))
+        }
     }
 }

@@ -42,8 +42,8 @@ function Stop-Task() {
         }
 
         # Write an error
-        # The throw method does not allow formatted text, so use Write-Error here to disp[lay a nicely formatted error
-        Write-Error -Message $error_message
+        # The throw method does not allow formatted text, so use Write-Error here to display a nicely formatted error
+        Write-Host $error_message
     }
 
     # Throw an exception to stop the process
