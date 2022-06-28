@@ -95,9 +95,6 @@ function Confirm-Environment() {
         $format
     )
 
-    # Ensure that the $stage and the $cloud are specified
-    # This needs to be done when the script gets put into the module
-
     # Check that the specified path exists
     if (!(Test-Path -Path $path)) {
         Stop-Task -Message ("Specified file does not exist: {0}" -f $path)
@@ -111,71 +108,10 @@ function Confirm-Environment() {
     }
 
     # Create an array to hold the missing environment variables
-    $missing = @()
+    # $missing = @()
 
-    # Read in the specified file
-    $stage_variables = Get-Content -Path $path -Raw
-    $stageVars = ConvertFrom-Yaml -Yaml $stage_variables
-
-    # Attempt to get the default variables to check for
-    $required = @()
-    if ($stageVars.ContainsKey("default")) {
-
-        # get the default variables
-        if($stageVars["default"].ContainsKey("variables")) {
-            $required += $stageVars["default"]["variables"] | Where-Object { $_.Required -ne $false -and ([string]::IsNullOrEmpty($_.cloud) -or $_.cloud -contains $cloud)} | ForEach-Object { $_ }
-        }
-
-        # get the credentials for the cloud if they have been specified
-        if ($stageVars["default"].ContainsKey("credentials") -and
-            $stageVars["default"]["credentials"].ContainsKey($cloud)) {
-            $required += $stageVars["default"]["credentials"][$cloud] | Where-Object { $_.Required -ne $false } | ForEach-Object { $_ }
-        }
-    }
-
-    # If the stage is not null check that it exists int he stages list and if
-    # it does merge with the required list
-    if (![String]::IsNullOrEmpty($stage)) {
-
-        # Attempt to get the stage from the file
-        $_stage = $stageVars["stages"] | Where-Object { $_.Name -eq $stage }
-
-        if ([String]::IsNullOrEmpty($_stage)) {
-            Write-Warning -Message ("Specified stage is unknown: {0}" -f $stage)
-        } else {
-            $required += $_stage["variables"] | Where-Object { $_.Required -ne $false -and ([string]::IsNullOrEmpty($_.cloud) -or $_.cloud -contains $cloud)} | ForEach-Object { $_ }
-        }
-
-    } else {
-        Write-Warning -Message "No stage has been specified, using default environment variables"
-    }
-
-    # ensure that required does not contain "empty" items
-    $required = $required | Where-Object { $_.Name -match '\S' }
-
-    # Iterate around all the required variables and ensure that they exist in enviornment
-    # If any of them do not then add to the missing array
-    foreach ($envvar in $required) {
-
-        try {
-
-            # In some cases all of the environment variables have been capitalised, this is to do with TaskCtl.
-            # Check for the existence of the variable in UPPER case as well, if it exists create the var with
-            # the correct name and then remove the UPPER case value
-            $path = [IO.Path]::Combine("env:", $envvar.Name)
-            $pathUpper = [IO.Path]::Combine("env:", $envvar.Name.ToUpper())
-
-            if ((Test-Path -Path $pathUpper) -and !(Test-Path -Path $path)) {
-                New-Item -Path $path -Value (Get-ChildItem -Path $pathUpper).Value
-                Remove-Item -Path $pathUpper -Confirm:$false
-            }
-
-            $dummy = Get-ChildItem -path $path -ErrorAction Stop
-        } catch {
-            # The variable does not exist
-            $missing += $envvar
-        }
-    }
+    # Get a list of the required variables for this stage and the chosen cloud platform
+    $missing = Get-EnvConfig -path $path -stage $stage -cloud $cloud
 
     # If there are missing values provide an error messahe and stop the task
     if ($missing.count -gt 0) {

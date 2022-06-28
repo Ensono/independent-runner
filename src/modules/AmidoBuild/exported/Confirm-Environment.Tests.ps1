@@ -8,7 +8,8 @@ Describe "Confirm-Environment" {
 
         # Import dependent functions
         . $PSScriptRoot/../command/Stop-Task.ps1
-        . $PSScriptRoot/../utils/Confirm-Parameters.ps1    
+        . $PSScriptRoot/../utils/Confirm-Parameters.ps1
+        . $PSScriptRoot/../utils/Get-EnvConfig.ps1
 
         # Create the testFolder
         $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
