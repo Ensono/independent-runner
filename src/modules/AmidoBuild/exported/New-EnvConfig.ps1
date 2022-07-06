@@ -72,7 +72,7 @@ function New-EnvConfig() {
 
         [string]
         # Shell that the script should be generated for
-        $shell = $env:SHELL
+        $shell = $env:SCRIPT_SHELL
     )
 
     $result = Confirm-Parameters -List @("path", "scriptpath")
@@ -107,6 +107,10 @@ function New-EnvConfig() {
     }
 
     $data = @()
+
+    # Add the cloud platform to the script
+    $data += "`# The Cloud platform for which these variables are being set"
+    $data += '{0}CLOUD_PLATFORM="{1}"' -f $preamble, $cloud.ToLower()
 
     # Iterate around the missing variables 
     foreach ($item in $missing) {
