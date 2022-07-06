@@ -14,7 +14,10 @@ pipelines:
         - tests:unit
 
   build:
+    - task: setup:environment
     - task: generate
+      depends_on:
+        - setup:environment
   
   release:
     - task: setup:environment

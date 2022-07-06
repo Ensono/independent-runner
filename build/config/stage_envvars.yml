@@ -3,6 +3,10 @@ default:
 
 stages:
 
+  - name: build
+    variables:
+      - name: MODULE_VERSION
+
   - name: release
     variables:
       - name: OWNER

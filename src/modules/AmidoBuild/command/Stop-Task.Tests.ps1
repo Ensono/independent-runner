@@ -12,14 +12,14 @@ Describe "Stop-Task" {
 
         # Mocks
         # Write-Error - mock to the function that writes out errors
-        Mock -Command Write-Error -MockWith { }
+        Mock -Command Write-Host -MockWith { }
     }
 
     It "will write out an error and produce an exception" {
 
         { Stop-Task -Message "Pester Test" } | Should -Throw "Task failed due to errors detailed above"
 
-        Should -Invoke -CommandName Write-Error -Times 1
+        Should -Invoke -CommandName Write-Host -Times 1
     }
 
 }
