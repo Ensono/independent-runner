@@ -8,7 +8,8 @@ Describe "Confirm-Environment" {
 
         # Import dependent functions
         . $PSScriptRoot/../command/Stop-Task.ps1
-        . $PSScriptRoot/../utils/Confirm-Parameters.ps1    
+        . $PSScriptRoot/../utils/Confirm-Parameters.ps1
+        . $PSScriptRoot/../utils/Get-EnvConfig.ps1
 
         # Create the testFolder
         $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
@@ -26,11 +27,13 @@ stages:
     - name: pester
       variables:
         - name: PESTER_TEST_VAR
+        - name: TF_region
+          cloud: [aws]
 "@
 
         # Mocks
         # Write-Error - mock to the function that writes out errors
-        Mock -Command Write-Error -MockWith {}
+        Mock -Command Write-Host -MockWith {}
         Mock -Command Write-Warning -MockWith {}
 
     }
@@ -39,9 +42,9 @@ stages:
 
         It "will error if no path is provided" {
 
-            Confirm-Environment
+            { Confirm-Environment } | Should -Throw "Task failed due to errors detailed above"
 
-            Should -Invoke -CommandName Write-Error -Times 1
+            Should -Invoke -CommandName Write-Host -Times 1
         }
     }
 
@@ -61,6 +64,21 @@ stages:
             Confirm-Environment -Path $stageVarFile
 
             Should -Invoke -CommandName Write-Warning -Times 1 
+        }
+
+        it "will ignot cloud specific vars if no cloud has been specified" {
+            $results = Confirm-Environment -Path $stageVarFile -Passthru -stage pester
+
+            $results.count | Should -Be 1
+        }
+
+        # Ensure that when a cloud has been specified the corect number of missing variables is set properly
+        # This tests that cloud specified variables can be added to the configuration file and referenced properly
+        it "will check cloud specific variables" {
+
+            $results = Confirm-Environment -Path $stageVarFile -Cloud aws -Passthru -stage pester
+
+            $results.count | Should -Be 2
         }
     }
 }
