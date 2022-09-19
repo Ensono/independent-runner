@@ -49,7 +49,7 @@ function Get-EnvConfig() {
     $stage_variables = Get-Content -Path $path -Raw
     $stageVars = ConvertFrom-Yaml -Yaml $stage_variables
 
-    # Attempt to get the default variables to check for <-- TODO: Check for what?
+    # Attempt to get the default variables which are to be checked for
     $required = @()
     if ($stageVars.ContainsKey("default")) {
         # get the default variables
