@@ -77,6 +77,7 @@
         "Get-Dependencies",
         "Get-ExternalCommands",
         "Expand-Template",
+        "Invoke-Asciidoc",
         "Invoke-DotNet",
         "Invoke-GitClone",
         "Invoke-Inspec",
@@ -89,6 +90,7 @@
         "Set-Config",
         "Update-BuildNumber",
         "Update-InfluxDashboard",
+        "Publish-Confluence",
         "Publish-GitHubRelease",
         "Confirm-Environment"
     )
