@@ -16,17 +16,21 @@ function Get-Checksum() {
         $content
     )
 
+    $hash = ""
+
     # Attempt to find the file
     if (Test-Path -Path $content) {
         $content = Get-Content -Path $content -Raw
     }
 
-    $md5 = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
-    $utf8 = New-Object -TypeName System.Text.UTF8Encoding
-    $hash = [System.BitConverter]::ToString($md5.ComputeHash($utf8.GetBytes($content)))
+    if (![String]::IsNullOrEmpty($content)) {
+        $md5 = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
+        $utf8 = New-Object -TypeName System.Text.UTF8Encoding
+        $hash = [System.BitConverter]::ToString($md5.ComputeHash($utf8.GetBytes($content)))
 
-    # remove the hypens from the string
-    $hash = $hash -replace "-", ""
+        # remove the hypens from the string
+        $hash = $hash -replace "-", ""
+    }
 
     return $hash
 }

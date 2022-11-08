@@ -34,7 +34,6 @@ function Publish-Confluence() {
         # Credentials to be used to access the API
         $credentials = $env:CONFLUENCE_CREDENTIALS,
 
-        [Alias("path")]
         [string]
         # Body of the content that should be published
         $body,
@@ -53,10 +52,17 @@ function Publish-Confluence() {
     )
 
     # If the body is a file read in the contents
+    $bodyPath = $path
     if (Test-Path -Path $body) {
-        $body = Get-Content -Path $body -Raw
-        $path = Split-Path -Path $path -Parent
 
+        Write-Information -MessageData "File found for content, reading"
+
+        if ([String]::IsNullOrEmpty($path)) {
+            $bodyPath = Split-Path -Path $body -Parent
+        }
+
+        $body = Get-Content -Path $body -Raw
+        
         # If the title has not been set use the filename as the title
         if ([String]::IsNullOrEmpty($title)) {
             $title = [System.IO.Path]::GetFileNameWithoutExtension($body)
@@ -64,14 +70,14 @@ function Publish-Confluence() {
     }
 
     # Check that all the necessary parameters have been passed
-    $result = Confirm-Parameters -list @("title", "space", "body", "path", "server", "credentials")
+    $result = Confirm-Parameters -list @("title", "space", "body", "server", "credentials")
     if (!$result) {
         return
     }    
 
     # See if page exists
     # Build up the path to path to use to see if the page exists
-    $path = "/wiki/rest/api/content"
+    $confluencePath = "/wiki/rest/api/content"
 
     # Get a checksum for the body, if it has not been specified
     if (!$checksum) {
@@ -79,7 +85,7 @@ function Publish-Confluence() {
     }
 
     # Build the URL to use
-    $url = Build-URI -Server $server -Path $path -query @{"title" = $title; "spaceKey" = $space; "expand" = "version"}
+    $url = Build-URI -Server $server -Path $confluencePath -query @{"title" = $title; "spaceKey" = $space; "expand" = "version"}
 
     # Call the API to get the information about the page
     $splat = @{
@@ -111,7 +117,7 @@ function Publish-Confluence() {
 
         # if a parent has been specified get the ID of that page
         if (![String]::IsNullOrEmpty($parent)) {
-            $url = Build-URI -Server $server -Path $path -query @{"title" = $parent; "spaceKey" = $space; "expand" = "version"}
+            $url = Build-URI -Server $server -Path $confluencePath -query @{"title" = $parent; "spaceKey" = $space; "expand" = "version"}
             $pageDetails = Get-ConfluencePage -Url $url -Credential $credentials
 
             # If the parentId is not empty add it in as an ancestor for the page
@@ -124,7 +130,7 @@ function Publish-Confluence() {
         # The result of this will provide a pageId that can be used to update the content
         $splat = @{
             method = "POST"
-            url = (Build-URI -Server $server -Path $path -query @{"expand" = "version"})
+            url = (Build-URI -Server $server -Path $confluencePath -query @{"expand" = "version"})
             body = (ConvertTo-Json -InputObject $pagebody -Depth 100)
             credentials = $credentials
         }
@@ -150,28 +156,27 @@ function Publish-Confluence() {
     # Get all the images in the HTML and determine which files need to be uploaded
     # Then modify the body so that the links are correct foreach uploaded image
     $pageImages = Get-PageImages -data $body
+
     foreach ($image in $pageImages) {
 
         # get the full path to the image
-        $imgPath = [IO.Path]::Combine($path, $image.local)
+        $imgPath = [IO.Path]::Combine($bodyPath, $image.local)
 
         # only attempt to upload image and update body if it exists
         if (Test-Path -Path $imgPath) {
-            Write-Information -MessageData ("Uploading image: {0}" -f $image.local)
-
-            $imgItem = Get-Item -Path $imgPath
+            Write-Information -MessageData ("Uploading image: {0}" -f $imgPath)
 
             # set the paramneters to send to the invoke-api to upload the image
             $splat = @{
-                method = "PUT"
-                contenttype = "multipart/form-data"
-                body = @{
-                    file = $imgItem
+                method = "POST"
+                contenttype = 'multipart/form-data' #; boundary="{0}"' -f $delimiter
+                formData = @{
+                    file = Get-Item -Path $imgPath
                 }
                 headers = @{
                     "X-Atlassian-Token" = "nocheck"
                 }
-                url = (Build-URI -Server $server -Path ("{0}/{1}/child/attachment" -f $path, $pageDetails.ID))
+                url = (Build-URI -Server $server -Path ("{0}/{1}/child/attachment" -f $confluencePath, $pageDetails.ID))
                 credentials = $credentials
             }
 
@@ -185,6 +190,16 @@ function Publish-Confluence() {
         }
     }
 
+    # prepare the body
+    $preparedBody = @"
+<ac:structured-macro ac:name="html" ac:schema-version="1">
+    <ac:plain-text-body>
+        <![CDATA[
+            {0}
+        ]]>
+    </ac:plain-text-body>
+</ac:structured-macro>
+"@ -f $body
 
     # Using the ID of the page update the body
     # Update the splat of arguments to update the page with the necessary content
@@ -199,7 +214,7 @@ function Publish-Confluence() {
             }
             body = @{
                 storage = @{
-                    value = $body
+                    value = $preparedBody
                     representation = "storage"
                 }
             }
@@ -207,7 +222,7 @@ function Publish-Confluence() {
                 number = ($pageDetails.Version + 1)
             }
         })
-        url = (Build-URI -Server $server -Path ("{0}/{1}" -f $path, $pageDetails.ID))
+        url = (Build-URI -Server $server -Path ("{0}/{1}" -f $confluencePath, $pageDetails.ID))
         credentials = $credentials
     }
 
@@ -216,7 +231,7 @@ function Publish-Confluence() {
     # Update the page properties so that the checksum of the data is set
     $splat = @{
         method = "PUT"
-        url = (Build-URI -Server $server -Path ("{0}/{1}/property/checksum" -f $path, $pageDetails.ID))
+        url = (Build-URI -Server $server -Path ("{0}/{1}/property/checksum" -f $confluencePath, $pageDetails.ID))
         credentials = $credentials
         body = (ConvertTo-JSON -InputObject @{
             value = @(

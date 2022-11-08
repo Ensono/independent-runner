@@ -44,7 +44,7 @@ function Build-URI() {
     # that can be joined together for the query of the URI
     if ($query.count -gt 0) {
         $queryParts = @()
-        foreach ($h in $query.GetEnumerator()) {
+        foreach ($h in $query.GetEnumerator() | Sort-Object -Property name) {
             $queryParts += "{0}={1}" -f $h.name, $h.value
         }
 

@@ -27,7 +27,7 @@ function Invoke-API() {
         [Alias("token")]
         [string]
         # Username to be used to connect to the API
-        $credentials,
+        $credentials = [String]::Empty,
 
         [string]
         # Authentication type, default is basic
@@ -39,7 +39,11 @@ function Invoke-API() {
 
         [string]
         # Body to be passed to the API call
-        $body,
+        $body = "",
+
+        [hashtable]
+        # Form data to be posted,
+        $formData = @{},
 
         [hashtable]
         # Headers that should be added to the request
@@ -51,8 +55,8 @@ function Invoke-API() {
         method = $method
         uri = $url
         contentType = $contentType
-        authentication = $authType
         erroraction = "silentlycontinue"
+        headers = @{}
     }
 
     # if headers have been supplied add them to the splat
@@ -60,34 +64,40 @@ function Invoke-API() {
         $splat.headers = $headers
     }
 
-    # add in the credentials based on the type that has been requested
-    switch ($authType) {
-
-        { @("bearer", "oauth") -contains $_} {
-
-            # Create a secuyre string of the credential
-            $secPassword = ConvertTo-SecureString -String $credentials -AsPlainText -Force
-
-            $splat.Token = $secPassword
-        }
-
-        default {
+    # only set the authentication in the splat if credentials have been supploed
+    if (![String]::IsNullOrEmpty($credentials)) {
+        $splat.authentication = $authType
         
-            # Split the credentials out so that the username and password can be
-            # used for the PSCredential
-            $username, $password = $credentials -split ":", 2
-            $secPassword = ConvertTo-SecureString -String $password -AsPlainText -Force
-            $psCred = New-Object System.Management.Automation.PSCredential ($userName, $secPassword)
+        # add in the credentials based on the type that has been requested
+        switch ($authType) {
 
-            $splat.Credential = $psCred
+            { @("bearer", "oauth") -contains $_} {
+
+                # Create a secuyre string of the credential
+                $secPassword = ConvertTo-SecureString -String $credentials -AsPlainText -Force
+
+                $splat.Token = $secPassword
+            }
+
+            default {
+            
+                # Split the credentials out so that the username and password can be
+                # used for the PSCredential
+                $username, $password = $credentials -split ":", 2
+                $secPassword = ConvertTo-SecureString -String $password -AsPlainText -Force
+                $psCred = New-Object System.Management.Automation.PSCredential ($userName, $secPassword)
+
+                # Add the credentials
+                $splat.Credential = $psCred
+            }
         }
     }
 
     # Add in the body if it not empty and the method is PUT or POST
     # Set as form if the contenttype is multipart/form-data
-    if (![String]::IsNullOrEmpty($body) -and @("put", "post") -icontains $method) {
-        if ($contentType -eq "multipart/form-data") {
-            $splat.form = $body
+    if (($formData.count -gt 0 -or ![String]::IsNullOrEmpty($body)) -and @("put", "post") -icontains $method) {
+        if ($contentType -contains "multipart/form-data") {
+            $splat.form = $formData
         } else {
             $splat.body = $body
         }

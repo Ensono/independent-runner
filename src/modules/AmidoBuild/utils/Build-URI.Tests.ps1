@@ -34,7 +34,9 @@ Describe "Build-URI" {
 
     It "will return a URI with the query parameters correctly set" {
 
-        Build-URI -server example.com -path "events" -query @{"name" = "beer"; "event" = "festival"} | Should -Be "https://example.com/events?name=beer&event=festival"
+        $url = Build-URI -server example.com -path "events" -query @{"name" = "beer"; "event" = "festival"}
+
+        $url | Should -Be "https://example.com/events?event=festival&name=beer"
     }
 
 

@@ -39,7 +39,7 @@ function Get-AuthHeader() {
     }
 
     # Create a base64 encoded string of the credentials that have been passed
-    $creds = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($credentials))    
+    $creds = $credentials | ConvertFrom-SecureString -AsPlainText
 
     if ($encode.IsPresent) {
 
