@@ -1,6 +1,58 @@
 
 function Invoke-Asciidoc() {
 
+    <#
+    
+    .SYNOPSIS
+    Runs AsciiDoc to convert documents to the desired format
+
+    .DESCRIPTION
+    This cmdlet provides direct access to the AsciiDoc commands. It allows more configuration
+    than the Build-Documentation cmdlet.
+
+    Like the Build-Documentation cmdlet the output format can be specified, either PDF or HTML. Markdown
+    is not yet supported.
+
+    To make it more flexible the cmdlet takes a JSON configuration file which governs how the command
+    will run. For example:
+
+    ```
+   {
+        "title": "MRBuild Manual",
+        "output": "{{ basepath }}/outputs/docs/{{ format }}",
+        "trunkBranch": "main",
+        "path": "{{ basepath }}/docs/index.adoc",
+        "pdf": {
+            "attributes": [
+                "pdf-theme={{ basepath }}/docs/conf/pdf/theme.yml",
+                "pdf-fontsdir=\"{{ basepath }}/docs/conf/fonts;GEM_FONTS_DIR\"",
+                "allow-uri-read"
+            ]
+        }
+    } 
+    ```
+
+    As can be seen the cmdlet supports inserting values into the strings. This allows for the most
+    flexibilty. For example the `basepath` is determined automatcially or by specification and this
+    is inserted into the output path using the {{ basepath }} token.
+
+    The format is still specified on the command line. The configuration for the format is specified
+    as another node in the configuration, in this case the attributes for PDF can be seen.
+
+    The templating is resolved across the whole configuration file before it is used.
+
+    .NOTES
+
+    This cmdlet will eventually supercede the Build-Documentation cmdlet
+
+    .EXAMPLE
+
+    Invoke-AsciiDoc -pdf -folder . -config ./config.json -output outputs/
+
+    Generate a PDF document from the current folder and put the resultant file in
+    the `outputs/` directory.    
+    #>
+
     [CmdletBinding()]
     param (
 

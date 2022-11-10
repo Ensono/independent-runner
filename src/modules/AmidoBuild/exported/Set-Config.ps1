@@ -1,12 +1,23 @@
 
-<#
 
-.SYNOPSIS
-Sets up the environment for the module
-
-#>
 
 function Set-Config() {
+
+    <#
+
+    .SYNOPSIS
+    Sets up the environment for the module
+
+    .DESCRIPTION
+    Cmdlet currently sets the path for the file to hold the commands that are executed
+    by the module
+
+    .EXAMPLE
+    Set-Config -commandpath ./cmdlog.txt
+
+    Set the path to the command log file `./cmdlog.txt`
+
+    #>
 
     [CmdletBinding()]
     param (

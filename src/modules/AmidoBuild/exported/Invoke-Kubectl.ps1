@@ -2,6 +2,37 @@
 
 function Invoke-Kubectl() {
 
+    <#
+    
+    .SYNOPSIS
+    Is a wrapper around the `kubectl` command for deployment
+
+    .DESCRIPTION
+    To help with the invoking the necessary commands for `kubectl` this cmdlet wraps
+    the login and the deploy or rollout sub command. This is its primary function, although
+    custom commands can be passed to the cmdlet for situations where deploy and rollout do
+    not suffice.
+
+    `apply` - deploy one or more manifest files to the kubernetes cluster
+    `custom` - perform any `kubectl` command using the arguments 
+    `rollout` - performs the rollout command using the specified arguments
+
+    The cmdlet can target Azure and AWS clusters. To specify which one is required the `provider`
+    parameter needs to be set. For the identification of the cluster the name needs to be specified
+    as well as an identifier. Please see the `identifier` parameter for more information.
+
+    .EXAMPLE
+    Invoke-Kubectl -apply -arguments @("manifest1.yml", "manifest2.yml") -provider azure -target myakscluster -identifier myresourcegroup
+
+    Apply the specified manifest files, if they can be located, to the named cluster in azure
+
+    .EXAMPLE
+    Invoke-Kubectl custom -arguments @("get", "ns") -provider azure -target myakscluster -identifier myresourcegroup
+
+    Perform a custom command and list all the namespaced in the cluster.
+
+    #>
+
     [CmdletBinding()]
     param (
 

@@ -74,6 +74,7 @@
         "Build-Documentation",
         "Build-PowerShellModule",
         "Confirm-Environment",
+        "Expand-Template",
         "Get-Dependencies",
         "Get-ExternalCommands",
         "Expand-Template",
@@ -81,18 +82,18 @@
         "Invoke-DotNet",
         "Invoke-GitClone",
         "Invoke-Inspec",
+        "Invoke-Kubectl",
+        "Invoke-Login",
         "Invoke-SonarScanner",
         "Invoke-Templater",
         "Invoke-Terraform",
         "Invoke-YamlLint",
-        "Merge-Module",
         "New-EnvConfig",
-        "Set-Config",
-        "Update-BuildNumber",
-        "Update-InfluxDashboard",
         "Publish-Confluence",
         "Publish-GitHubRelease",
-        "Confirm-Environment"
+        "Set-Config",
+        "Update-BuildNumber",
+        "Update-InfluxDashboard"
     )
     
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.

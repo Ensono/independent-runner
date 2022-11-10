@@ -11,6 +11,21 @@ function Build-PowerShellModule() {
     The powershell module in this repository is used with the Independent Runner
     so that all commands and operations are run in the same way regardless of the platform.
 
+    The cmdlet can be used to build any PowerShell module as required.
+
+    PowerShell modules can be deployed as multiple files or as a single file in the `.psm1` file.
+    To ease deployment, the module will bundle all of the functions into a single file. This means
+    that when it comes to deployment there are only two files that are required, the manifest file
+    and the data file.
+
+    .EXAMPLE
+
+    Build-PowerShellModule -Path /app/src/modules -name AmidoBuild -target /app/outputs/module
+
+    This is the command that is used to build the Independent Runner. It use the path and the name to
+    determine where the files for the module. The resultant module will be saved in the specified
+    target folder.
+
     #>
 
     [CmdletBinding()]

@@ -8,7 +8,35 @@ function Publish-Confluence() {
 
     .DESCRIPTION
     This cmdlet takes the specified body and uploads it to Confluence. If the page already exists
-    it will be updated
+    it will be updated. All images in the file will be uploaded as attachments to the page.
+
+    The body to be published can be passed inline to the arguments or as a file. The cmdlet will check to
+    see if the `body` parameter is a path to a file in which case it will attempt to read the contents in 
+    and set that as the body to upload.
+
+    After this a call to the Confluence API will be made to see if the page already exists. If it does then
+    the ID for that page is retrieved, if it does not then an initial page is created from which the ID is retrieved.
+    Then the cmdlet scans the HTML for any images that need to be uploaded as attachments. Finally the final
+    page is uploaded to Confluence.
+
+    A parent page can be specified which will result in this page being a child of the named parent.
+
+    Credentials for the API are passed to the function as a basic authentication pair with an API token in the format
+    '<username>:<api_token>'. OAuth authorisation is not currently supported.
+
+    .NOTES
+    Confluence requires that the HTML extension is enabled to display content that has been uploaded as HTML.
+
+    .EXAMPLE
+    $env:CONFLUENCE_CREDENTIALS = "myuser:1234567"
+    Publish-Confluence -title "MyPage" `
+                       -space "ED" `
+                       -server "myconfluenece.atalassian.net" `
+                       -body "myfile.html" `
+                       -checksum "56555655" `
+                       -path "."
+
+    Uploads the content of the `myfile.html` as the MyPage page in confluence
 
     #>
 
