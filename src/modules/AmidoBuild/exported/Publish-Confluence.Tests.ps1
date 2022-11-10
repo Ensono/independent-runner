@@ -6,7 +6,7 @@ Describe "Publish-Confluence" {
         . $PSScriptRoot/Publish-Confluence.ps1
 
         # Include dependencies
-        . $PSScriptRoot/../api/Invoke-Api.ps1
+        . $PSScriptRoot/../api/Invoke-API.ps1
         . $PSScriptRoot/../command/Stop-Task.ps1
         . $PSscriptRoot/../utils/Build-Uri.ps1
         . $PSscriptRoot/../utils/Confirm-Parameters.ps1
