@@ -1,6 +1,35 @@
 
 function Invoke-Terraform() {
 
+
+    <#
+    
+    .SYNOPSIS
+    A wrapper for the Terraform command which will invoke the different commands of
+    Terraform as required
+
+    .DESCRIPTION
+    The Independent Runner uses Terraform to built up the resources that are required, primairly for ED Stacks,
+    but can be for any Terraform defined infrastructure.
+
+    It is a wrapper for the Terraform command and will generate the necessary command from the inputs that the
+    cmdlet is given. The benefit of this cmdlet is that it reduces complexity as people do not need to know how
+    to build up the Terraform command each time.
+    
+    .EXAMPLE
+    Invoke-Terraform -init -arguments "false"
+
+    Initialise the Terraform files with a fase backend. This is useful for validation.
+
+    .EXAMPLE
+    Invoke-Terraform -plan properties "-input=false", "-out=tf.plan"
+    
+    Plan the Terraform deployment using the files in the current directory. The properties that have been passed
+    are appended directly to the end of the Terraform command. In this example no missing inputs are requests and
+    the plan is written out to the `tf.plan` file.
+
+    #>
+
     [CmdletBinding()]
     param (
 

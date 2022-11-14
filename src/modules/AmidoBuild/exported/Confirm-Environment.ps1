@@ -16,15 +16,17 @@ function Confirm-Environment() {
 
     The structure of the file describing the envrionment is show below.
 
-    default:
-        variables: [{}]
-        credentials:
-            azure:  [{}]
-            aws: [{}]
-    
-    stages:
-        name: <NAME>
-        variables: [{}]
+    ```
+        default:
+            variables: [{}]
+            credentials:
+                azure:  [{}]
+                aws: [{}]
+        
+        stages:
+            name: <NAME>
+            variables: [{}]
+    ```
 
     Each of the `[{}]` in variables denotes an array of the following object
 

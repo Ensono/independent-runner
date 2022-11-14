@@ -4,7 +4,16 @@ function Invoke-Templater() {
     <#
     
     .SYNOPSIS
-        Reads all env vars and, optionally, an env file and replaces values in a template file
+    Reads all env vars and, optionally, an env file and replaces values in a template file
+
+    .DESCRIPTION
+    This cmdlet provides a basic templating engine for files. It uses the the `Expand-Template`
+    cmdlet to perform the subsitutions.
+
+    A file is passed to the cmdlet with tokens that need to be replaced, e.g.:
+
+    
+
     #>
 
     [CmdletBinding()]
@@ -71,7 +80,7 @@ function Invoke-Templater() {
     # Check that the specified path exists
     if ($PSCmdlet.ParameterSetName -eq "path") {
         if (!(Test-Path -Path $path)) {
-            Write-Error ("Unable to file list file: {0}" -f $path)
+            Write-Error ("Unable to find list file: {0}" -f $path)
             return
         }
 

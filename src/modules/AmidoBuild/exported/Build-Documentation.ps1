@@ -7,13 +7,13 @@ function Build-Documentation() {
     Build documentation in a project in different formats
 
     .DESCRIPTION
-    The Build-Docs cmdlet is used to generate documentation from the Asciidoc source in a project.
+    The Build-Documentation cmdlet is used to generate documentation from the Asciidoc source in a project.
 
     The cmdlet allows for PDF and MD files to be generated.
 
     .NOTES
 
-    In order for the documenation to be generated the asciidoctor, asciidoctor-pdf and pandoc binaries
+    In order for the documentation to be generated the asciidoctor, asciidoctor-pdf and pandoc binaries
     must be available. These can be installed locally or run in a container. 
 
     #>
