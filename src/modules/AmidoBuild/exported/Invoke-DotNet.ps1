@@ -2,6 +2,30 @@
 
 function Invoke-DotNet() {
 
+    <#
+    
+    .SYNOPSIS
+    Runs various different `dotnet` commands to perform builds and tests
+
+    .DESCRIPTION
+    This cmdlet executes the `dotnet` command to perform different aspects of building a .NET applications.
+    It is designed to run all all of the necessary commands associated with a particular step.
+
+    .EXAMPLE
+
+    Invoke-DotNet -Build -Path src
+
+    Perform a build using `dotnet` in the src directory
+
+    .EXAMPLE
+
+    Invoke-Dotnet -Tests -pattern "*UnitTests*" -arguments "--logger 'trx'"
+
+    Perform all of the tests taht match the "UnitTests" patterns across the project. Pass the `--logger 'trx'` as a argument
+    to the dotnet command.
+
+    #>
+
     [CmdletBinding()]
     param (
         

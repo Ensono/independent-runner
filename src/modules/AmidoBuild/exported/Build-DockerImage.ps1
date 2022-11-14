@@ -1,25 +1,36 @@
-<#
-
-.SYNOPSIS
-Create a Docker image for the application and optionally pushes it to a container registry
-
-.DESCRIPTION
-Builds a docker image using the specified build arguments, name and tags. Optionally the function
-can also push the image to a remote registry.
-
-If the option has been specified to push to a remote registry then a name of the regsitry
-and the group it belongs to need to be specified.
-
-The parameters can be specified on the command line or as an environment variable, apart from the
-buildargs and whether the image should be pushed to a registry.
-
-In order to push to a registry the function will first use the Connect-Azure function and then
-get the regsitry credentials using the Get-AzContainerRegistryCredential cmdlet.
-
-AWS command reference: https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html
-#>
-
 function Build-DockerImage() {
+
+    <#
+
+    .SYNOPSIS
+    Create a Docker image for the application and optionally pushes it to a container registry
+
+    .DESCRIPTION
+    Builds a docker image using the specified build arguments, name and tags. Optionally the function
+    can also push the image to a remote registry, be it a generic registry, Azure or AWS.
+
+    If the option has been specified to push to a remote registry then a name of the registry
+    and the group it belongs to need to be specified.
+
+    The parameters can be specified on the command line or as an environment variable, apart from the
+    buildargs and whether the image should be pushed to a registry.
+
+    In order to push to a registry the function will first use the Connect-Azure function and then
+    get the regsitry credentials using the Get-AzContainerRegistryCredential cmdlet.
+
+    AWS command reference: https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html
+
+    .EXAMPLE
+
+    Build-DockerImage -Provider azure -Name ensonodigital/myimage:0.0.1 -Registry edregistry.azurecr.io -buildargs src/api -push
+
+    This will build a DockerImage using the Dockefile in the current directory. The build arguments will be passed and then once
+    the image has been built it will be pushed to the specified Azure registry.
+
+    The username and password to access the registry will be extracted using the PowerShell cmdlet `Get-AzContainerRegistryCredential`
+    and then this will be passed to the resultant docker command.
+  #>
+
     [CmdletBinding()]
     param (
       [Parameter(

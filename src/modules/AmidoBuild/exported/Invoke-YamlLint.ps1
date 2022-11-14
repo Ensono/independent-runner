@@ -1,4 +1,37 @@
 function Invoke-YamlLint() {
+
+    <#
+    
+    .SYNOPSIS
+    Performs a Yaml Lint, using Python, against all YAML files in the path
+
+    .DESCRIPTION
+    Using Python, preferably in a container, this cmdlet will run the yamllint command
+    against all of the yaml files in the specified directory.
+
+    A configuration file for yaml lint is expected. By default this the cmdlet will look
+    for the file called `yamllint.conf` in the directory from which the cmdlet was invoked.
+
+
+    .NOTES
+    Due to the license of yamllint, it needs to be installed by the cmdlet on each use. This
+    is because the license of yamlint is GPL, which means that if we bundled it into a container
+    *all* of our code would need to be distibuted under the GPL license. By installing it
+    as and when we need it we do not need to do this.
+
+    .EXAMPLE
+    Invoke-YamlLint
+
+    Perform a lint for all the yaml files in the current directory
+
+    .EXAMPLE
+    Invoke-Yamllint -basepath src/ -config config/config.yml
+
+    Perform a yamllint on all yaml files in the `src/` directory and use a different
+    configuration file
+
+    #>
+
     [CmdletBinding()]
     param (
         [Alias("a")]

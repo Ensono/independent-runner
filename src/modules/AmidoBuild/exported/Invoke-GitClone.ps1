@@ -1,6 +1,39 @@
 
 function Invoke-GitClone() {
 
+    <#
+    
+    .SYNOPSIS
+    Clones a Git repository
+
+    .DESCRIPTION
+    This cmdlet will clone a repsoitory from the specified Git provider.
+
+    The repoUrl parameter is used to state where the repository should be retrieved from. This
+    can be a short name or a full URL.
+
+    If a short name is provided, e.g. amido/stacks-dotnet, the cmdlet will build up the archive URL
+    that will be used download the archive an unpack it.
+
+    Git is not used to get the repository, this is so that there is no dependency on the command
+    and means that the URL requested has to be to a zip file for the archive. This is determined
+    automatically if using GitHub as the provider.
+
+    .NOTES
+    Whilst the cmdlet has been designed so that other providers, such as GitHub, are supported
+    for shortnames, it has not been extended beyond GitHub.
+
+    If a repository needs to be retrieved from a different provider please use the full URL
+    as the repoUrl parameter.
+
+    .EXAMPLE
+    Invoke-GitClone -repo amido/stacks-pipeline-templates -ref refs/tags/v2.0.6 -path support
+
+    As the default provider is GitHub this will result in the archive https://github.com/amido/stacks-pipeline-templates/archive/refs/tags/v.2.06.zip
+    being downloaded and unpacked into the `support` directory.
+
+    #>
+    
     [CmdletBinding()]
     param (
 

@@ -47,7 +47,7 @@ Describe "Update-BuildNumber" {
 
         It "will return null" {
 
-            Update-BuildNumber -BuildNumber "100.98.99" | Should -Be $null
+            Update-BuildNumber -BuildNumber "100.98.99" | Should -Be "100.98.99"
         }
     }
 }

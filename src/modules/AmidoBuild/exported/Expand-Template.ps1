@@ -1,21 +1,47 @@
 
-<#
-
-.SYNOPSIS
-Expand variables in a template file and output to the specified destination
-
-.DESCRIPTION
-This function mimics the `envsubst` command in Linux and expands any variable in a template file
-and outputs it to a file or stdout
-
-PowerShell deals with environment variables slightly differently in that they are prefixed, e.g. env:NAME
-So that variables such as ${NAME} can be expanded the env vars need to be converted to scoped level variables
-Ths function will get all enviornment variables and make then local variables for the expansion to use.
-
-If no target is specified then the template is output to stdout
-
-#>
 function Expand-Template() {
+
+    <#
+
+    .SYNOPSIS
+    Expand variables in a template file and output to the specified destination
+
+    .DESCRIPTION
+    This function mimics the `envsubst` command in Linux and expands any variable in a template file
+    and outputs it to a file or stdout
+
+    PowerShell deals with environment variables slightly differently in that they are prefixed, e.g. env:NAME
+    So that variables such as ${NAME} can be expanded the env vars need to be converted to scoped level variables
+    Ths function will get all enviornment variables and make then local variables for the expansion to use.
+
+    If no target is specified then the template is output to stdout
+
+    .EXAMPLE
+
+    $env:MYNAME = "pester"
+    'name: ${MYNAME}' | Expand-Template -Pipeline
+
+    Send a template to be expanded into the cmdlet using a pipeline. The result will be a string
+    'name: pester'
+
+    .EXAMPLE
+
+    $env:MYNAME = "pester"
+    'name: ${MYNAME}' | Expand-Template -Pipeline -Target envfile
+
+    Same as the previous example, but the output will be saved in the file specified by the 
+    target parameter
+
+    .EXAMPLE
+
+    Set-Content -path template.txt -value 'component: ${COMPONENT}'
+    Expand-Template -Template ./template.txt -additional @{"component" = "template"}
+
+    This time the template is read from a file and the values that are to be replaced come from the
+    additional hashtable. This is combnined with the values from the environment. Values that
+    are duplicated between the two will be overriden by the additional values.
+
+    #>
 
     [CmdletBinding()]
     param (
