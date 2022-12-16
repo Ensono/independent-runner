@@ -84,6 +84,7 @@
         "Invoke-Inspec",
         "Invoke-Kubectl",
         "Invoke-Login",
+        "Invoke-Npm",
         "Invoke-SonarScanner",
         "Invoke-Templater",
         "Invoke-Terraform",
