@@ -1,11 +1,26 @@
 
-<#
 
-.SYNOPSIS
+function Get-ExternalCommands() {
+
+    <#
+
+    .SYNOPSIS
     Function to return a list of the external commands that have been executed by the module
 
-#>
-function Get-ExternalCommands() {
+    .DESCRIPTION
+    When the module is run, all of the external commands (those that are not PowerShell) cmdlets are
+    stored in a session variable. This will return all of the commands that have been run. It is
+    possible to access a specific command if required using the item parameter.
+
+    This is very useful when trying to debug a build that uses the Independent Runner.
+
+    .EXAMPLE
+
+    Get-ExternalCommands
+
+    List all of the commands that have been executed.
+
+    #>
 
     [CmdletBinding()]
     param (

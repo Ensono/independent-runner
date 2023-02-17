@@ -1,9 +1,23 @@
 function Update-InfluxDashboard() {
 
-<#
-.SYNOPSIS
-Update Deployment Dashboard Details
-#>
+    <#
+
+    .SYNOPSIS
+    Update Deployment Dashboard Details
+
+    .DESCRIPTION
+    With pielines being defined as code, it has become more difficult to show visually what applications have
+    been deployed in what environment. This cmdlet uses InfluxDB to create a dashboard of applications and 
+    which version has been deployed into each environment.
+
+    This function will send data to an InfluxDB (a time based database) so that a dahsboard can be generated. This
+    can be achieved using InfluxDB or Grafana Cloud for example.
+
+    All of the parameters can be defined as envrionment variables, as detailed in the parameters section.
+
+    An InfluxDB account must exist and a TOKEN for the specified ORG supplied.
+
+    #>
 
     [CmdletBinding()]
     param (

@@ -1,16 +1,28 @@
-<#
 
-.SYNOPSIS
-Get dependencies for the build
-
-.DESCRIPTION
-Retrieve the dependencies for the build.
-
-Can retrieve a list of GitHub repositories into the lcoal directory
-
-#>
 
 function Get-Dependencies {
+
+    <#
+
+    .SYNOPSIS
+    Get dependencies for the build
+
+    .DESCRIPTION
+    Retrieve the dependencies for the build. The dependencies are determines from the list
+    that is provided.
+
+    Can retrieve a list of GitHub repositories into the lcoal directory
+
+    Each dependencies, if found, is cloned into the local repository.
+
+    .EXAMPLE
+
+    Get-Dependencies -type github -list @{"pester-repo-1"}
+
+    Will attempt to clone the specified repo into the current directory
+
+    #>
+
     [CmdletBinding()]
     param (
 

@@ -1,6 +1,48 @@
 
 function Invoke-Inspec() {
 
+    <#
+    
+    .SYNOPSIS
+    Performs infrastructure tests against resources using Inspec
+
+    .DESCRIPTION
+    Infrastructure testing is good practice for a number of reasons:
+
+    1. Ensuring what has been deployed is as expected
+    2. Checking that there is no configuration drift over time
+    3. Ensure that supported versions of resources, such as AKS, are being used
+
+    To help achieve this, this cmdlet will run the Inspec tests against the deployed infrastrtcure.
+    The tests have to be written and part of the repository from which the build is running.
+
+    The cmdlet has three distinct phases, `init`, `vendor` and `exec`.
+
+    The `init` switch is used to initialise Inspec and ensure that it is configured with the correct
+    provider and can execute the tests.
+
+    The `vendor` switch is used to ensure that all dependencies and providers are downlaoded. This is
+    useful if the tests are already initialised and the dependency list has been updated. This is more
+    relevant to a developing and testing from a workstation rather than in a pipeline.
+
+    The `exec` switch is used to perform the tests against the deployed infrastructure.
+
+    When the tests are run they are generated using the JUnit format so that they can be 
+    uploaded to the CI/CD system as test results.
+
+    Authentication for the Azure provider is achieved by setting the necessary values in the 
+    CLIENT_ID, CLIENT_SECRET, TENANT_ID, and SUBSCRIPTION_ID environment variables.
+
+    For AWS the authentication environment variables to be set are AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY,
+    AWS_REGION and AWS_AVAILABILTY_ZONE
+
+    .EXAMPLE
+    Invoke-Inspec -exec -path . -cloud azure
+
+    This will run the tests from the current directory and target the Azure provider.
+    
+    #>
+
     [CmdletBinding()]
     param (
 
