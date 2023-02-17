@@ -1,11 +1,35 @@
 
 function Invoke-Login() {
 
+    <#
+    
+    .SYNOPSIS
+    Login into an AKS or AWS Kubernetes cluster
+
+    .DESCRIPTION
+    When using the `Invoke-Kubectl` cmdlet it needs to be able to authenticate against the cluster
+    This cmdlet performs that role and ensures that it is logging in using the `az` (for Azure) or 
+    the `aws` (for AWS) commands. It is a wrapper to easily perform the login.
+    
+    .EXAMPLE
+
+    $env:ARM_CLIENT_ID = "xxxx-xxxx-xxxx-xxxx"
+    $env:ARM_CLIENT_SECRET = "lkjdsfasdlkjasdfkasd"
+    $env:ARM_TENANT_ID = "xxxx-xxxx-xxxx-xxxx"
+    $env:ARM_SUBSCRIPTION_ID = "xxxx-xxxx-xxxx-xxxx"
+    Invoke-Login -k8s -k8sname mycluster -resourceGroup mygroup -azuree
+
+    Performs a login to the specified clustyer in Azure and exports the credentials innto the environments
+    so that subsequent 
+
+    #>
+
     [CmdletBinding()]
     param (
         [switch]
         # Specify if Kubernetes credentials should be retrieved
         $k8s,
+
         [string]
         # Name of the cluster to get credentials for
         $k8sName,
@@ -96,8 +120,6 @@ function Invoke-Login() {
 
                 # Connect to Azure
                 Connect-Azure -clientId $username -secret $password -subscription $subscriptionId -tenantId $tenantId
-                # Set the subscription that should be used
-                # Set-AzContext -Subscription $subscriptionId
 
                 # Import AKS credentials if specified
                 if ($k8s.IsPresent) {
@@ -114,7 +136,7 @@ function Invoke-Login() {
                     if ($missing.length -gt 0) {
                         Write-Error -Message ("Required K8S parameters are missing: {0}" -f ($missing -join ", "))
                     } else {
-                    Import-AzAksCredential -ResourceGroupName $resourceGroup -Name $k8sName -Force
+                        Import-AzAksCredential -ResourceGroupName $resourceGroup -Name $k8sName -Force
                     }
                 }
             }
