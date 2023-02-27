@@ -30,6 +30,8 @@ Describe "Invoke-Asciidoc" {
         $settings_file = [IO.Path]::Combine($testfolder, "settings.json")
         Set-Content -Path $settings_file -Value ($settings | ConvertTo-Json) | Out-Null
 
+        $env:BUILDNUMBER = "74.83.10.13"
+
         # Mock functions that are called
         # - Find-Command - return the name of the command that is required
         Mock -Command Find-Command -MockWith { return $name }
@@ -66,12 +68,13 @@ Describe "Invoke-Asciidoc" {
             # Create attributes array
             $attributes = @(
                 "allow-read-uri",
-                "pdf-fontsdir=/fonts"
+                "pdf-fontsdir=/fonts",
+                "stackscli_version={{ BUILDNUMBER }}"
             )
 
             Invoke-Asciidoc -pdf -path $testfolder -output "${testfolder}/newsletter.pdf" -attributes $attributes
 
-            $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -a allow-read-uri -a pdf-fontsdir=/fonts -o `"newsletter.pdf`" -D `"$testfolder`" $testfolder"
+            $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -a allow-read-uri -a pdf-fontsdir=/fonts -a stackscli_version=74.83.10.13 -o `"newsletter.pdf`" -D `"$testfolder`" $testfolder"
 
             Should -Invoke -CommandName Write-Information -Times 1
         }
