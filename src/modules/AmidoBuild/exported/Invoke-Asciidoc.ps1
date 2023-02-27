@@ -22,6 +22,9 @@ function Invoke-Asciidoc() {
         "output": "{{ basepath }}/outputs/docs/{{ format }}",
         "trunkBranch": "main",
         "path": "{{ basepath }}/docs/index.adoc",
+        "libs": [
+            "asciidoctor-diagram"
+        ],
         "pdf": {
             "attributes": [
                 "pdf-theme={{ basepath }}/docs/conf/pdf/theme.yml",
@@ -38,6 +41,11 @@ function Invoke-Asciidoc() {
 
     The format is still specified on the command line. The configuration for the format is specified
     as another node in the configuration, in this case the attributes for PDF can be seen.
+
+    In addition to the two tokens that are added by the cmdlet, "basepath" and "format", all environment
+    variables are tokens that can be subsituted in the settings file or on the commannd line. For example
+    if an environment variable of "BUILDNUMBER" exists and has a value of "1.2.3" the following "attr_a={{ BUILDNUMBER }}"
+    would result in a substitution of "attr_a=1.2.3"
 
     The templating is resolved across the whole configuration file before it is used.
 
@@ -106,6 +114,7 @@ function Invoke-Asciidoc() {
         output = ""
         path = ""
         trunkBranch = ""
+        libs = @()
         pdf = @{
             attributes = @()
         }
@@ -118,6 +127,13 @@ function Invoke-Asciidoc() {
     $tokens = @{
         "format" = $PSCmdlet.ParameterSetName
         "basepath" = $basepath
+    }
+
+    # Add all environment variables to the tokens list
+    # This is so that any can be used in substitutions in the generation of an AsciiDoc document
+    $envs = Get-ChildItem -Path env:*
+    foreach ($env in $envs) {
+        $tokens[$env.Name] = $env.Value
     }
 
     # Perform the appropriate action based on the Parameter Set Name that
@@ -157,6 +173,11 @@ function Invoke-Asciidoc() {
         $_attr = Replace-Tokens -tokens $tokens -data $attr
 
         $cmdline += '-a {0}' -f $_attr
+    }
+
+    # If any libraries have been specified add them to the command line as well
+    if ($settings.libs.count -gt 0) {
+        $cmdline += '-r {0}' -f ($settings.libs -join ",")
     }
 
     # Handle scenario where the output filename has been specified on the command line
