@@ -3,27 +3,27 @@
         This function provides two merge modes:
         - normal (no data loss, arrays merge, but removes duplicates)
         - shallow (only array from primary hashtable is taken)
- 
+
     .DESCRIPTION
         This function merges deeply two hashtables without data loss.
         In case of object mismatch, first hashtable will have priority.
         Value-objects like strings or integers will be taken from primary hashtable.
         Arrays will be merged without duplicates in normal mode.
         In shallow mode array from primary hashtable will be taken.
- 
+
     .PARAMETER primary
         First hashtable to merge.
         This will have priority.
         It can be null or empty.
- 
+
     .PARAMETER secondary
         Second hashtable to merge.
         It can be null or empty.
- 
+
     .PARAMETER shallow
         When switched ON only shallow merge is performed.
         Arrays will not be merged, but array from primary hashtable will be taken.
- 
+
     .EXAMPLE
         Merge-Hashtables -primary $primary -secondary $secondary
         Merge-Hashtables -primary $primary -secondary $secondary -shallow

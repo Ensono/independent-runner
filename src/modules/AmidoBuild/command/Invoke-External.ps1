@@ -67,12 +67,10 @@ function Invoke-External {
                 $global:Session.commands.exitcodes += $LASTEXITCODE
             }
 
-
             # Stop the task if the LASTEXITCODE is greater than 0
             if ($LASTEXITCODE -gt 0) {
                 Stop-Task -ExitCode $LASTEXITCODE
             }
-
 
         }
     }

@@ -18,7 +18,7 @@ Describe "Find-Command" {
 
             Find-Command -Name "mycommand"
 
-            Should -Invoke -CommandName Write-Error -Times 1
+            Should -Invoke -CommandName Write-Error -Exactly 1
         }
     }
 

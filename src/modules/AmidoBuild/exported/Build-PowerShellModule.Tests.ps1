@@ -70,7 +70,7 @@ Describe "Build-PowerShellModule" {
         }
 
         AfterEach {
-            Remove-Item -Path $testFolder2 -Recurse -Force
+            Remove-Item -Path "${testFolder2}/*" -Recurse -Force
         }
 
         It "if the output path is a child of the current directory" {
@@ -131,7 +131,7 @@ Describe "Get-Test" {
 
         AfterEach {
             Pop-Location
-            Remove-Item -Path $testFolder -Force -Recurse
+            Remove-Item -Path "${testFolder}/*" -Force -Recurse
         }
 
         It "will create the PSM file with all the functions within" {

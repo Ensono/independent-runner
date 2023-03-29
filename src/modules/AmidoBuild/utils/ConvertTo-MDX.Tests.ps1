@@ -18,7 +18,7 @@ Describe "ConvertTo-MDX" {
             $result = ConvertTo-MDX
 
             $result | Should -Be $false
-            
+
             Should -Invoke -CommandName Write-Error -Times 1
         }
 
@@ -26,7 +26,7 @@ Describe "ConvertTo-MDX" {
             $result = ConvertTo-MDX -Destination "dest"
 
             $result | Should -Be $false
-            
+
             Should -Invoke -CommandName Write-Error -Times 1
         }
 
@@ -34,16 +34,16 @@ Describe "ConvertTo-MDX" {
             $result = ConvertTo-MDX -Path "dest"
 
             $result | Should -Be $false
-            
+
             Should -Invoke -CommandName Write-Error -Times 1
-        }    
+        }
 
         it "will error if the MD file does not exist" {
 
             $result = ConvertTo-MDX -Path "index.md" -Destination "index.mdx"
 
             $result | Should -Be $false
-            
+
             Should -Invoke -CommandName Write-Error -Times 1
         }
     }
@@ -56,7 +56,7 @@ Describe "ConvertTo-MDX" {
         }
 
         AfterEach {
-            Remove-Item -Path $testFolder -Recurse -Force | Out-Null
+            Remove-Item -Path "${testFolder}/*" -Recurse -Force | Out-Null
         }
 
         It "will generate an MDX file from a MD file that has been specified" {

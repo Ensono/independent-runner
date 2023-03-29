@@ -4,31 +4,34 @@ param (
 
     [string]
     # Path to the functions that need to be tests
-    $path,
+    $Path,
 
     [string]
     # Output directory for the results
-    $output = "outputs/tests",
+    $Output = "outputs/tests",
 
     [switch]
     # State if the unit tests should be run
-    $unittests,
+    $Unittests,
 
     [switch]
     # State if the coverage report should be run
-    $coverage,
+    $Coverage,
 
     [string]
     # Unit test format
-    $unitTestFormat = "nunitxml",
+    $UnitTestFormat = "nunitxml",
 
     [string]
     # Coverage format
-    $coverageFormat = "JaCoCo",
+    $CoverageFormat = "JaCoCo",
 
     [string]
     # Verbsoity of the tests
-    $verbosity = "Normal"
+    $Verbosity = "Normal",
+
+    [string]
+    $Tags
 
 )
 
@@ -51,6 +54,8 @@ if ($coverage.IsPresent) {
     $configuration.CodeCoverage.OutputFormat = $coverageFormat
     $configuration.CodeCoverage.OutputPath = [IO.Path]::Combine($output, "pester-coverage.xml")
 }
+
+$configuration.filter.Tag = $tags
 
 # Set the verbosity of the tests
 $configuration.Output.Verbosity = $verbosity
