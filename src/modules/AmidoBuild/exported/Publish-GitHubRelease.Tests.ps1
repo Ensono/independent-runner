@@ -7,6 +7,9 @@ Describe "Publish-GitHubRelease" {
 
         # Include dependent functions
         . $PSScriptRoot/../utils/Confirm-Parameters.ps1
+
+        # Create a folder to use for each test
+        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
     }
 
     Context "Errors will be thrown" {
@@ -23,16 +26,13 @@ Describe "Publish-GitHubRelease" {
 
         BeforeEach {
 
-            # Create a folder to use for each test
-            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
-
             # Create a dummy file for release
             New-Item -ItemType File -Path ([IO.Path]::Combine($testFolder, "module.psm1")) | Out-Null
         }
 
         AfterEach {
 
-            Remove-Item -Path $testFolder -Recurse -Force
+            Remove-Item -Path "${testFolder}/*" -Recurse -Force
         }
 
         It "if publishRelease parameter has not been set" {
@@ -83,7 +83,7 @@ Describe "Publish-GitHubRelease" {
 
             # Mock the Invoke-WebRequest cmdlet so that it returns a valid object, which contains
             # valid JSON strng
-            Mock -CommandName Invoke-WebRequest -MockWith { 
+            Mock -CommandName Invoke-WebRequest -MockWith {
                 return @{content = @"
     {
         "upload_url": "https://api.github.com/repo/upload"
@@ -95,16 +95,13 @@ Describe "Publish-GitHubRelease" {
 
         BeforeEach {
 
-            # Create a folder to use for each test
-            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
-
             # Create a dummy file for release
             New-Item -ItemType File -Path ([IO.Path]::Combine($testFolder, "module.psm1")) | Out-Null
         }
 
         AfterEach {
 
-            Remove-Item -Path $testFolder -Recurse -Force
+            Remove-Item -Path "${testFolder}/*" -Recurse -Force
         }
 
         It "with the specified artifacts and command line publishing" {
@@ -126,7 +123,7 @@ Describe "Publish-GitHubRelease" {
         It "with the specified artifacts and environment variable publishing" {
 
             $env:PUBLISH_RELEASE = 'true'
-            
+
             $splat = @{
                 version = "100.98.99"
                 commitId = "hjggh66"
@@ -134,11 +131,11 @@ Describe "Publish-GitHubRelease" {
                 apiKey = "1245356"
                 repository = "pester"
                 artifactsDir = $testfolder
-                
+
             }
 
             Publish-GitHubRelease @splat
-            
+
             $env:PUBLISH_RELEASE = $null
 
             Should -Invoke -CommandName Invoke-WebRequest -Times 2
