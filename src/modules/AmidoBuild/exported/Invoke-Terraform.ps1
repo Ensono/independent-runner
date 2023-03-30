@@ -100,6 +100,13 @@ function Invoke-Terraform() {
         # Initalise Terraform
         $workspace,
 
+        [Parameter(
+            ParameterSetName="show"
+        )]
+        [switch]
+        # Show Terraform Plan or State file
+        $show,
+
         [string[]]
         [Alias("backend", "properties")]
         # Arguments to pass to the terraform command
@@ -131,7 +138,7 @@ function Invoke-Terraform() {
         }
     }
 
-    if (@("plan", "apply").Contains($PSCmdlet.ParameterSetName)) {
+    if (@("plan", "apply", "show").Contains($PSCmdlet.ParameterSetName)) {
         if ([String]::IsNullOrEmpty($path)) {
             Write-Error -Message "Path to the Terraform files or plan file must be supplied" -ErrorAction Stop
             return
@@ -289,6 +296,25 @@ function Invoke-Terraform() {
                     }
                 }
             }
+        }
+
+        # Save Terraform plan or state file as JSON
+        "show" {
+            switch ($arguments[0]) {
+                "tfplan" {
+                    $command = "{0} show -json {1}" -f $terraform, $arguments[0]
+                }
+
+                "tfstate" {
+                    $command = "{0} show -json" -f $terraform
+                }
+                
+                Default {
+                    Write-Error -Message ("Argument {0} not supported for the command {1}" -f $arguments[0], "show") -ErrorAction Stop
+                    return 
+                }
+            }
+            Invoke-External -Command $command | Out-File -Path ("{0}.json" -f $arguments[0])
         }
 
 
