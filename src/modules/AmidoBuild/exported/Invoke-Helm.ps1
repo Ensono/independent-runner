@@ -73,7 +73,11 @@ function Invoke-Helm() {
 
         [string]
         # Path to a chart resource
-        $chartpath
+        $chartpath,
+
+        [string]
+        $releasename
+        # Name of the release
 
     )
 
@@ -117,7 +121,7 @@ function Invoke-Helm() {
             "install" {
                 # Check that some arguments have been set
 
-                $commands += "{0} upgrade --install --atomic --values {1} {2}" -f $helm, $valuepath, $chartpath
+                $commands += "{0} upgrade {1} {2} --install --atomic --values {3}" -f $helm, $releasename, $chartpath, $valuepath
                     }
 
             "custom" {

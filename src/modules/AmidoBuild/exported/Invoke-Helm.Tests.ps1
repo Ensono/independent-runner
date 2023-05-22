@@ -30,6 +30,7 @@ Describe "Invoke-Helm" {
 
         $testclustername = "testcluster"
         $testclusteridentifier = "testclusteridentifier"
+        $testrelease = "testrelease"
 
     }
 
@@ -58,11 +59,11 @@ Describe "Invoke-Helm" {
     Context "Helm Install" {
         BeforeEach {
             Mock -CommandName Invoke-Login -MockWith { return } -RemoveParameterValidation tenantId -parameterFilter { $provider -eq 'azure' -and $k8s.IsPresent -and $identifier -eq $testclusteridentifier -and $target -eq $testclustername }
-            Invoke-Helm -provider Azure -target $testclustername -identifier $testclusteridentifier -Install -valuepath values.yml -chartpath chart.yml
+            Invoke-Helm -provider Azure -target $testclustername -identifier $testclusteridentifier -Install -valuepath values.yml -chartpath chart.yml -releasename $testrelease
         }
 
         It "will login to Azure and install the relevant chart to the target AKS cluster" {
-            $Session.commands.list[0] | Should -BeLike "*helm* upgrade --install --atomic --values values.yml chart.yml"
+            $Session.commands.list[0] | Should -BeLike "*helm* upgrade $testrelease chart.yml --install --atomic --values values.yml"
             Should -Invoke -CommandName Invoke-Login -Times 1
         }
     }
@@ -85,11 +86,11 @@ Describe "Invoke-Helm" {
     Context "AWS Install" {
         BeforeEach {
             Mock -CommandName Invoke-Login -MockWith { return } -RemoveParameterValidation tenantId -parameterFilter { $provider -eq 'AWS' -and $k8s.IsPresent -and $identifier -eq $testclusteridentifier -and $target -eq $testclustername }
-            Invoke-Helm -provider AWS -target $testclustername -identifier $testclusteridentifier -Install -valuepath values.yml -chartpath chart.yml
+            Invoke-Helm -provider AWS -target $testclustername -identifier $testclusteridentifier -Install -valuepath values.yml -chartpath chart.yml -releasename $testrelease
         }
 
         It "will login to AWS and apply the relevant manifest to the target AKS cluster" {
-            $Session.commands.list[0] | Should -BeLike "*helm* upgrade --install --atomic --values values.yml chart.yml"
+            $Session.commands.list[0] | Should -BeLike  "*helm* upgrade $testrelease chart.yml --install --atomic --values values.yml"
             Should -Invoke -CommandName Invoke-Login -Times 1
         }
     }
