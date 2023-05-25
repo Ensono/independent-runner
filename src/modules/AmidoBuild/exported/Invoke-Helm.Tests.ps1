@@ -31,7 +31,7 @@ Describe "Invoke-Helm" {
         $testclustername = "testcluster"
         $testclusteridentifier = "testclusteridentifier"
         $testrelease = "testrelease"
-
+        $testnamespace = "testnamespace"
     }
 
     AfterAll {
@@ -63,7 +63,7 @@ Describe "Invoke-Helm" {
         }
 
         It "will login to Azure and install the relevant chart to the target AKS cluster" {
-            $Session.commands.list[0] | Should -BeLike "*helm* upgrade $testrelease chart.yml --install  --create-namespace --atomic --values values.yml"
+            $Session.commands.list[0] | Should -BeLike "*helm* upgrade $testrelease chart.yml --install --namespace $testnamespace --create-namespace --atomic --values values.yml"
             Should -Invoke -CommandName Invoke-Login -Times 1
         }
     }
@@ -90,7 +90,7 @@ Describe "Invoke-Helm" {
         }
 
         It "will login to AWS and apply the relevant manifest to the target AKS cluster" {
-            $Session.commands.list[0] | Should -BeLike  "*helm* upgrade $testrelease chart.yml --install  --create-namespace --atomic --values values.yml"
+            $Session.commands.list[0] | Should -BeLike  "*helm* upgrade $testrelease chart.yml --install --namespace $testnamespace --atomic --values values.yml"
             Should -Invoke -CommandName Invoke-Login -Times 1
         }
     }
