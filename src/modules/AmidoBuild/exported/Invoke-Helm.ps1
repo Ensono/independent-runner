@@ -76,8 +76,12 @@ function Invoke-Helm() {
         $chartpath,
 
         [string]
-        $releasename
+        $releasename,
         # Name of the release
+
+        [string]
+        $namespace
+        # Namespace to deploy the release into
 
     )
 
@@ -97,6 +101,8 @@ function Invoke-Helm() {
     # if there are missing parameters throw an error
     if ($missing.length -gt 0) {
         Write-Error -Message ("Required parameters are missing: {0}" -f ($missing -join ", "))
+        exit 1
+
     } else {
 
         switch ($provider) {
@@ -121,7 +127,7 @@ function Invoke-Helm() {
             "install" {
                 # Check that some arguments have been set
 
-                $commands += "{0} upgrade {1} {2} --install --create-namespace --atomic --values {3}" -f $helm, $releasename, $chartpath, $valuepath
+                $commands += "{0} upgrade {1} {2} --install --namespace {3} --create-namespace --atomic --values {4}" -f $helm, $releasename, $chartpath, $namespace, $valuepath
                     }
 
             "custom" {
