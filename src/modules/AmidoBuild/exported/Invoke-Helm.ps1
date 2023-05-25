@@ -90,7 +90,7 @@ function Invoke-Helm() {
 
 
       # Ensure that all the required parameters have been set:
-        foreach ($parameter in @("provider", "target", "identifier")) {
+        foreach ($parameter in @("provider", "target", "identifier", "namespace", "releasename","namespace")) {
 
         # check each parameter to see if it has been set
         if ([string]::IsNullOrEmpty((Get-Variable -Name $parameter).Value)) {
