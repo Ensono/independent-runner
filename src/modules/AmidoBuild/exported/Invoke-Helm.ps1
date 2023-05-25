@@ -121,7 +121,7 @@ function Invoke-Helm() {
             "install" {
                 # Check that some arguments have been set
 
-                $commands += "{0} upgrade {1} {2} --install --atomic --values {3}" -f $helm, $releasename, $chartpath, $valuepath
+                $commands += "{0} upgrade {1} {2} --install --create-namespace --atomic --values {3}" -f $helm, $releasename, $chartpath, $valuepath
                     }
 
             "custom" {
