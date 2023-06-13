@@ -14,18 +14,16 @@ Describe "Build-Documenation" {
         # Mock commands
         Mock -CommandName Write-Error -MockWith {} -ParameterFilter { $Message.ToLower().Contains("documentation directory")}
         Mock -CommandName Write-Warning -MockWith {}
+
+        # Create a folder to use for each test
+        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
     }
 
     Context "will raise errors" {
 
-        BeforeEach {
-            # Create a folder to use for each test
-            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
-        }
-
         AfterEach {
 
-            Remove-Item -Path $testFolder -Recurse -Force
+            Remove-Item -Path "${testFolder}/*" -Recurse -Force
         }
 
         it "if docs directory does not exist" {
@@ -54,9 +52,6 @@ Describe "Build-Documenation" {
                 }
                 dryrun = $true
             }
-    
-            # Create a folder to use for each test
-            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
 
             # Create the docs directory for eac test
             New-Item -ItemType Directory -Path (Join-Path -Path $testFolder -ChildPath "docs")
@@ -65,7 +60,7 @@ Describe "Build-Documenation" {
 
         AfterEach {
 
-            Remove-Item -Path $testFolder -Recurse -Force | Out-Null
+            Remove-Item -Path "${testFolder}/*" -Recurse -Force | Out-Null
         }
 
         it "will build up command with a title" {
@@ -82,7 +77,7 @@ Describe "Build-Documenation" {
                                 -Attributes "pdf-theme=styles/theme.yml", 'doctype="book"'
 
             # Check the command that will be run
-            $Session.commands.list[0] | Should -BeLike 'asciidoctor-pdf -a pdf-theme=styles/theme.yml -a doctype="book" -o "Pester Tests.pdf" -D*/index.adoc'            
+            $Session.commands.list[0] | Should -BeLike 'asciidoctor-pdf -a pdf-theme=styles/theme.yml -a doctype="book" -o "Pester Tests.pdf" -D*/index.adoc'
         }
 
         it "will build up attributes from a file" {
@@ -124,9 +119,6 @@ Describe "Build-Documenation" {
                 }
                 dryrun = $true
             }
-    
-            # Create a folder to use for each test
-            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
 
             # Create the folder for the docs
             $docsDir = New-Item -ItemType Directory -Path (Join-Path -Path $testFolder -ChildPath "docs")
@@ -137,9 +129,9 @@ Describe "Build-Documenation" {
 
         AfterEach {
 
-            Remove-Item -Path $testFolder -Recurse -Force | Out-Null
+            Remove-Item -Path "${testFolder}/*" -Recurse -Force | Out-Null
         }
-        
+
         It "will run the commands to generate a MD file" {
 
             Build-Documentation -BasePath $testFolder -MD -MDX
@@ -149,7 +141,7 @@ Describe "Build-Documenation" {
 
             # Check that the MDX file would be created
             Should -Invoke -CommandName ConvertTo-MDX -Times 1
-        }        
+        }
     }
 
 

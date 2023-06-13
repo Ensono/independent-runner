@@ -9,7 +9,7 @@ contexts:
         - -v
         - ${PWD}:/app
         - -e
-        - PSModulePath=/app/src/modules        
+        - PSModulePath=/app/src/modules
         - -w
         - /app
         - russellseymour/pandoc-asciidoctor
@@ -32,7 +32,7 @@ contexts:
         - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh:0.3.141-unstable
+        - amidostacks/runner-pwsh:0.3.158-stable
         - pwsh
         - -NoProfile
         - -Command
@@ -53,7 +53,7 @@ contexts:
         - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh:0.3.141-unstable
+        - amidostacks/runner-pwsh:0.3.158-stable
         - pwsh
         - -NoProfile
         - -Command
@@ -75,7 +75,7 @@ contexts:
         - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh:0.3.141-unstable
+        - amidostacks/runner-pwsh:0.3.158-stable
         - pwsh
         - -NoProfile
         - -Command
@@ -96,8 +96,8 @@ contexts:
         - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh-dotnet:0.3.141-unstable
+        - amidostacks/runner-pwsh-dotnet:0.3.158-stable
         - pwsh
         - -NoProfile
         - -Command
-    quote: "'"    
+    quote: "'"

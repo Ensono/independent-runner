@@ -113,7 +113,7 @@ Describe "Invoke-Terraform" {
                 -MockWith { }
 
             Invoke-Terraform -workspace
-            Should -Invoke -CommandName Write-Warning -Exactly 1
+            Should -Invoke -CommandName Write-Error -Exactly 1
             Should -Invoke Invoke-External -Exactly 0
         }
 
@@ -338,6 +338,7 @@ Describe "Invoke-Terraform" {
 
             Should -InvokeVerifiable
             Should -Invoke Invoke-External -Exactly 1
+            Should -Invoke Remove-Item -Exactly 2
         }
     }
 }

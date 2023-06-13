@@ -4,9 +4,6 @@ Describe "Stop-Task" {
         # Import function under test
         . $PSScriptRoot/Stop-Task.ps1
 
-        # Import dependent functions
-        . $PSScriptRoot/../utils/Confirm-Parameters.ps1
-
         # Import dependent classes
         . $PSScriptRoot/../classes/StopTaskException.ps1
 

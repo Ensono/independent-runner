@@ -2,7 +2,7 @@
 function Invoke-Inspec() {
 
     <#
-    
+
     .SYNOPSIS
     Performs infrastructure tests against resources using Inspec
 
@@ -27,10 +27,10 @@ function Invoke-Inspec() {
 
     The `exec` switch is used to perform the tests against the deployed infrastructure.
 
-    When the tests are run they are generated using the JUnit format so that they can be 
+    When the tests are run they are generated using the JUnit format so that they can be
     uploaded to the CI/CD system as test results.
 
-    Authentication for the Azure provider is achieved by setting the necessary values in the 
+    Authentication for the Azure provider is achieved by setting the necessary values in the
     CLIENT_ID, CLIENT_SECRET, TENANT_ID, and SUBSCRIPTION_ID environment variables.
 
     For AWS the authentication environment variables to be set are AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY,
@@ -40,7 +40,7 @@ function Invoke-Inspec() {
     Invoke-Inspec -exec -path . -cloud azure
 
     This will run the tests from the current directory and target the Azure provider.
-    
+
     #>
 
     [CmdletBinding()]
@@ -80,7 +80,7 @@ function Invoke-Inspec() {
             ParameterSetName = "vendor"
         )]
         [switch]
-        $vendor,        
+        $vendor,
 
         [Alias("args")]
         [string[]]
@@ -92,6 +92,7 @@ function Invoke-Inspec() {
         $output = $env:INSPEC_OUTPUT_PATH
 
     )
+
 
     # Setflag to state if the directory has been changed
     $changedDir = $false
@@ -115,6 +116,8 @@ function Invoke-Inspec() {
     if (!((Get-Item -Path $path) -is [System.IO.DirectoryInfo])) {
         $dir = Split-Path -Path $path -Parent
     }
+
+    $currDir = $PWD
 
     Push-Location -Path $dir
     $changedDir = $true
@@ -219,6 +222,7 @@ function Invoke-Inspec() {
 
     # Run the command that has been built up
     if (![string]::IsNullOrEmpty($command)) {
+        # Invoke-External -Command "$command-lolol"
         Invoke-External -Command $command
     }
 

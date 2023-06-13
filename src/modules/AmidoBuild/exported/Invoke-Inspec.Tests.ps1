@@ -25,46 +25,47 @@ Describe "Invoke-Inspec" {
             dryrun = $true
         }
 
+        function inspec { }
+
+        # Mock the Find-Command to return a valid path for the tool
+        # This is so that the tool does not need to exist on the machine that is running the tests
+        Mock -Command Find-Command -MockWith { return "inspec" }
+
         # Mock commands to check that they are being called
-        # - Write-Error
         Mock -CommandName Write-Error -MockWith { }
 
         Mock -CommandName inspec -MockWith { }
+
+        Mock -Verifiable -CommandName Invoke-External -MockWith { }
     }
 
     Context "Initialize" {
 
-        BeforeEach {
-            # Reset the commands list to an empty array
-            $global:Session.commands.list = @()
-        }
-
         It "will error if no path has been specified" {
             { Invoke-Inspec -init } | Should -Throw "Path to the Inspec test files must be specified`nTask failed due to errors detailed above"
 
-            Should -Invoke Write-Error
+            Should -Invoke Write-Error -Exactly 1
+            Should -Invoke -CommandName Invoke-External -Exactly 0
         }
 
         It "will error if the path to the files does not exist" {
             { Invoke-Inspec -init -path "pester" } | Should -Throw "Specfied path for Inspec files does not exist: pester`nTask failed due to errors detailed above"
 
-            Should -Invoke Write-Error
+            Should -Invoke Write-Error -Exactly 1
+            Should -Invoke -CommandName Invoke-External -Exactly 0
         }
 
         It "will initialise inspec" {
             Invoke-Inspec -init -path $testFolder
 
             # check that the generated command is correct
-            $Session.commands.list[0] | Should -BeLike "*inspec* init"
+            Should -Invoke -CommandName Invoke-External -Exactly 1 -ParameterFilter { $commands -eq @("inspec init") }
         }
     }
 
     Context "Execute" {
 
         BeforeEach {
-            # Reset the commands list to an empty array
-            $global:Session.commands.list = @()
-
             Remove-Item env:\INSPEC_ARGS -ErrorAction SilentlyContinue
         }
 
@@ -72,21 +73,21 @@ Describe "Invoke-Inspec" {
             Invoke-Inspec -exec -path $testfolder -cloud azure
 
             # check that the generated command is correct
-            $Session.commands.list[0] | Should -BeLike "*inspec* exec . -t azure:// --reporter cli"
+            Should -Invoke -CommandName Invoke-External -Exactly 1 -ParameterFilter { $commands -eq @("inspec exec . -t azure:// --reporter cli") }
         }
 
         it "will append any extra arguments to the command, if they are supplied as a string" {
             Invoke-Inspec -exec -path $testfolder -cloud azure -args "--input resource_group_name=myresources-euw"
 
             # check that the generated command is correct
-            $Session.commands.list[0] | Should -BeLike "*inspec* exec . -t azure:// --reporter cli --input resource_group_name=myresources-euw"
+            Should -Invoke -CommandName Invoke-External -Exactly 1 -ParameterFilter { $commands -eq @("inspec exec . -t azure:// --reporter cli --input resource_group_name=myresources-euw") }
         }
 
         it "will append any extra arguments to the command, if they are supplied as a command delimited list" {
             Invoke-Inspec -exec -path $testfolder -cloud azure -args "--input", "resource_group_name=myresources-euw"
 
             # check that the generated command is correct
-            $Session.commands.list[0] | Should -BeLike "*inspec* exec . -t azure:// --reporter cli --input resource_group_name=myresources-euw"
+            Should -Invoke -CommandName Invoke-External -Exactly 1 -ParameterFilter { $commands -eq @("inspec exec . -t azure:// --reporter cli --input resource_group_name=myresources-euw") }
         }
 
         it "will append any extra arguments to the command, if they are set as an environment variable" {
@@ -97,7 +98,7 @@ Describe "Invoke-Inspec" {
             Invoke-Inspec -exec -path $testfolder -cloud azure
 
             # check that the generated command is correct
-            $Session.commands.list[0] | Should -BeLike "*inspec* exec . -t azure:// --reporter cli --input resource_group_name=myresources-euw"
+            Should -Invoke -CommandName Invoke-External -Exactly 1 -ParameterFilter { $commands -eq @("inspec exec . -t azure:// --reporter cli --input resource_group_name=myresources-euw") }
         }
 
         it "will append a reporter to the command if an output path is provided" {
@@ -112,40 +113,38 @@ Describe "Invoke-Inspec" {
 
             Invoke-Inspec -exec -path $testfolder -cloud azure -output $output
 
-            # check that the generated command is correct
-            $Session.commands.list[0] | Should -BeLike ("*inspec* exec . -t azure:// --reporter cli junit2:{0}" -f $expected)
+            $command = "inspec exec . -t azure:// --reporter cli junit2:{0}" -f $expected
 
+            # check that the generated command is correct
+            Should -Invoke -CommandName Invoke-External -Exactly 1 -ParameterFilter { $commands -eq @($command) }
         }
 
-        it "aill add the arguments to the command in the correct order" {
+        it "will add the arguments to the command in the correct order" {
 
             Invoke-Inspec -exec -path $testfolder -cloud azure -arguments "--input resource_group_name=pester_resources --overwrite"
 
             # check that the generated command is correct
-            $Session.commands.list[0] | Should -BeLike ("*inspec* exec . -t azure:// --reporter cli --overwrite --input resource_group_name=pester_resources")
+            Should -Invoke -CommandName Invoke-External -Exactly 1 -ParameterFilter { $commands -eq @("inspec exec . -t azure:// --reporter cli --overwrite --input resource_group_name=pester_resources") }
         }
     }
 
     Context "Vendor" {
-
-        BeforeEach {
-            # Reset the commands list to an empty array
-            $global:Session.commands.list = @()
-        }
 
         it "will vendor the profile in the specified path" {
 
             Invoke-Inspec -vendor -path $testfolder
 
             # check that the generated command is correct
-            $Session.commands.list[0] | Should -BeLike "*inspec* vendor ."
+            Should -Invoke -CommandName Invoke-External -Exactly 1 -ParameterFilter { $commands -eq @("inspec vendor . ") }
+
         }
 
         it "will overwrite existing vendor profile if specified" {
 
             Invoke-Inspec -vendor -path $testfolder -args "--overwrite"
 
-            $Session.commands.list[0] | Should -BeLike "*inspec* vendor . --overwrite"
+            # check that the generated command is correct
+            Should -Invoke -CommandName Invoke-External -Exactly 1 -ParameterFilter { $commands -eq @("inspec vendor . --overwrite") }
         }
     }
 }

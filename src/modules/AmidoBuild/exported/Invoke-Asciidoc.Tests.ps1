@@ -4,7 +4,7 @@ Describe "Invoke-Asciidoc" {
 
         # Import the function being tested
         . $PSScriptRoot/Invoke-Asciidoc.ps1
-    
+
         # Import the dependenices for the function under test
         . $PSScriptRoot/../command/Find-Command.ps1
         . $PSScriptRoot/../command/Invoke-External.ps1
@@ -37,7 +37,7 @@ Describe "Invoke-Asciidoc" {
         Mock -Command Find-Command -MockWith { return $name }
 
         # - Write-Information - mock this internal function to check that the working directory is being defined
-        Mock -Command Write-Information -MockWith { return $MessageData } -Verifiable        
+        Mock -Command Write-Information -MockWith { return $MessageData } -Verifiable
     }
 
     BeforeEach {
@@ -51,7 +51,7 @@ Describe "Invoke-Asciidoc" {
             dryrun = $true
         }
     }
-    
+
     Context "PDF" {
 
         it "will generate the PDF" {
@@ -60,7 +60,7 @@ Describe "Invoke-Asciidoc" {
 
             $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -o `"newsletter.pdf`" -D `"$testfolder`" $testfolder"
 
-            Should -Invoke -CommandName Write-Information -Times 1
+            Should -Invoke -CommandName Write-Information -Exactly 1
         }
 
         it "will generate a PDF with attributes" {
@@ -76,7 +76,7 @@ Describe "Invoke-Asciidoc" {
 
             $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -a allow-read-uri -a pdf-fontsdir=/fonts -a stackscli_version=74.83.10.13 -o `"newsletter.pdf`" -D `"$testfolder`" $testfolder"
 
-            Should -Invoke -CommandName Write-Information -Times 1
+            Should -Invoke -CommandName Write-Information -Exactly 1
         }
 
         It "will use a settings file" {
@@ -85,7 +85,7 @@ Describe "Invoke-Asciidoc" {
 
             $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -a allow-read-uri -o `"Pester Newsletter.pdf`" -D `"$testfolder`" $testfolder"
 
-            Should -Invoke -CommandName Write-Information -Times 1
+            Should -Invoke -CommandName Write-Information -Exactly 1
         }
     }
 }
