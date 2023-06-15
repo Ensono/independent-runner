@@ -38,6 +38,7 @@ Describe "Invoke-GitClone" {
 
             Should -Invoke -CommandName Write-Error -Times 1
         }
+
     }
 
     Context "Cloning from GitHub" {
