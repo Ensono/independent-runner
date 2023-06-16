@@ -23,6 +23,7 @@ Describe "Build-DockerImage" {
         . $PSScriptRoot/../command/Find-Command.ps1
         . $PSScriptRoot/../command/Invoke-External.ps1
         . $PSScriptRoot/../cloud/Connect-Azure.ps1
+        . $PSScriptRoot/../utils/Confirm-TrunkBranch.ps1
 
         # Write function to mimic the Get-AzContainerRegistryCredential which is supplied
         # by the PowerShell AZ Module, but this might not be available in the test environment
@@ -51,6 +52,8 @@ Describe "Build-DockerImage" {
         # - Connect-Azure - as we are just testing the functionality of the Build-DockerImage function
         #                   connecting to Azure is not required and thus is mocked
         Mock -Command Connect-Azure -MockWith { return }
+
+        Mock -Command Confirm-TrunkBranch -MockWith { $true }
     }
 
     AfterAll {
@@ -128,7 +131,7 @@ Describe "Build-DockerImage" {
             # Call the function under test
             Build-DockerImage -name pester-tests -tag "unittests" -Registry "pesterreg"
 
-            $Session.commands.list[0] | Should -BeLike "*docker* build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests -t pesterreg/pester-tests:latest"
+            $Session.commands.list[0] | Should -BeLike "*docker* build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests"
         }
 
         It "will correctly change the case of the input to create a valid image" {
@@ -136,8 +139,18 @@ Describe "Build-DockerImage" {
             # Call the function under test
             Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg"
 
-            $Session.commands.list[0] | Should -BeLikeExactly "*docker* build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests -t pesterreg/pester-tests:latest"
+            $Session.commands.list[0] | Should -BeLikeExactly "*docker* build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests"
 
+        }
+
+        it "will tag latest, even if not running on trunk branch, and the force flag is used" {
+
+            Mock -Command Confirm-TrunkBranch -MockWith { $false }
+
+            # Call the function under test
+            Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -latest -force
+
+            $Session.commands.list[0] | Should -BeLikeExactly "*docker* build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests -t pesterreg/pester-tests:latest"
         }
 
         It "will remove quotes surrounding build args when passing to Docker" {
@@ -145,7 +158,28 @@ Describe "Build-DockerImage" {
             # Call the function to test
             Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -BuildArgs "`"--build-arg functionName=PesterFunction .`""
 
-            $Session.commands.list[0] | Should -BeLikeExactly "*docker* build --build-arg functionName=PesterFunction . -t pester-tests:unittests -t pesterreg/pester-tests:unittests -t pesterreg/pester-tests:latest"
+            $Session.commands.list[0] | Should -BeLikeExactly "*docker* build --build-arg functionName=PesterFunction . -t pester-tests:unittests -t pesterreg/pester-tests:unittests"
+        }
+    }
+
+    Context "Build without push and set latest" {
+
+        it "will tag with latest when on trunk branch and latest has been set" {
+
+            # Call the function under test
+            Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -latest
+
+            $Session.commands.list[0] | Should -BeLikeExactly "*docker* build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests -t pesterreg/pester-tests:latest"
+        }
+
+        it "will not set latest if not on a trunk branch" {
+
+            Mock -Command Confirm-TrunkBranch -MockWith { $false }
+
+             # Call the function under test
+             Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -latest
+
+             $Session.commands.list[0] | Should -BeLikeExactly "*docker* build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests"
         }
     }
 
@@ -165,7 +199,7 @@ Describe "Build-DockerImage" {
             Build-DockerImage -provider "generic" -name pester-tests -tag "unittests" -registry "docker.io" -push
 
             # Check the build command
-            $Session.commands.list[0] | Should -BeLike "*docker* build . -t pester-tests:unittests -t docker.io/pester-tests:unittests -t docker.io/pester-tests:latest"
+            $Session.commands.list[0] | Should -BeLike "*docker* build . -t pester-tests:unittests -t docker.io/pester-tests:unittests"
 
             # Check that docker logs into the registry
             $Session.commands.list[1] | Should -BeLike "*docker* login docker.io -u pester -p pester123"
@@ -227,7 +261,7 @@ Describe "Build-DockerImage" {
             Build-DockerImage -provider "azure" -group "test" -name pester-tests -tag "unittests" -registry "docker.io" -push
 
             # Check the build command
-            $Session.commands.list[0] | Should -BeLike "*docker* build . -t pester-tests:unittests -t docker.io/pester-tests:unittests -t docker.io/pester-tests:latest"
+            $Session.commands.list[0] | Should -BeLike "*docker* build . -t pester-tests:unittests -t docker.io/pester-tests:unittests"
 
             # Check that docker logs into the registry
             $Session.commands.list[1] | Should -BeLike "*docker* login docker.io -u pester -p pester123"

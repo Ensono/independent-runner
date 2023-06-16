@@ -1,6 +1,6 @@
 function Build-DockerImage() {
 
-    <#
+  <#
 
     .SYNOPSIS
     Create a Docker image for the application and optionally pushes it to a container registry
@@ -31,217 +31,231 @@ function Build-DockerImage() {
     and then this will be passed to the resultant docker command.
   #>
 
-    [CmdletBinding()]
-    param (
-      [Parameter(
-          ParameterSetName="build"
-      )]
-      [string]
-      # Arguments for docker build
-      $buildargs = ".",
+  [CmdletBinding()]
+  param (
+    [Parameter(
+      ParameterSetName = "build"
+    )]
+    [string]
+    # Arguments for docker build
+    $buildargs = ".",
 
-      [Parameter(
-        ParameterSetName="build",
-        Mandatory=$true
-      )]
-      [string]
-      # Name of the docker image
-      $name = $env:DOCKER_IMAGE_NAME,
+    [Parameter(
+      ParameterSetName = "build",
+      Mandatory = $true
+    )]
+    [string]
+    # Name of the docker image
+    $name = $env:DOCKER_IMAGE_NAME,
 
-      [Parameter(
-        ParameterSetName="build"
-      )]
-      [string]
-      # Image tag
-      $tag = $env:DOCKER_IMAGE_TAG,
+    [Parameter(
+      ParameterSetName = "build"
+    )]
+    [string]
+    # Image tag
+    $tag = $env:DOCKER_IMAGE_TAG,
 
-      [Parameter(
-        ParameterSetName="build"
-      )]
-      [switch]
-      # Add the latest tag
-      $latest,
+    [Parameter(
+      ParameterSetName = "build"
+    )]
+    [switch]
+    # Add the latest tag
+    $latest,
 
-      [Parameter(
-        ParameterSetName="build"
-      )]
-      [Parameter(
-        ParameterSetName="push"
-      )]
-      [string]
-      # Docker registry FQDN to push the image to. For AWS this is in the format `<aws_account_id>.dkr.ecr.<region>.amazonaws.com`. For Azure this is in the format `<acr_name>.azurecr.io`
-      $registry = $env:DOCKER_CONTAINER_REGISTRY_NAME,
+    [Parameter(
+      ParameterSetName = "build"
+    )]
+    [Parameter(
+      ParameterSetName = "push"
+    )]
+    [string]
+    # Docker registry FQDN to push the image to. For AWS this is in the format `<aws_account_id>.dkr.ecr.<region>.amazonaws.com`. For Azure this is in the format `<acr_name>.azurecr.io`
+    $registry = $env:DOCKER_CONTAINER_REGISTRY_NAME,
 
-      [Parameter(
-        ParameterSetName="build"
-      )]
-      [Parameter(
-          ParameterSetName="push"
-      )]
-      [switch]
-      # Push the image to the specified registry
-      $push,
+    [Parameter(
+      ParameterSetName = "build"
+    )]
+    [Parameter(
+      ParameterSetName = "push"
+    )]
+    [switch]
+    # Push the image to the specified registry
+    $push,
 
-      [string]
-      [Parameter(
-        ParameterSetName="build"
-      )]
-      [Parameter(
-          ParameterSetName="push"
-      )]
-      [Parameter(
-          ParameterSetName="aws"
-      )]
-      [Parameter(
-          ParameterSetName="azure"
-      )]
-      [ValidateSet('azure','aws','generic')]
-      # Determine which provider to use for the push
-      $provider,
+    [string]
+    [Parameter(
+      ParameterSetName = "build"
+    )]
+    [Parameter(
+      ParameterSetName = "push"
+    )]
+    [Parameter(
+      ParameterSetName = "aws"
+    )]
+    [Parameter(
+      ParameterSetName = "azure"
+    )]
+    [ValidateSet('azure', 'aws', 'generic')]
+    # Determine which provider to use for the push
+    $provider,
 
-      [string]
-      [Parameter(
-        ParameterSetName="build"
-      )]
-      [Parameter(
-        ParameterSetName="azure"
-      )]
-      [Parameter(
-        ParameterSetName="push"
-      )]
-      # Resource group  in Azure that the container registry can be found in
-      $group = $env:REGISTRY_RESOURCE_GROUP,
+    [string]
+    [Parameter(
+      ParameterSetName = "build"
+    )]
+    [Parameter(
+      ParameterSetName = "azure"
+    )]
+    [Parameter(
+      ParameterSetName = "push"
+    )]
+    # Resource group  in Azure that the container registry can be found in
+    $group = $env:REGISTRY_RESOURCE_GROUP,
 
-      [string]
-      [Parameter(
-        ParameterSetName="build"
-      )]
-      [Parameter(
-        ParameterSetName="aws"
-      )]
-      [Parameter(
-        ParameterSetName="push"
-      )]
-      # Region in AWS that the container registry can be found in
-      $region = $env:ECR_REGION
+    [string]
+    [Parameter(
+      ParameterSetName = "build"
+    )]
+    [Parameter(
+      ParameterSetName = "aws"
+    )]
+    [Parameter(
+      ParameterSetName = "push"
+    )]
+    # Region in AWS that the container registry can be found in
+    $region = $env:ECR_REGION,
 
+    [switch]
+    # If used with -latest it will force the latest tag onto the image regardless
+    # of the branch that has been detected
+    $force
+  )
 
-    )
-
-    # Check mandatory parameters
-    # This is not done at the param level because even if an environment
-    # variable has been set the parameter will not see this as a value
-    if ([string]::IsNullOrEmpty($name)) {
-        Write-Error -Message "A name for the Docker image must be specified"
-        return 1
-    }
-
-    if ([string]::IsNullOrEmpty($tag)) {
-        $tag = "0.0.1-workstation"
-        Write-Information -MessageData ("No tag has been specified for the image, a default one has been set: {0}" -f $tag)
-    }
-
-    # If the push switch has been specified then check that a registry
-    # has been specified
-    if ($push.IsPresent -and ([string]::IsNullOrEmpty($provider) -or ([string]::IsNullOrEmpty($registry) -and !(Test-Path -Path env:\NO_PUSH)))) {
-        Write-Error -Message "A provider and a registry to push the image to must be specified"
-        return 1
-    }
-
-    if ($provider -eq "generic" -and ([string]::IsNullOrEmpty($env:DOCKER_USERNAME) -Or [string]::IsNullOrEmpty($env:DOCKER_PASSWORD))) {
-        Write-Error -Message "Pushing to a generic registry requires environment variables DOCKER_USERNAME and DOCKER_PASSWORD to be set"
-        return
-    }
-
-    elseif ($provider -eq "azure" -and ([string]::IsNullOrEmpty($env:REGISTRY_RESOURCE_GROUP)) -and ([string]::IsNullOrEmpty($group))) {
-      Write-Error -Message "Pushing to an azure registry requires environment variable REGISTRY_RESOURCE_GROUP or group parameter to be set (authentication must be dealt with via 'invoke-login.ps1'"
-      return
-    }
-
-    elseif ($provider -eq "aws" -and ([string]::IsNullOrEmpty($env:AWS_ACCESS_KEY_ID) -Or [string]::IsNullOrEmpty($env:AWS_SECRET_ACCESS_KEY) -Or ([string]::IsNullOrEmpty($region) -And [string]::IsNullOrEmpty($env:ECR_REGION)))) {
-      Write-Error -Message "Pushing to an AWS registry requires environment variable ECR_REGION or region parameter defined, and both environment variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY to be set"
-      return
+  # Check mandatory parameters
+  # This is not done at the param level because even if an environment
+  # variable has been set the parameter will not see this as a value
+  if ([string]::IsNullOrEmpty($name)) {
+    Write-Error -Message "A name for the Docker image must be specified"
+    return 1
   }
 
-    # Ensure that the name and the tagare lowercase so that Docker does not
-    # throw an error with invalid strings
-    $name = $name.ToLower()
-    $tag = $tag.ToLower()
+  if ([string]::IsNullOrEmpty($tag)) {
+    $tag = "0.0.1-workstation"
+    Write-Information -MessageData ("No tag has been specified for the image, a default one has been set: {0}" -f $tag)
+  }
 
-    # Create an array to store the arguments to pass to docker
-    $arguments = @()
-    $arguments += $buildArgs.Trim("`"", " ")
-    $arguments += "-t {0}:{1}" -f $name, $tag
+  # If the push switch has been specified then check that a registry
+  # has been specified
+  if ($push.IsPresent -and ([string]::IsNullOrEmpty($provider) -or ([string]::IsNullOrEmpty($registry) -and !(Test-Path -Path env:\NO_PUSH)))) {
+    Write-Error -Message "A provider and a registry to push the image to must be specified"
+    return 1
+  }
 
-    # if the registry name has been set, add t to the tasks
-    if (![String]::IsNullOrEmpty($registry)) {
-        $arguments += "-t {0}/{1}:{2}" -f $registry, $name, $tag
-        $arguments += "-t {0}/{1}:latest" -f $registry, $name
+  if ($provider -eq "generic" -and ([string]::IsNullOrEmpty($env:DOCKER_USERNAME) -Or [string]::IsNullOrEmpty($env:DOCKER_PASSWORD))) {
+    Write-Error -Message "Pushing to a generic registry requires environment variables DOCKER_USERNAME and DOCKER_PASSWORD to be set"
+    return
+  }
+
+  elseif ($provider -eq "azure" -and ([string]::IsNullOrEmpty($env:REGISTRY_RESOURCE_GROUP)) -and ([string]::IsNullOrEmpty($group))) {
+    Write-Error -Message "Pushing to an azure registry requires environment variable REGISTRY_RESOURCE_GROUP or group parameter to be set (authentication must be dealt with via 'invoke-login.ps1'"
+    return
+  }
+
+  elseif ($provider -eq "aws" -and ([string]::IsNullOrEmpty($env:AWS_ACCESS_KEY_ID) -Or [string]::IsNullOrEmpty($env:AWS_SECRET_ACCESS_KEY) -Or ([string]::IsNullOrEmpty($region) -And [string]::IsNullOrEmpty($env:ECR_REGION)))) {
+    Write-Error -Message "Pushing to an AWS registry requires environment variable ECR_REGION or region parameter defined, and both environment variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY to be set"
+    return
+  }
+
+  # Determine if latest tag should be applied
+  $setAsLatest = $false
+  if (((Confirm-TrunkBranch) -or $force.IsPresent) -and $latest.IsPresent) {
+    $setAsLatest = $true
+  }
+
+  # Ensure that the name and the tagare lowercase so that Docker does not
+  # throw an error with invalid strings
+  $name = $name.ToLower()
+  $tag = $tag.ToLower()
+
+  # Create an array to store the arguments to pass to docker
+  $arguments = @()
+  $arguments += $buildArgs.Trim("`"", " ")
+  $arguments += "-t {0}:{1}" -f $name, $tag
+
+  # if the registry name has been set, add t to the tasks
+  if (![String]::IsNullOrEmpty($registry)) {
+    $arguments += "-t {0}/{1}:{2}" -f $registry, $name, $tag
+
+    if ($setAsLatest) {
+      $arguments += "-t {0}/{1}:latest" -f $registry, $name
+    }
+  }
+
+  # Create the cmd to execute
+  $cmd = "docker build {0}" -f ($arguments -Join " ")
+  Invoke-External -Command $cmd
+
+  if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+  }
+
+  # Proceed if a registry has been specified
+  if (![String]::IsNullOrEmpty($registry) -and $push.IsPresent -and !(Test-Path -Path env:\NO_PUSH)) {
+
+    switch ($provider) {
+      "azure" {
+        # Ensure that the module is available and loaded
+        $moduleName = "Az.ContainerRegistry"
+        $module = Get-Module -ListAvailable -Name $moduleName
+        if ([string]::IsNullOrEmpty($module)) {
+          Write-Error -Message ("{0} module is not available" -f $moduleName)
+          exit 2
+        }
+        else {
+          Import-Module -Name $moduleName
+        }
+
+        # Login to azure
+        Connect-Azure
+
+        # Rewrite Registry value to obtain Azure Resourece Name:
+        $registryName = $registry.split(".")[0]
+
+        # Get the credentials for the registry
+        $creds = Get-AzContainerRegistryCredential -Name $registryName -ResourceGroup $group
+
+        $cmd = "docker login {0} -u {1} -p {2}" -f $registry, $creds.UserName, $creds.Password
+
+      }
+      "generic" {
+        $cmd = "docker login {0} -u {1} -p {2}" -f $registry, $env:DOCKER_USERNAME, $env:DOCKER_PASSWORD
+      }
+      "aws" {
+
+        $cmd = "aws ecr get-login-password --region {0} | docker login --username AWS --password-stdin {1}" -f $region, $registry
+
+      }
     }
 
-    # Create the cmd to execute
-    $cmd = "docker build {0}" -f ($arguments -Join " ")
+    # Run command to login to the docker registry to do the push
+    # The Invoke-External function will need to be updated to obfruscate sensitive information
     Invoke-External -Command $cmd
 
     if ($LASTEXITCODE -ne 0) {
-        exit $LASTEXITCODE
+      exit $LASTEXITCODE
     }
 
-    # Proceed if a registry has been specified
-    if (![String]::IsNullOrEmpty($registry) -and $push.IsPresent -and !(Test-Path -Path env:\NO_PUSH)) {
+    # Push the image with the desired tag
+    $cmd = "docker push {0}/{1}:{2}" -f $registry, $name, $tag
+    Invoke-External -Command $cmd
 
-      switch ($provider) {
-        "azure" {
-            # Ensure that the module is available and loaded
-            $moduleName = "Az.ContainerRegistry"
-            $module = Get-Module -ListAvailable -Name $moduleName
-            if ([string]::IsNullOrEmpty($module)) {
-                Write-Error -Message ("{0} module is not available" -f $moduleName)
-                exit 2
-            } else {
-                Import-Module -Name $moduleName
-            }
-
-            # Login to azure
-            Connect-Azure
-
-            # Rewrite Registry value to obtain Azure Resourece Name:
-            $registryName = $registry.split(".")[0]
-
-            # Get the credentials for the registry
-            $creds = Get-AzContainerRegistryCredential -Name $registryName -ResourceGroup $group
-
-            $cmd = "docker login {0} -u {1} -p {2}" -f $registry, $creds.UserName, $creds.Password
-
-        }
-        "generic"  {
-            $cmd = "docker login {0} -u {1} -p {2}" -f $registry, $env:DOCKER_USERNAME, $env:DOCKER_PASSWORD
-        }
-        "aws" {
-
-            $cmd =  "aws ecr get-login-password --region {0} | docker login --username AWS --password-stdin {1}" -f $region, $registry
-
-        }
-      }
-        # Run command to login to the docker registry to do the push
-        # The Invoke-External function will need to be updated to obfruscate sensitive information
-        Invoke-External -Command $cmd
-
-        if ($LASTEXITCODE -ne 0) {
-            exit $LASTEXITCODE
-        }
-
-        # Push the image with the desired tag
-        $cmd = "docker push {0}/{1}:{2}" -f $registry, $name, $tag
-        Invoke-External -Command $cmd
-
-        # Push the image with the latest tag if latest flag is declared
-        if ($latest.IsPresent) {
-            $cmd = "docker push {0}/{1}:latest" -f $registry, $name
-            Invoke-External -Command $cmd
-        }
-
-        $LASTEXITCODE
-
+    # Push the image with the latest tag if latest flag is declared
+    if ($setAsLatest) {
+      $cmd = "docker push {0}/{1}:latest" -f $registry, $name
+      Invoke-External -Command $cmd
     }
+
+    $LASTEXITCODE
+
+  }
 }
