@@ -139,6 +139,11 @@ function Invoke-Helm() {
 
         if ($commands.count -gt 0) {
             Invoke-External -Command $commands
+        
+            # Stop the task if the LASTEXITCODE is greater than 0
+            if ($LASTEXITCODE -gt 0) {
+                Stop-Task -ExitCode $LASTEXITCODE
+            }
         }
   }
 

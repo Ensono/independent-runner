@@ -28,6 +28,13 @@ function Invoke-Terraform() {
     are appended directly to the end of the Terraform command. In this example no missing inputs are requests and
     the plan is written out to the `tf.plan` file.
 
+    .EXAMPLE
+    Invoke-Terraform -output -path src/terraform -yaml | Out-File tfoutput.yaml
+
+    This command will get the outputs from the Terraform state and output them as Yaml format. It will only output
+    the name and value of the output. This is then piped to Out-File which means that the data will be save to the
+    named file for use with other commands.
+
     #>
 
     [CmdletBinding()]
@@ -85,6 +92,13 @@ function Invoke-Terraform() {
         [switch]
         # Allow the output of senstive values
         $sensitive,
+
+        [Parameter(
+            ParameterSetName="output"
+        )]
+        [switch]
+        # Set the output to be Yaml
+        $yaml,
 
         [Parameter(
             ParameterSetName="validate"
@@ -237,8 +251,21 @@ function Invoke-Terraform() {
                     }
                 }
 
-                # output the data as JSON
-                $data | ConvertTo-Json -Compress
+                # output the data as JSON unless Yaml has been specified
+                if ($yaml) {
+
+                    # As the aim of this is to get the name and value of the keys into a yaml
+                    # file for ingestion by Inspec the name and value are the only things required
+                    $yamldata = [Ordered] @{}
+                    $sortedKeys = $data.PSObject.Properties | Sort-Object Name
+                    foreach ($item in $sortedKeys) {
+                        $yamldata[$item.Name] = $item.Value.Value
+                    }
+
+                    $yamldata | ConvertTo-Yaml
+                } else {
+                    $data | ConvertTo-Json -Compress
+                }
             }
         }
 

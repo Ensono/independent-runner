@@ -48,30 +48,24 @@ Describe "Invoke-Dotnet" {
 
     Context "Build" {
 
-        Context "run build without working directory" {
+        It "will run a build in the current dir" {
 
-            It "will run a build in the current dir" {
-    
-                Invoke-DotNet -Build
-    
-                $Session.commands.list[0] | Should -BeLike "*dotnet* build"
-    
-                Should -Invoke -CommandName Write-Information -Times 1
-                
-            }
+            Invoke-DotNet -Build
+
+            $Session.commands.list[0] | Should -BeLike "*dotnet* build"
+
+            Should -Invoke -CommandName Write-Information -Times 1
+            
         }
-    
-        Context "run a build in a specified directory" {
-    
-            It "will specify a working directory" {
-    
-                Invoke-DotNet -Build -WorkingDirectory $testFolder
-    
-                Should -Invoke -CommandName Write-Information -Times 1
-                Should -Invoke -CommandName Push-Location -Times 1
-                Should -Invoke -CommandName Pop-Location -Times 1
-    
-            }
+
+        It "will specify a working directory" {
+
+            Invoke-DotNet -Build -WorkingDirectory $testFolder
+
+            Should -Invoke -CommandName Write-Information -Times 1
+            Should -Invoke -CommandName Push-Location -Times 1
+            Should -Invoke -CommandName Pop-Location -Times 1
+
         }
     }
 

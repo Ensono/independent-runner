@@ -74,7 +74,9 @@
         "Build-Documentation",
         "Build-PowerShellModule",
         "Confirm-Environment",
+        "ConvertTo-Yaml",
         "Expand-Template",
+        "Get-AzureServiceVersions",
         "Get-Dependencies",
         "Get-ExternalCommands",
         "Expand-Template",
@@ -142,7 +144,7 @@
             # RequireLicenseAcceptance = $false
 
             # External dependent modules of this module
-            # ExternalModuleDependencies = @()
+            ExternalModuleDependencies = @("PowerShell-Yaml")
 
         } # End of PSData hashtable
 

@@ -3,7 +3,11 @@
 Describe "Invoke-Helm" {
 
     BeforeAll {
+
+        # Import the function under test
         . $PSScriptRoot/Invoke-Helm.ps1
+
+        # Import dependent functions
         . $PSScriptRoot/Invoke-Login.ps1
         . $PSScriptRoot/../command/Find-Command.ps1
         . $PSScriptRoot/../command/Invoke-External.ps1
@@ -15,7 +19,7 @@ Describe "Invoke-Helm" {
         New-Item -ItemType File -Path $valueFile
         New-Item -ItemType File -Path $chartFile
 
-
+        # create a session variable to hold the commands that are called
         $global:Session = @{
             commands = @{
                 list = @()
@@ -23,7 +27,7 @@ Describe "Invoke-Helm" {
             dryrun = $true
         }
 
-        Mock -CommandName Write-Error -Mockwith {}
+        Mock -Command Write-Error -Mockwith {}
         # Mock the Find-Command to return a valid path for the tool
         # This is so that the tool does not need to exist on the machine that is running the tests
         Mock -Command Find-Command -MockWith { return "helm" }
@@ -54,57 +58,65 @@ Describe "Invoke-Helm" {
       }
     }
 
-    # Azure
+    Context "Azure" {
 
-    Context "Helm Install" {
-        BeforeEach {
-            Mock -CommandName Invoke-Login -MockWith { return } -RemoveParameterValidation tenantId -parameterFilter { $provider -eq 'azure' -and $k8s.IsPresent -and $identifier -eq $testclusteridentifier -and $target -eq $testclustername }
-            Invoke-Helm -provider Azure -target $testclustername -identifier $testclusteridentifier -Install -valuepath values.yml -chartpath chart.yml -releasename $testrelease
+        BeforeAll {
+
+            Mock -CommandName Invoke-Login `
+                 -MockWith { return } `
+                 -RemoveParameterValidation tenantId `
+                 -parameterFilter { $provider -eq 'azure' -and $k8s.IsPresent -and $identifier -eq $testclusteridentifier -and $target -eq $testclustername }
         }
 
-        It "will login to Azure and install the relevant chart to the target AKS cluster" {
-            $Session.commands.list[0] | Should -BeLike "*helm* upgrade $testrelease chart.yml --install --namespace $testnamespace --create-namespace --atomic --values values.yml"
-            Should -Invoke -CommandName Invoke-Login -Times 1
-        }
-    }
+        Context "Helm Install" {
 
-    Context "Azure Custom" {
+            it "will login to Azure and install the relevant chart to the target AKS cluster" {
+                Invoke-Helm -provider Azure -target $testclustername -identifier $testclusteridentifier -Install -valuepath values.yml -chartpath chart.yml -releasename $testrelease -namespace $testnamespace
 
-        BeforeEach {
-            Mock -CommandName Invoke-Login -MockWith { return } -RemoveParameterValidation tenantId -parameterFilter { $provider -eq 'azure' -and $k8s.IsPresent -and $identifier -eq $testclusteridentifier -and $target -eq $testclustername }
-            Invoke-Helm -provider Azure -target $testclustername -identifier $testclusteridentifier -Custom -Arguments "list"
-        }
-        It "will login to Azure and run a custom command on the target AKS cluster" {
-
-            $Session.commands.list[1] | Should -BeLike "*helm* list"
-            Should -Invoke -CommandName Invoke-Login -Times 1
-        }
-    }
-
-    # AWS
-
-    Context "AWS Install" {
-        BeforeEach {
-            Mock -CommandName Invoke-Login -MockWith { return } -RemoveParameterValidation tenantId -parameterFilter { $provider -eq 'AWS' -and $k8s.IsPresent -and $identifier -eq $testclusteridentifier -and $target -eq $testclustername }
-            Invoke-Helm -provider AWS -target $testclustername -identifier $testclusteridentifier -Install -valuepath values.yml -chartpath chart.yml -releasename $testrelease
+                $Session.commands.list[0] | Should -BeLike "*helm* upgrade $testrelease chart.yml --install --namespace $testnamespace --create-namespace --atomic --values values.yml"
+                Should -Invoke -CommandName Invoke-Login -Times 1
+            }
         }
 
-        It "will login to AWS and apply the relevant manifest to the target AKS cluster" {
-            $Session.commands.list[0] | Should -BeLike  "*helm* upgrade $testrelease chart.yml --install --namespace $testnamespace --atomic --values values.yml"
-            Should -Invoke -CommandName Invoke-Login -Times 1
+        Context "Custom" {
+
+            it "will login to Azure and run a custom command on the target AKS cluster" {
+                Invoke-Helm -provider Azure -target $testclustername -identifier $testclusteridentifier -Custom -Arguments "list" -namespace $testnamespace -releasename $testrelease
+
+                $Session.commands.list[0] | Should -BeLike "*helm* upgrade $testrelease chart.yml --install --namespace $testnamespace --create-namespace --atomic --values values.yml"
+                Should -Invoke -CommandName Invoke-Login -Times 1
+            }
         }
     }
 
-    Context "AWS Custom" {
+    Context "AWS" {
 
-        BeforeEach {
-            Mock -CommandName Invoke-Login -MockWith { return } -RemoveParameterValidation tenantId -parameterFilter { $provider -eq 'AWS' -and $k8s.IsPresent -and $identifier -eq $testclusteridentifier -and $target -eq $testclustername }
-            Invoke-Helm -provider AWS -target $testclustername -identifier $testclusteridentifier -Custom -Arguments "deploy"
+        BeforeAll {
+
+            Mock -CommandName Invoke-Login `
+                -MockWith { return } `
+                -RemoveParameterValidation tenantId `
+                -parameterFilter { $provider -eq 'aws' -and $k8s.IsPresent -and $identifier -eq $testclusteridentifier -and $target -eq $testclustername }
         }
-        It "will login to AWS and run a custom command on the target AKS cluster" {
 
-            $Session.commands.list[1] | Should -BeLike "*helm* list"
-            Should -Invoke -CommandName Invoke-Login -Times 1
+        Context "Helm Install" {
+
+            It "will login to AWS and apply the relevant manifest to the target EKS cluster" {
+                Invoke-Helm -provider AWS -target $testclustername -identifier $testclusteridentifier -Install -valuepath values.yml -chartpath chart.yml -releasename $testrelease -namespace $testnamespace
+
+                $Session.commands.list[0] | Should -BeLike  "*helm* upgrade $testrelease chart.yml --install --namespace $testnamespace --create-namespace --atomic --values values.yml"
+                Should -Invoke -CommandName Invoke-Login -Times 1
+            }
+        }
+
+        Context "Custom" {
+
+            It "will login to AWS and run a custom command on the target EKS cluster" {
+                Invoke-Helm -provider AWS -target $testclustername -identifier $testclusteridentifier -Custom -Arguments "deploy"  -namespace $testnamespace -releasename $testrelease
+
+                $Session.commands.list[1] | Should -BeLike "*helm* list"
+                Should -Invoke -CommandName Invoke-Login -Times 1
+            }
         }
     }
 }
