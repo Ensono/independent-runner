@@ -16,7 +16,10 @@ Describe "Invoke-Inspec" {
         . $PSScriptRoot/../classes/StopTaskException.ps1
 
         # Create the testFolder
-        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        $testFolder = 'TestDrive:\folder'
+        if (!(Test-Path -Path $testFolder)) {
+            $testFolder = (New-Item $testFolder -ItemType Directory).FullName
+        }
 
         $global:Session = @{
             commands = @{

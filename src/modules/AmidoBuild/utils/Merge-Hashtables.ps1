@@ -59,8 +59,8 @@ function Merge-Hashtables {
 
     # variable needs to exist to apply [ref]
     $primaryCopy, $secondaryCopy = $null
-    Copy-Object -Original $primary -DeepClone ([ref]$primaryCopy)
-    Copy-Object -Original $secondary -DeepClone ([ref]$secondaryCopy)
+    $primaryCopy = Copy-Object -Original $primary
+    $secondaryCopy = Copy-Object -Original $secondary
 
     $duplicateKeys = $primaryCopy.keys | Where-Object {$secondaryCopy.ContainsKey($_)}
     foreach ($key in $duplicateKeys)

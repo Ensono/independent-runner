@@ -70,7 +70,7 @@ Describe "Build-PowerShellModule" {
         }
 
         AfterEach {
-            Remove-Item -Path $testFolder2 -Recurse -Force
+            Remove-Item -Path "${testFolder2}/*" -Recurse -Force
         }
 
         It "if the output path is a child of the current directory" {
