@@ -301,23 +301,11 @@ function Invoke-Terraform() {
             if ([String]::IsNullOrEmpty($arguments)) {
                 Write-Warning -Message "No workspace name specified to create or switch to."
             } else {
-                Write-Information -MessageData ("Attempting to select workspace: {0}" -f $arguments[0])
-                $command = "{0} workspace select {1}" -f $terraform, $arguments[0]
-
-                try {
+                Write-Information -MessageData ("Attempting to select or create workspace: {0}" -f $arguments[0])
+                $command = "{0} workspace select -or-create=true {1} " -f $terraform, $arguments[0]
                     Invoke-External -Command $command
                 }
-                catch [StopTaskException] {
-                    # if the lastexitcode is 1 then create the workspace
-                    if ($_.Exception.ExitCode -eq 1) {
-                        Write-Information -MessageData "Creating workspace as it does not exist"
-                        $command = "{0} workspace new {1}" -f $terraform, $arguments[0]
-                        Invoke-External -Command $command
-                    }
-                }
             }
-        }
-
 
     }
 
