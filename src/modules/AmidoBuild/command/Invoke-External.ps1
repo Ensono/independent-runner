@@ -23,6 +23,12 @@ function Invoke-External {
         $dryrun
     )
 
+    # Error action prefernce checking
+    $errorAction = $PSBoundParameters["ErrorAction"]
+        if(-not $errorAction){
+            $errorAction = $ErrorActionPreference
+        }
+
     foreach ($command in $commands) {
 
         # Trim the command
@@ -66,11 +72,10 @@ function Invoke-External {
             if (Get-Variable -Name Session -Scope global -ErrorAction SilentlyContinue) {
                 $global:Session.commands.exitcodes += $LASTEXITCODE
             }
-
-
-            # Stop the task if the LASTEXITCODE is greater than 0
-            if ($LASTEXITCODE -gt 0) {
-                Stop-Task -ExitCode $LASTEXITCODE
+           
+            # Stop the task if the LASTEXITCODE is greater than 0 and ErrorAction is not SilentlyContinue
+            if ($LASTEXITCODE -gt 0 -And $errorAction -ne 'silentlycontinue') {
+                Stop-Task -ExitCode $LASTEXITCODE -Message "External Command Error"
             }
 
 
