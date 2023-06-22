@@ -305,7 +305,7 @@ function Invoke-Terraform() {
                 $command = "{0} workspace select {1}" -f $terraform, $arguments[0]
 
                 try {
-                    Invoke-External -Command $command
+                    Invoke-External -Command $command -ErrorAction SilentlyContinue
                 }
                 catch [StopTaskException] {
                     # if the lastexitcode is 1 then create the workspace
