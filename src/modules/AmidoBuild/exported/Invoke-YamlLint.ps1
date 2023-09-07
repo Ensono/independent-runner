@@ -42,7 +42,12 @@ function Invoke-YamlLint() {
         [Alias("b")]
         [string]
         # Base path to search
-        $BasePath = (Get-Location)
+        $BasePath = (Get-Location),
+
+        [Alias("c")]
+        [bool]
+        # If true will enable yamllint strict mode
+        $FailOnWarnings = $True
     )
 
     # Check that arguments have been supplied
@@ -66,6 +71,15 @@ function Invoke-YamlLint() {
     if (!(Test-Path -Path $BasePath)) {
         Write-Error -Message ("Specified base path does not exist: {0}" -f $BasePath)
         return
+    }
+
+    # strict mode is enabled with the -s (or --strict) option, the return code will be:
+        # • 0 if no errors or warnings occur
+        # • 1 if one or more errors occur
+        # • 2 if no errors occur, but one or more warnings occur
+    $StrictOption = ""
+    if ($FailOnWarnings -eq $True ) {
+        $StrictOption = "-s"
     }
 
     # Find the path to python
@@ -107,7 +121,7 @@ function Invoke-YamlLint() {
     }
 
     # Create the command that needs to be run to perform the lint function
-    $cmd = "{0} -m yamllint -sc {1} {2} {1}" -f $python, $ConfigFile, $BasePath
+    $cmd = "{0} -m yamllint {3} -c {1} {2} {1}" -f $python, $ConfigFile, $BasePath, $StrictOption
     Invoke-External -Command $cmd
 
 }
