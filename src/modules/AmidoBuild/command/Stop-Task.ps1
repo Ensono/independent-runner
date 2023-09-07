@@ -21,7 +21,7 @@ function Stop-Task() {
 
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$false)]
         [string]
         # Error message to be displayed
         $Message,
