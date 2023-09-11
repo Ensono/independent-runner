@@ -28,7 +28,7 @@ variables:
   - name: COMMIT_ID
     value: $(Build.SourceVersion)
   - name: OWNER
-    value: amido
+    value: ensono
   - name: REPOSITORY
     value: independent-runner
   - name: ARTIFACTS_DIR
