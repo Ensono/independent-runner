@@ -143,7 +143,7 @@ stages:
             targetType: inline
             script: |
               taskctl release
-          ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/main') }}: # On main branch runs
+          ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}: # On main branch runs
             env: 
               STAGE: release
               PUBLISH_RELEASE: "true"
