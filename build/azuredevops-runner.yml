@@ -2,6 +2,14 @@
 # Set the build name which will define the Build Number
 name: 0.0$(Rev:.r)
 
+pr:
+  - main
+
+trigger:
+  branches:
+    include:
+      - 'main'
+
 # Set the agent pool that stages should be run in
 pool:
   vmImage: ubuntu-20.04
