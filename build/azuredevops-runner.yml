@@ -70,6 +70,14 @@ stages:
             script: |
               taskctl docs
 
+        # Munges the file paths by replacing the bound `/app` directory with the $(Build.SourcesDirectory) variable where the files are
+        - task: Bash@3
+          displayName: Updates paths to files outside of TaskCTL Docker Contexts on the Host
+          inputs:
+            targetType: inline
+            script: |
+              sed -i 's%/app/src/%$(Build.SourcesDirectory)/src/%' $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
+
         # Upload tests and the coverage results
         - task: PublishTestResults@2
           inputs:
