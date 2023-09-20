@@ -3,7 +3,7 @@ function Invoke-Terraform() {
 
 
     <#
-    
+
     .SYNOPSIS
     A wrapper for the Terraform command which will invoke the different commands of
     Terraform as required
@@ -15,7 +15,7 @@ function Invoke-Terraform() {
     It is a wrapper for the Terraform command and will generate the necessary command from the inputs that the
     cmdlet is given. The benefit of this cmdlet is that it reduces complexity as people do not need to know how
     to build up the Terraform command each time.
-    
+
     .EXAMPLE
     Invoke-Terraform -init -arguments "false"
 
@@ -23,7 +23,7 @@ function Invoke-Terraform() {
 
     .EXAMPLE
     Invoke-Terraform -plan properties "-input=false", "-out=tf.plan"
-    
+
     Plan the Terraform deployment using the files in the current directory. The properties that have been passed
     are appended directly to the end of the Terraform command. In this example no missing inputs are requests and
     the plan is written out to the `tf.plan` file.
@@ -299,13 +299,13 @@ function Invoke-Terraform() {
         "workspace" {
 
             if ([String]::IsNullOrEmpty($arguments)) {
-                Write-Warning -Message "No workspace name specified to create or switch to."
+                Write-Error -Message "No workspace name specified to create or switch to."
             } else {
                 Write-Information -MessageData ("Attempting to select or create workspace: {0}" -f $arguments[0])
-                $command = "{0} workspace select -or-create=true {1} " -f $terraform, $arguments[0]
-                    Invoke-External -Command $command
-                }
+                $command = "{0} workspace select -or-create=true {1}" -f $terraform, $arguments[0]
+                Invoke-External -Command $command
             }
+        }
 
     }
 
