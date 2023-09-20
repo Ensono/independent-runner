@@ -9,7 +9,7 @@ contexts:
         - -v
         - ${PWD}:/app
         - -e
-        - PSModulePath=/app/src/modules        
+        - PSModulePath=/app/src/modules
         - -w
         - /app
         - russellseymour/pandoc-asciidoctor
@@ -100,4 +100,4 @@ contexts:
         - pwsh
         - -NoProfile
         - -Command
-    quote: "'"    
+    quote: "'"

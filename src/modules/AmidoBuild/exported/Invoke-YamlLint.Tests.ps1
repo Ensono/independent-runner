@@ -25,7 +25,7 @@ Describe "Invoke-YamlLint" {
         Mock -CommandName Write-Information -MockWith { }
 
         # - Find-Command - return the name of the command that is required
-        # Mock -Command Find-Command -MockWith { return $name }        
+        # Mock -Command Find-Command -MockWith { return $name }
     }
 
     Context "config file does not exist" {
@@ -94,7 +94,7 @@ Describe "Invoke-YamlLint" {
             # Ensure yamllint is being installed
             $session.commands.list[1] | Should -BeLike ("*pip* install yamllint")
 
-            $session.commands.list[2] | Should -BeLike ("*python* -m yamllint -sc {0} {1} {0}" -f $configFile.Fullname, $testFolder)
+            $session.commands.list[2] | Should -BeLike ("*python* -m yamllint -s -c {0} {1} {0}" -f $configFile.Fullname, $testFolder)
 
             Should -Invoke -CommandName Write-Information -Times 1
         }

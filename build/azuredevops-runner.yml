@@ -27,7 +27,7 @@ stages:
             targetType: inline
             script: |
               wget https://github.com/taskctl/taskctl/releases/download/${{ variables.TaskctlVersion }}/taskctl_${{ variables.TaskctlVersion }}_linux_amd64.tar.gz -O /tmp/taskctl.tar.gz
-              tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl 
+              tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl
 
         # Install Stacks Envfile to generate the envfile to be used by docker
         - task: Bash@3
@@ -52,8 +52,7 @@ stages:
           inputs:
             targetType: inline
             script: |
-              taskctl tests:unit
-              taskctl tests:coverage_report
+              taskctl tests
 
         # Run the task to generate the PowerShell module files
         - task: Bash@3
@@ -100,7 +99,7 @@ stages:
   - stage: Release
 
     jobs:
-    
+
     - job: Publish
       steps:
         - checkout: self # Local use of Powershell Modules
@@ -125,7 +124,7 @@ stages:
             targetType: inline
             script: |
               wget https://github.com/taskctl/taskctl/releases/download/${{ variables.TaskctlVersion }}/taskctl_${{ variables.TaskctlVersion }}_linux_amd64.tar.gz -O /tmp/taskctl.tar.gz
-              tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl 
+              tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl
 
         # Install Stacks Envfile to generate the envfile to be used by docker
         - task: Bash@3
@@ -144,9 +143,8 @@ stages:
             script: |
               taskctl release
           ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}: # On main branch runs
-            env: 
+            env:
               STAGE: release
               PUBLISH_RELEASE: "true"
               DASHBOARD_INFLUX_TOKEN: $(DASHBOARD_INFLUX_TOKEN) # requires explicit mapping to be used as an env var
               VERSION_NUMBER: $(BUILD_BUILDNUMBER)
-
