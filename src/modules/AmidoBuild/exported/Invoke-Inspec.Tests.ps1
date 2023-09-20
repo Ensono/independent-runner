@@ -28,9 +28,15 @@ Describe "Invoke-Inspec" {
             dryrun = $true
         }
 
+        function inspec() {}
+
         # Mock commands to check that they are being called
         # - Write-Error
         Mock -CommandName Write-Error -MockWith { }
+
+        Mock -CommandName Find-Command -MockWith {
+            return 'inspec'
+        }
 
         Mock -CommandName inspec -MockWith { }
     }

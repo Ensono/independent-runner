@@ -80,6 +80,7 @@ stages:
 
         # Munges the file paths by replacing the bound `/app` directory with the $(Build.SourcesDirectory) variable where the files are
         - task: Bash@3
+          condition: always()
           displayName: Updates paths to files outside of TaskCTL Docker Contexts on the Host
           inputs:
             targetType: inline
@@ -88,12 +89,14 @@ stages:
 
         # Upload tests and the coverage results
         - task: PublishTestResults@2
+          condition: always()
           inputs:
             testResultsFormat: NUnit
             testResultsFiles: '**/pester-unittest-results.xml'
             testRunTitle: UnitTests
 
         - task: PublishCodeCoverageResults@1
+          condition: always()
           inputs:
             codeCoverageTool: 'Cobertura'
             summaryFileLocation: $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
