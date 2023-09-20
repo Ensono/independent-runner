@@ -84,7 +84,7 @@ stages:
           inputs:
             targetType: inline
             script: |
-              sed -i 's%/app/src/%$(Build.SourcesDirectory)/src/%' $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
+              sudo sed -i 's%/app/src/%$(Build.SourcesDirectory)/src/%' $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
 
         # Upload tests and the coverage results
         - task: PublishTestResults@2
