@@ -45,13 +45,20 @@ function Invoke-Helm() {
         # does not support the command that needs to be run
         $custom,
 
+        [Parameter(
+            ParameterSetName="repo"
+        )]
+        [switch]
+        # Allow a repository to be added
+        $repo,
+
         [string[]]
         [Alias("properties")]
         # Arguments to pass to the helm command
         $arguments,
 
         [string]
-        [ValidateSet('azure','aws',IgnoreCase)]
+        [ValidateSet('azure', 'aws', IgnoreCase)]
         # Cloud Provider
         $provider,
 
@@ -76,34 +83,69 @@ function Invoke-Helm() {
         $chartpath,
 
         [string]
-        $releasename,
         # Name of the release
+        $releasename,
 
         [string]
-        $namespace
         # Namespace to deploy the release into
+        $namespace,
+
+        [string]
+        $repositoryName,
+
+        [string]
+        $repositoryUrl
 
     )
 
     # Define parameter checking vars
     $missing = @()
+    $checkParams = @()
 
+    switch ($PSCmdlet.ParameterSetName) {
+        "install" {
+            # Check that some arguments have been set
+            $checkParams = @("provider", "target", "identifier", "namespace", "releasename","namespace")
+        }
 
-      # Ensure that all the required parameters have been set:
-        foreach ($parameter in @("provider", "target", "identifier", "namespace", "releasename","namespace")) {
+        "repo" {
+            $checkParams = @("repositoryName", "repositoryUrl")
+        }
 
-        # check each parameter to see if it has been set
+        "custom" {
+            $checkParams = @("arguments")
+        }
+
+    }
+
+    # Ensure that all the required parameters have been set:
+    foreach ($parameter in $checkParams) {
         if ([string]::IsNullOrEmpty((Get-Variable -Name $parameter).Value)) {
             $missing += $parameter
         }
-      }
+    }
 
     # if there are missing parameters throw an error
     if ($missing.length -gt 0) {
         Write-Error -Message ("Required parameters are missing: {0}" -f ($missing -join ", "))
         exit 1
+    }
 
-    } else {
+    $login =  {
+        Param(
+            [string]
+            [ValidateSet('azure', 'aws', IgnoreCase)]
+            $provider,
+
+            [string]
+            $target,
+
+            [string]
+            $identifier,
+
+            [bool]
+            $k8sauthrequired = $true
+        )
 
         switch ($provider) {
             "Azure" {
@@ -115,35 +157,43 @@ function Invoke-Helm() {
             default {
                 Write-Error -Message ("Cloud provider not supported for login: {0}" -f $provider)
             }
-          }
         }
-        # Find the helm binary
-        $helm = Find-Command -Name "helm"
+    }
 
-        $commands = @()
+    # Find the helm binary
+    $helm = Find-Command -Name "helm"
 
-        # build up and execute the commands that need to be run
-        switch ($PSCmdlet.ParameterSetName) {
-            "install" {
-                # Check that some arguments have been set
+    $commands = @()
 
-                $commands += "{0} upgrade {1} {2} --install --namespace {3} --create-namespace --atomic --values {4}" -f $helm, $releasename, $chartpath, $namespace, $valuepath
-                    }
+    # Build up and execute the commands that need to be run
+    switch ($PSCmdlet.ParameterSetName) {
+        "install" {
+            # Invoke-Login
+            $login.Invoke($provider, $target, $identifier, $k8sauthrequired)
 
-            "custom" {
-                # Build up the command that is to be run
-                $commands = "{0} {1}" -f $helm, ($arguments -join " ")
-            }
-
+            # Check that some arguments have been set
+            $commands += "{0} upgrade {1} {2} --install --namespace {3} --create-namespace --atomic --values {4}" -f $helm, $releasename, $chartpath, $namespace, $valuepath
         }
 
-        if ($commands.count -gt 0) {
-            Invoke-External -Command $commands
-        
-            # Stop the task if the LASTEXITCODE is greater than 0
-            if ($LASTEXITCODE -gt 0) {
-                Stop-Task -ExitCode $LASTEXITCODE
-            }
+        "repo" {
+            $commands += "{0} repo add {1} {2}" -f $helm, $repositoryName, $repositoryUrl
         }
-  }
 
+        "custom" {
+            # Invoke-Login
+            $login.Invoke($provider, $target, $identifier, $k8sauthrequired)
+
+            # Build up the command that is to be run
+            $commands = "{0} {1}" -f $helm, ($arguments -join " ")
+        }
+    }
+
+    if ($commands.count -gt 0) {
+        Invoke-External -Command $commands
+
+        # Stop the task if the LASTEXITCODE is greater than 0
+        if ($LASTEXITCODE -gt 0) {
+            Stop-Task -ExitCode $LASTEXITCODE
+        }
+    }
+}

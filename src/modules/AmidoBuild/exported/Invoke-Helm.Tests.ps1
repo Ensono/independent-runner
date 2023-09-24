@@ -43,19 +43,46 @@ Describe "Invoke-Helm" {
         Remove-Variable -Name Session -Scope global
     }
 
+    BeforeEach {
+
+        $global:Session.commands.list = @()
+    }
+
     Context "No Parameters" {
 
         it "will error" {
-          $ShouldParams = @{
-              Throw = $true
-              ExpectedMessage = "Parameter set cannot be resolved using the specified named parameters. One or more parameters issued cannot be used together or an insufficient number of parameters were provided."
-              ExceptionType = ([System.Management.Automation.ParameterBindingException])
-              # Command to run
-              ActualValue = { Invoke-Helm }
-          }
+            $ShouldParams = @{
+                Throw = $true
+                ExpectedMessage = "Parameter set cannot be resolved using the specified named parameters. One or more parameters issued cannot be used together or an insufficient number of parameters were provided."
+                ExceptionType = ([System.Management.Automation.ParameterBindingException])
+                # Command to run
+                ActualValue = { Invoke-Helm }
+            }
 
-          Should @ShouldParams
-      }
+            Should @ShouldParams
+        }
+    }
+
+    Context "Cloud Indepdenent" {
+
+        Context "Repo" {
+
+            BeforeAll {
+
+                Mock -CommandName Invoke-Login `
+                    -MockWith { return } `
+                    -RemoveParameterValidation tenantId `
+                    -ParameterFilter { }
+            }
+
+            it "will not log-in to a Cloud Provider and will add a repository" {
+                Invoke-Helm -Repo -RepositoryName "MyRepo" -RepositoryUrl "https://foo.bar/"
+
+                $Session.commands.list[0] | Should -BeLike "*helm* repo add MyRepo https://foo.bar/"
+                Should -Invoke -CommandName Invoke-Login -Times 0
+            }
+        }
+
     }
 
     Context "Azure" {
@@ -63,9 +90,9 @@ Describe "Invoke-Helm" {
         BeforeAll {
 
             Mock -CommandName Invoke-Login `
-                 -MockWith { return } `
-                 -RemoveParameterValidation tenantId `
-                 -parameterFilter { $provider -eq 'azure' -and $k8s.IsPresent -and $identifier -eq $testclusteridentifier -and $target -eq $testclustername }
+                -MockWith { return } `
+                -RemoveParameterValidation tenantId `
+                -parameterFilter { $provider -eq 'azure' -and $k8s.IsPresent -and $identifier -eq $testclusteridentifier -and $target -eq $testclustername }
         }
 
         Context "Helm Install" {
@@ -82,9 +109,11 @@ Describe "Invoke-Helm" {
 
             it "will login to Azure and run a custom command on the target AKS cluster" {
                 Invoke-Helm -provider Azure -target $testclustername -identifier $testclusteridentifier -Custom -Arguments "list" -namespace $testnamespace -releasename $testrelease
+                Invoke-Helm -provider Azure -target $testclustername -identifier $testclusteridentifier -Custom -Arguments "list"
 
-                $Session.commands.list[0] | Should -BeLike "*helm* upgrade $testrelease chart.yml --install --namespace $testnamespace --create-namespace --atomic --values values.yml"
-                Should -Invoke -CommandName Invoke-Login -Times 1
+                $Session.commands.list[0] | Should -BeLike "*helm* list"
+                $Session.commands.list[1] | Should -BeLike "*helm* list"
+                Should -Invoke -CommandName Invoke-Login -Times 2
             }
         }
     }
@@ -112,10 +141,12 @@ Describe "Invoke-Helm" {
         Context "Custom" {
 
             It "will login to AWS and run a custom command on the target EKS cluster" {
-                Invoke-Helm -provider AWS -target $testclustername -identifier $testclusteridentifier -Custom -Arguments "deploy"  -namespace $testnamespace -releasename $testrelease
+                Invoke-Helm -provider AWS -target $testclustername -identifier $testclusteridentifier -Custom -Arguments "list" -namespace $testnamespace -releasename $testrelease
+                Invoke-Helm -provider AWS -target $testclustername -identifier $testclusteridentifier -Custom -Arguments "list"
 
+                $Session.commands.list[0] | Should -BeLike "*helm* list"
                 $Session.commands.list[1] | Should -BeLike "*helm* list"
-                Should -Invoke -CommandName Invoke-Login -Times 1
+                Should -Invoke -CommandName Invoke-Login -Times 2
             }
         }
     }

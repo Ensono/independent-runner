@@ -23,7 +23,7 @@ Describe "Invoke-Terraform" {
         Mock -Command Find-Command -MockWith { return "terraform" }
 
         Mock -CommandName Write-Error -MockWith { }
-        Mock -CommandName Write-Warning -MockWith { }
+        # Mock -CommandName Write-Warning -MockWith { }
     }
 
     AfterAll {
@@ -107,44 +107,28 @@ Describe "Invoke-Terraform" {
     }
 
     Context "Workspace" {
-        It "will display a warning if no arguments are set" {
+        It "will display an error if no arguments are set" {
             Mock `
                 -Command Invoke-External `
                 -MockWith { }
 
             Invoke-Terraform -workspace
-            Should -Invoke -CommandName Write-Warning -Exactly 1
+            Should -Invoke -CommandName Write-Error -Exactly 1
             Should -Invoke Invoke-External -Exactly 0
         }
 
         It "Will create a new workspace if it does not exist" {
-            # Pester can't natively guarantee ordering: https://github.com/pester/Pester/issues/494
-            $order = New-Object System.Collections.ArrayList
-
             Mock `
                 -Command Invoke-External `
                 -Verifiable `
-                -MockWith {
-                    $null = $order.Add($commands)
-                    throw [StopTaskException]::new(1, "Task failed due to errors detailed above")
-                } `
-                -ParameterFilter { $commands -eq "terraform workspace select pester" }
-
-            Mock `
-                -Command Invoke-External `
-                -Verifiable `
-                -MockWith { $null = $order.Add($commands) } `
-                -ParameterFilter { $commands -eq "terraform workspace new pester" }
+                -MockWith { } `
+                -ParameterFilter { $commands -eq "terraform workspace select -or-create=true pester" }
 
             # Invoke the command under test
             Invoke-Terraform -workspace -Arguments "pester"
 
             Should -InvokeVerifiable
-            Should -Invoke Invoke-External -Exactly 2
-
-            $order.Count | Should -Be 2
-            $order[0] | Should -Be "terraform workspace select pester"
-            $order[1] | Should -Be "terraform workspace new pester"
+            Should -Invoke Invoke-External -Exactly 1
         }
     }
 

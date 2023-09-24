@@ -3,7 +3,7 @@
 param (
 
     [string]
-    # Path to the functions that need to be tests
+    # Path to the functions that need to be tested
     $path,
 
     [string]
@@ -32,7 +32,16 @@ param (
 
 )
 
-# Crate configuration object to modify
+$pesterErrorCodePath = "./test"
+$pesterErrorCodeFile = ".PesterErrorCode"
+$pesterErrorCodeFilePath = "${pesterErrorCodePath}/${pesterErrorCodeFile}"
+
+if (Test-Path -Path $pesterErrorCodeFilePath -PathType leaf) {
+    Write-Debug "Found '${$pesterErrorCodeFilePath}', removing it..."
+    Remove-Item -Path $pesterErrorCodeFilePath -Force
+}
+
+# Create configuration object to modify
 $configuration = New-PesterConfiguration
 
 # Configure the path that the tests will run in
@@ -52,8 +61,27 @@ if ($coverage.IsPresent) {
     $configuration.CodeCoverage.OutputPath = [IO.Path]::Combine($output, "pester-coverage.xml")
 }
 
+# Return result object to the pipeline after finishing the test run
+$configuration.Run.PassThru = $true
+
 # Set the verbosity of the tests
 $configuration.Output.Verbosity = $verbosity
 
 # Run Pester with the configuration
-Invoke-Pester -Configuration $configuration
+$result = Invoke-Pester -Configuration $configuration
+
+$exitCode = $LASTEXITCODE
+
+if ($exitCode -ne 0) {
+    Write-Error "ERROR: $($result.FailedCount) Test Failures"
+
+    foreach ($failure in $result.Failed) {
+        Write-Error "ERROR: $($failure)`n"
+    }
+
+    New-Item `
+        -Path $pesterErrorCodeFilePath `
+        -Value $exitCode
+
+    exit $exitCode
+}
