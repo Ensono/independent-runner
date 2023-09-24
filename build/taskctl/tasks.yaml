@@ -31,6 +31,12 @@ tasks:
     command:
       - Invoke-DotNet -Coverage -Pattern pester-coverage.xml -Path /app -Source /app/src/modules/AmidoBuild -Target /app/outputs/tests
 
+  tests:fail_on_error:
+    context: powershell_test
+    description: A task that fails if the `.PesterErrorCode` is present from `Invoke-PesterTests.ps1`
+    command:
+      - /app/build/scripts/Test-PesterExitCode.ps1
+
   update:dashboard:
     context: powershell
     description: Update the Deployment Dashboard

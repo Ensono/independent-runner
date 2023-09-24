@@ -2,6 +2,14 @@
 # Set the build name which will define the Build Number
 name: 0.0$(Rev:.r)
 
+pr:
+  - main
+
+trigger:
+  branches:
+    include:
+      - 'main'
+
 # Set the agent pool that stages should be run in
 pool:
   vmImage: ubuntu-20.04
@@ -27,7 +35,7 @@ stages:
             targetType: inline
             script: |
               wget https://github.com/taskctl/taskctl/releases/download/${{ variables.TaskctlVersion }}/taskctl_${{ variables.TaskctlVersion }}_linux_amd64.tar.gz -O /tmp/taskctl.tar.gz
-              tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl 
+              tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl
 
         # Install Stacks Envfile to generate the envfile to be used by docker
         - task: Bash@3
@@ -52,8 +60,7 @@ stages:
           inputs:
             targetType: inline
             script: |
-              taskctl tests:unit
-              taskctl tests:coverage_report
+              taskctl tests
 
         # Run the task to generate the PowerShell module files
         - task: Bash@3
@@ -71,14 +78,25 @@ stages:
             script: |
               taskctl docs
 
+        # Munges the file paths by replacing the bound `/app` directory with the $(Build.SourcesDirectory) variable where the files are
+        - task: Bash@3
+          condition: always()
+          displayName: Updates paths to files outside of TaskCTL Docker Contexts on the Host
+          inputs:
+            targetType: inline
+            script: |
+              sudo sed -i 's%/app/src/%$(Build.SourcesDirectory)/src/%' $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
+
         # Upload tests and the coverage results
         - task: PublishTestResults@2
+          condition: always()
           inputs:
             testResultsFormat: NUnit
             testResultsFiles: '**/pester-unittest-results.xml'
             testRunTitle: UnitTests
 
         - task: PublishCodeCoverageResults@1
+          condition: always()
           inputs:
             codeCoverageTool: 'Cobertura'
             summaryFileLocation: $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
@@ -100,7 +118,7 @@ stages:
   - stage: Release
 
     jobs:
-    
+
     - job: Publish
       steps:
         - checkout: self # Local use of Powershell Modules
@@ -125,7 +143,7 @@ stages:
             targetType: inline
             script: |
               wget https://github.com/taskctl/taskctl/releases/download/${{ variables.TaskctlVersion }}/taskctl_${{ variables.TaskctlVersion }}_linux_amd64.tar.gz -O /tmp/taskctl.tar.gz
-              tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl 
+              tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl
 
         # Install Stacks Envfile to generate the envfile to be used by docker
         - task: Bash@3
@@ -144,9 +162,8 @@ stages:
             script: |
               taskctl release
           ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}: # On main branch runs
-            env: 
+            env:
               STAGE: release
               PUBLISH_RELEASE: "true"
               DASHBOARD_INFLUX_TOKEN: $(DASHBOARD_INFLUX_TOKEN) # requires explicit mapping to be used as an env var
               VERSION_NUMBER: $(BUILD_BUILDNUMBER)
-
