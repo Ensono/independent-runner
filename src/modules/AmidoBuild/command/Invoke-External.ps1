@@ -58,9 +58,7 @@ function Invoke-External {
             # Reset the LASTEXITCODE as it can be tripped from a variety of places...
             $global:LASTEXITCODE = 0
 
-            $output = Invoke-Expression -Command $command
-
-            Write-Output -InputObject $output
+            Invoke-Expression -Command $command
 
             # Add the exit code to the session, if it exists
             if (Get-Variable -Name Session -Scope global -ErrorAction SilentlyContinue) {
