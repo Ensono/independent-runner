@@ -59,7 +59,7 @@ function Invoke-External {
             $global:LASTEXITCODE = 0
 
             Invoke-Expression -Command $command | Tee-Object -variable output
-            
+
             # Add the exit code to the session, if it exists
             if (Get-Variable -Name Session -Scope global -ErrorAction SilentlyContinue) {
                 $global:Session.commands.exitcodes += $LASTEXITCODE
@@ -70,7 +70,6 @@ function Invoke-External {
             if ($LASTEXITCODE -gt 0) {
                 Stop-Task -ExitCode $LASTEXITCODE
             }
-
 
         }
     }
