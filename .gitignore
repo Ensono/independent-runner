@@ -6,3 +6,5 @@ docs/reference
 
 # Used to store Pester exit code to detect failure
 .PesterErrorCode
+
+.vscode
