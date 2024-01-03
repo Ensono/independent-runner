@@ -3,6 +3,9 @@
 :table-stripes: even
 :listing-caption: Listing
 :icons: font
+:page-background-image: image:images/page-image.png[position=top right]
+:project_name: Ensono Stacks
+:cr_repo_name: amidostacks
 
 include::objectives.adoc[]
 
