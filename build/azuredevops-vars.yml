@@ -2,9 +2,7 @@
 # by the build
 variables:
   - name: TaskctlVersion
-    value: 1.4.2
-  - name: StacksEnvfileVersion
-    value: 0.0.16
+    value: 1.5.1
   - name: moduleName
     value: EnsonoBuild
 
