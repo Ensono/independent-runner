@@ -17,6 +17,11 @@ contexts:
         - -NoProfile
         - -Command
     quote: "'"
+    envfile:
+      generate: true
+      exclude:
+        - path
+        - home
 
   powershell_test:
     executable:

@@ -5,6 +5,13 @@ tasks:
     command:
       - rm -rf outputs
 
+  build:number:
+    context: powershell_docker
+    description: Update the build number
+    command:
+      - Update-BuildNumber
+    exportAs: BUILDNUMBER
+
   _docs:
     description: Build Docs
     context: docsenv
