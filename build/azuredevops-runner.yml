@@ -1,6 +1,6 @@
 
 # Set the build name which will define the Build Number
-name: 0.0$(Rev:.r)
+name: 1.0$(Rev:.r)
 
 pr:
   - main

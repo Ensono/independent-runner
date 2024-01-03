@@ -137,7 +137,7 @@ function Publish-Confluence() {
             }
             body = @{
                 storage = @{
-                    value = "Initial page created by the AmidoBuild PowerShell module. This will be updated shortly."
+                    value = "Initial page created by the EnsonoBuild PowerShell module. This will be updated shortly."
                     representation = "storage"
                 }
             }

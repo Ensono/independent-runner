@@ -6,7 +6,7 @@ variables:
   - name: StacksEnvfileVersion
     value: 0.0.16
   - name: moduleName
-    value: AmidoBuild
+    value: EnsonoBuild
 
 # Dashboard
   - name: DASHBOARD_VERSION

@@ -17,19 +17,19 @@ tasks:
     context: powershell_localmodule
     description: Build the local PowerShell module
     command:
-      - Build-PowerShellModule -Path /app/src/modules -name AmidoBuild -target /app/outputs/module
+      - Build-PowerShellModule -Path /app/src/modules -name EnsonoBuild -target /app/outputs/module
 
   tests:unit:
     context: powershell_test
     description: Run PowerShell unit tests and coverage on the module
     command:
-      - /app/build/scripts/Invoke-PesterTests.ps1 -Path /app/src/modules/AmidoBuild -UnitTests -Coverage
+      - /app/build/scripts/Invoke-PesterTests.ps1 -Path /app/src/modules/EnsonoBuild -UnitTests -Coverage
 
   tests:coverage_report:
     context: dotnet
     description: Create HTML report from coverage doc
     command:
-      - Invoke-DotNet -Coverage -Pattern pester-coverage.xml -Path /app -Source /app/src/modules/AmidoBuild -Target /app/outputs/tests
+      - Invoke-DotNet -Coverage -Pattern pester-coverage.xml -Path /app -Source /app/src/modules/EnsonoBuild -Target /app/outputs/tests
 
   tests:fail_on_error:
     context: powershell_test
@@ -56,7 +56,7 @@ tasks:
     context: powershell
     description: Publish Release to GitHub
     command:
-      - Publish-GitHubRelease -artifactsList "AmidoBuild.psd1","AmidoBuild.psm1","Independent Runner.pdf"
+      - Publish-GitHubRelease -artifactsList "EnsonoBuild.psd1","EnsonoBuild.psm1","Independent Runner.pdf"
     env:
       generateReleaseNotes: $true
       # TODO: Currently handled by ADO pipeline var, captured in Story 4122
