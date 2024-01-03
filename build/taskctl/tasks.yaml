@@ -9,9 +9,10 @@ tasks:
     description: Build Docs
     context: docsenv
     command:
-      - /app/build/scripts/Build-Help.ps1
-      - Build-Documentation -BasePath /app -Pdf -Title "Independent Runner" -AttributeFile /app/build/config/pdf-config.ps1
-      - Build-Documentation -BasePath /app -MD -MDX
+      # - /app/build/scripts/Build-Help.ps1
+      # - Build-Documentation -BasePath /app -Pdf -Title "Independent Runner" -AttributeFile /app/build/config/pdf-config.ps1
+      # - Build-Documentation -BasePath /app -MD -MDX
+      - Invoke-AsciiDoc -PDF -basepath /app -config /app/docs.json -debug
 
   generate:
     context: powershell_localmodule
