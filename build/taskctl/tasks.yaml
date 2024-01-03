@@ -31,7 +31,7 @@ tasks:
     context: powershell_test
     description: Run PowerShell unit tests and coverage on the module
     command:
-      - /app/build/scripts/Invoke-PesterTests.ps1 -Path /app/src/modules/EnsonoBuild -UnitTests -Coverage -Verbosity Detailed
+      - /app/build/scripts/Invoke-PesterTests.ps1 -Path /app/src/modules/EnsonoBuild -UnitTests -Coverage -Verbosity Diagnostic
 
   tests:coverage_report:
     context: dotnet
