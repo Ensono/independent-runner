@@ -51,7 +51,7 @@ tasks:
     command:
       - Update-InfluxDashboard
     # TODO: Currently handled by ADO pipeline var, captured in Story 4122
-    # env: 
+    # env:
     #  PUBLISH_RELEASE: $true
 
   setup:environment:
