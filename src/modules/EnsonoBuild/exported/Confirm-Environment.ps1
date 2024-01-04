@@ -143,7 +143,8 @@ function Confirm-Environment() {
             }
 
             # As there is an error the task in Taskctl needs to be stopped
-            Stop-Task -Message ("The following environment variables are missing and must be provided:`n`t{0}" -f ($message -join "`n`t"))
+            $stop_msg = "The following environment variables are missing and must be provided:`n`t{0}" -f ($message -join "`n`t")
+            Stop-Task -Message $stop_msg
         }
     }
 }

@@ -4,4 +4,4 @@ To ensure that the pipeline runs the same on any machine, Docker images are used
 
 Each of the docker images in use is defined in the repo https://github.com/amido/stacks-docker-images.
 
-include::https://raw.githubusercontent.com/amido/stacks-docker-images/main/docs/index.adoc[lines=7..-1]
+include::https://raw.githubusercontent.com/Ensono/stacks-docker-images/main/docs/index.adoc[lines=7..-1]

@@ -1,0 +1,18 @@
+{
+    "title": "Ensono Independent Runner",
+    "output": "{{ basepath }}/outputs/docs/{{ format }}",
+    "trunkBranch": "main",
+    "path": "{{ basepath }}/docs/index.adoc",
+    "libs": [
+        "asciidoctor-diagram"
+    ],
+    "pdf": {
+        "attributes": [
+            "pdf-theme={{ basepath }}/docs/styles/theme.yml",
+            "pdf-fontsdir=\"{{ basepath }}/docs/styles/fonts;GEM_FONTS_DIR\"",
+            "allow-uri-read",
+            "blockdiag=/usr/bin/blockdiag",
+            "skip-front-matter"
+        ]
+    }
+}
