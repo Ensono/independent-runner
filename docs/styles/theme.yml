@@ -27,9 +27,9 @@ header:
   recto:
     columns: "<40% =20% >40%"
     left:
-      content: 'image:../images/amido_logo.png[]'
+      content: 'image:../images/ensono-digital.svg[Ensono Digital,100]'
     center:
-      content: '{document-title}'
+      content: ''
   verso:
     left:
       content: $header_recto_left_content
@@ -41,5 +41,15 @@ table:
   caption:
     side: bottom
   head:
-    background_color: 08c1a7
-    font-color: ffffff
+    background-color: #08c1a7
+    font-color: #ffffff
+
+role:
+  highlight:
+    background-color: #fe6e69
+  notes:
+    background_color: #6941eb
+    font_color: #00ff00
+
+heading:
+  font-color: #6941eb

@@ -12,11 +12,16 @@ contexts:
         - PSModulePath=/app/src/modules
         - -w
         - /app
-        - russellseymour/pandoc-asciidoctor
+        - amidostacks/runner-pwsh-asciidoctor:0.4.60-stable
         - pwsh
         - -NoProfile
         - -Command
     quote: "'"
+    envfile:
+      generate: true
+      exclude:
+        - path
+        - home
 
   powershell_test:
     executable:
@@ -32,7 +37,7 @@ contexts:
         - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh:0.4.51-stable
+        - amidostacks/runner-pwsh:0.4.60-stable
         - pwsh
         - -NoProfile
         - -Command
@@ -53,12 +58,16 @@ contexts:
         - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh:0.4.51-stable
+        - amidostacks/runner-pwsh:0.4.60-stable
         - pwsh
         - -NoProfile
         - -Command
     quote: "'"
-    before: envfile -e home,path
+    envfile:
+      exclude:
+        - home
+        - path
+      generate: true
 
   powershell:
     executable:
@@ -75,12 +84,16 @@ contexts:
         - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh:0.4.51-stable
+        - amidostacks/runner-pwsh:0.4.60-stable
         - pwsh
         - -NoProfile
         - -Command
     quote: "'"
-    before: envfile -e home,path
+    envfile:
+      exclude:
+        - home
+        - path
+      generate: true
 
   dotnet:
     executable:
@@ -96,7 +109,7 @@ contexts:
         - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh-dotnet:0.4.51-stable
+        - amidostacks/runner-pwsh-dotnet:0.4.60-stable
         - pwsh
         - -NoProfile
         - -Command

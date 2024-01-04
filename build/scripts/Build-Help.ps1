@@ -20,7 +20,7 @@ if (Test-Path -Path $indexFile) {
 }
 
 # Import the module so that all the functions ar available
-Import-Module ${PSScriptRoot}/../../src/modules/AmidoBuild -Force
+Import-Module ${PSScriptRoot}/../../src/modules/EnsonoBuild -Force
 
 # Create an array to hold the synopsis of each function, this is used
 # to provide an index table in the resultant document
@@ -31,7 +31,7 @@ $synopsis = @(
 )
 
 # Iterate around all of the exported functions and get the help for each one
-$exported = (Get-Module AmidoBuild).ExportedCommands
+$exported = (Get-Module EnsonoBuild).ExportedCommands
 foreach ($item in $exported.GetEnumerator()) {
     
     # Create the path to the file to create

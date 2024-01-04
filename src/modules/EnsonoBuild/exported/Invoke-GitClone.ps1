@@ -48,7 +48,7 @@ function Invoke-GitClone() {
         [string]
         [Alias("uri")]
         # Name of the repository to clone
-        $repoUrl = $env:AMIDOBUILD_REPOURL,
+        $repoUrl = $env:ENSONOBUILD_REPOURL,
 
         [string]
         # Reference to use to download the Zip file for the repository

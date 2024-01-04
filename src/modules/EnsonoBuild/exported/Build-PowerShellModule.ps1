@@ -5,7 +5,7 @@ function Build-PowerShellModule() {
     <#
 
     .SYNOPSIS
-    Function to create the AmidoBuild PowerShell module
+    Function to create the EnsonoBuild PowerShell module
 
     .DESCRIPTION
     The powershell module in this repository is used with the Independent Runner
@@ -20,7 +20,7 @@ function Build-PowerShellModule() {
 
     .EXAMPLE
 
-    Build-PowerShellModule -Path /app/src/modules -name AmidoBuild -target /app/outputs/module
+    Build-PowerShellModule -Path /app/src/modules -name EnsonoBuild -target /app/outputs/module
 
     This is the command that is used to build the Independent Runner. It use the path and the name to
     determine where the files for the module. The resultant module will be saved in the specified
