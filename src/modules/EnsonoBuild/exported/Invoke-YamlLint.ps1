@@ -42,7 +42,7 @@ function Invoke-YamlLint() {
         [Alias("b")]
         [string]
         # Base path to search
-        $BasePath = (Get-Location),
+        $BasePath = ".",
 
         [Alias("c")]
         [bool]
