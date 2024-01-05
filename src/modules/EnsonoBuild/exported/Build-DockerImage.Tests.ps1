@@ -207,6 +207,27 @@ Describe "Build-DockerImage" {
             # Ensure that the image is pused to the registry
             $Session.commands.list[2] | Should -BeLike "*docker* push docker.io/pester-tests:unittests"
         }
+
+        It "will build the image but not push if the NO_ENV variable has been set" {
+
+            # Set the environment variable to prevent the push
+            $env:NO_PUSH = "do not push"
+
+            # Call the function under test
+            Build-DockerImage -provider "generic" -name pester-tests -tag "unittests" -registry "docker.io" -push
+
+            # There should only be one command
+            $Session.commands.list.length | Should -Be 1
+
+            # Check the build command
+            $Session.commands.list[0] | Should -BeLike "*docker* build . -t pester-tests:unittests -t docker.io/pester-tests:unittests"
+
+            # Remove the environment variable
+            remove-item -path env:\NO_PUSH
+
+
+        }
+
         AfterEach {
             # TODO: This should capture and re-set after
             $env:DOCKER_USERNAME = $null
