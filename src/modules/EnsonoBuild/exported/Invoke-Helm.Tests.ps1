@@ -105,6 +105,16 @@ Describe "Invoke-Helm" {
             }
         }
 
+        Context "Helm Install with Version" {
+
+            it "will login to Azure and install the relevant chart to the target AKS cluster at a version specified" {
+                Invoke-Helm -provider Azure -target $testclustername -identifier $testclusteridentifier -Install -valuepath values.yml -chartpath chart.yml -releasename $testrelease -namespace $testnamespace -chartversion 1.3.2
+
+                $Session.commands.list[0] | Should -BeLike "*helm* upgrade $testrelease chart.yml --install --namespace $testnamespace --create-namespace --atomic --values values.yml --version 1.3.2"
+                Should -Invoke -CommandName Invoke-Login -Times 1
+            }
+        }
+
         Context "Custom" {
 
             it "will login to Azure and run a custom command on the target AKS cluster" {
