@@ -83,6 +83,10 @@ function Invoke-Helm() {
         $chartpath,
 
         [string]
+        # The version of the chart to install
+        $chartversion,
+
+        [string]
         # Name of the release
         $releasename,
 
@@ -95,7 +99,6 @@ function Invoke-Helm() {
 
         [string]
         $repositoryUrl
-
     )
 
     # Define parameter checking vars
@@ -105,7 +108,7 @@ function Invoke-Helm() {
     switch ($PSCmdlet.ParameterSetName) {
         "install" {
             # Check that some arguments have been set
-            $checkParams = @("provider", "target", "identifier", "namespace", "releasename","namespace")
+            $checkParams = @("provider", "target", "identifier", "namespace", "releasename")
         }
 
         "repo" {
@@ -171,8 +174,13 @@ function Invoke-Helm() {
             # Invoke-Login
             $login.Invoke($provider, $target, $identifier, $k8sauthrequired)
 
+            $versionString = ''
+            if (! [string]::IsNullOrEmpty($chartversion)) {
+                $versionString = "--version {0}" -f $chartversion
+            }
+
             # Check that some arguments have been set
-            $commands += "{0} upgrade {1} {2} --install --namespace {3} --create-namespace --atomic --values {4}" -f $helm, $releasename, $chartpath, $namespace, $valuepath
+            $commands += "{0} upgrade {1} {2} --install --namespace {3} --create-namespace --atomic --values {4} {5}" -f $helm, $releasename, $chartpath, $namespace, $valuepath, $versionString
         }
 
         "repo" {
