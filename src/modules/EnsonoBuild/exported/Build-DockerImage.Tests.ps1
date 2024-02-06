@@ -6,6 +6,11 @@ Describe "Build-DockerImage" {
     }
 
     Context "Check mandatory parameters" {
+        BeforeAll {
+            Mock -CommandName Write-Error -MockWith {} -Verifiable
+            Mock -CommandName Write-Information -MockWith {} -Verifiable
+        }
+
         It "must error if no name is given for the image" {
             $ShouldParams = @{
                 Throw = $true
@@ -16,6 +21,24 @@ Describe "Build-DockerImage" {
             }
 
             Should @ShouldParams
+        }
+
+        It "will set a default tag if one is not set" {
+            Build-DockerImage -Name unittests
+
+            Should -Invoke -CommandName Write-Information -Times 1
+        }
+
+        It "must error if trying to push and no registry has been specified" {
+            Build-DockerImage  -Name unittests -Push
+
+            Should -Invoke -CommandName Write-Error -Times 1
+        }
+
+        It "must error if trying to push to a generic registry and do not specify DOCKER_USERNAME or DOCKER_PASSWORD env vars" {
+            Build-DockerImage  -Name unittests -Push -Provider "Generic"
+
+            Should -Invoke -CommandName Write-Error -Times 1
         }
     }
 }
