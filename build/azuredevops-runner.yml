@@ -1,4 +1,3 @@
-
 # Set the build name which will define the Build Number
 name: 1.0$(Rev:.r)
 
@@ -8,144 +7,140 @@ pr:
 trigger:
   branches:
     include:
-      - 'main'
+      - "main"
 
 # Set the agent pool that stages should be run in
 pool:
-  vmImage: ubuntu-20.04
+  vmImage: ubuntu-22.04
 
 variables:
   - template: azuredevops-vars.yml
 
 # Configure the stages
 stages:
-
   - stage: Build
 
     jobs:
+      - job: UnitTests
 
-    - job: UnitTests
+        steps:
+          # Install Taskctl for the build to run
+          - task: Bash@3
+            displayName: Install Taskctl
+            inputs:
+              targetType: inline
+              script: |
+                wget https://github.com/Ensono/taskctl/releases/download/v${{ variables.TaskctlVersion }}/taskctl_${{ variables.TaskctlVersion }}_linux_amd64.tar.gz -O /tmp/taskctl.tar.gz
+                tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl
 
-      steps:
+          # Ensure that no outputs already exist
+          - task: Bash@3
+            displayName: Clean outputs
+            inputs:
+              targetType: inline
+              script: |
+                taskctl clean
 
-        # Install Taskctl for the build to run
-        - task: Bash@3
-          displayName: Install Taskctl
-          inputs:
-            targetType: inline
-            script: |
-              wget https://github.com/Ensono/taskctl/releases/download/v${{ variables.TaskctlVersion }}/taskctl_${{ variables.TaskctlVersion }}_linux_amd64.tar.gz -O /tmp/taskctl.tar.gz
-              tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl
+          # Run the Taskctl pipeline to execute the tests
+          - task: Bash@3
+            displayName: Execute tests
+            inputs:
+              targetType: inline
+              script: |
+                taskctl tests
 
-        # Ensure that no outputs already exist
-        - task: Bash@3
-          displayName: Clean outputs
-          inputs:
-            targetType: inline
-            script: |
-              taskctl clean
+          # Run the task to generate the PowerShell module files
+          - task: Bash@3
+            displayName: Generate PowerShell Module
+            inputs:
+              targetType: inline
+              script: |
+                taskctl build
 
-        # Run the Taskctl pipeline to execute the tests
-        - task: Bash@3
-          displayName: Execute tests
-          inputs:
-            targetType: inline
-            script: |
-              taskctl tests
+          # Generate the documentation
+          - task: Bash@3
+            displayName: Generate Documentation
+            inputs:
+              targetType: inline
+              script: |
+                taskctl docs
 
-        # Run the task to generate the PowerShell module files
-        - task: Bash@3
-          displayName: Generate PowerShell Module
-          inputs:
-            targetType: inline
-            script: |
-              taskctl build
+          # Munges the file paths by replacing the bound `/app` directory with the $(Build.SourcesDirectory) variable where the files are
+          - task: Bash@3
+            condition: always()
+            displayName: Updates paths to files outside of TaskCTL Docker Contexts on the Host
+            inputs:
+              targetType: inline
+              script: |
+                sudo sed -i 's%/app/src/%$(Build.SourcesDirectory)/src/%' $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
 
-        # Generate the documentation
-        - task: Bash@3
-          displayName: Generate Documentation
-          inputs:
-            targetType: inline
-            script: |
-              taskctl docs
+          # Upload tests and the coverage results
+          - task: PublishTestResults@2
+            condition: always()
+            inputs:
+              testResultsFormat: NUnit
+              testResultsFiles: "**/pester-unittest-results.xml"
+              testRunTitle: UnitTests
 
-        # Munges the file paths by replacing the bound `/app` directory with the $(Build.SourcesDirectory) variable where the files are
-        - task: Bash@3
-          condition: always()
-          displayName: Updates paths to files outside of TaskCTL Docker Contexts on the Host
-          inputs:
-            targetType: inline
-            script: |
-              sudo sed -i 's%/app/src/%$(Build.SourcesDirectory)/src/%' $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
+          - task: PublishCodeCoverageResults@1
+            condition: always()
+            inputs:
+              codeCoverageTool: "Cobertura"
+              summaryFileLocation: $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
 
-        # Upload tests and the coverage results
-        - task: PublishTestResults@2
-          condition: always()
-          inputs:
-            testResultsFormat: NUnit
-            testResultsFiles: '**/pester-unittest-results.xml'
-            testRunTitle: UnitTests
+          # Upload the documentation
+          - task: PublishBuildArtifacts@1
+            displayName: Publish Documentation
+            inputs:
+              pathToPublish: $(Build.SourcesDirectory)/outputs/docs
+              artifactName: docs
 
-        - task: PublishCodeCoverageResults@1
-          condition: always()
-          inputs:
-            codeCoverageTool: 'Cobertura'
-            summaryFileLocation: $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
-
-        # Upload the documentation
-        - task: PublishBuildArtifacts@1
-          displayName: Publish Documentation
-          inputs:
-            pathToPublish: $(Build.SourcesDirectory)/outputs/docs
-            artifactName: docs
-
-        # Upload the module files
-        - task: PublishBuildArtifacts@1
-          displayName: Publish Modules
-          inputs:
-            pathToPublish: $(Build.SourcesDirectory)/outputs/module
-            artifactName: modules
+          # Upload the module files
+          - task: PublishBuildArtifacts@1
+            displayName: Publish Modules
+            inputs:
+              pathToPublish: $(Build.SourcesDirectory)/outputs/module
+              artifactName: modules
 
   - stage: Release
 
     jobs:
+      - job: Publish
+        steps:
+          - checkout: self # Local use of Powershell Modules
 
-    - job: Publish
-      steps:
-        - checkout: self # Local use of Powershell Modules
+          # Download the necessary artifacts from the previous stage
+          # - documentation
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifact: "docs"
+              patterns: "**/*.pdf"
+              path: $(Build.SourcesDirectory)/artifacts/docs
+          # - module
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifact: "modules"
+              path: $(Build.SourcesDirectory)/artifacts/modules
 
-        # Download the necessary artifacts from the previous stage
-        # - documentation
-        - task: DownloadPipelineArtifact@2
-          inputs:
-            artifact: 'docs'
-            patterns: '**/*.pdf'
-            path: $(Build.SourcesDirectory)/artifacts/docs
-        # - module
-        - task: DownloadPipelineArtifact@2
-          inputs:
-            artifact: 'modules'
-            path: $(Build.SourcesDirectory)/artifacts/modules
+          # Install Taskctl for the build to run
+          - task: Bash@3
+            displayName: Install Taskctl
+            inputs:
+              targetType: inline
+              script: |
+                wget https://github.com/Ensono/taskctl/releases/download/v${{ variables.TaskctlVersion }}/taskctl_${{ variables.TaskctlVersion }}_linux_amd64.tar.gz -O /tmp/taskctl.tar.gz
+                tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl
 
-        # Install Taskctl for the build to run
-        - task: Bash@3
-          displayName: Install Taskctl
-          inputs:
-            targetType: inline
-            script: |
-              wget https://github.com/Ensono/taskctl/releases/download/v${{ variables.TaskctlVersion }}/taskctl_${{ variables.TaskctlVersion }}_linux_amd64.tar.gz -O /tmp/taskctl.tar.gz
-              tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl
-
-        # Publish to GitHub and Build Dashboard
-        - task: Bash@3
-          displayName: Publish Release
-          inputs:
-            targetType: inline
-            script: |
-              taskctl release
-          ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}: # On main branch runs
-            env:
-              STAGE: release
-              PUBLISH_RELEASE: "true"
-              DASHBOARD_INFLUX_TOKEN: $(DASHBOARD_INFLUX_TOKEN) # requires explicit mapping to be used as an env var
-              VERSION_NUMBER: $(BUILD_BUILDNUMBER)
+          # Publish to GitHub and Build Dashboard
+          - task: Bash@3
+            displayName: Publish Release
+            inputs:
+              targetType: inline
+              script: |
+                taskctl release
+            ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}: # On main branch runs
+              env:
+                STAGE: release
+                PUBLISH_RELEASE: "true"
+                DASHBOARD_INFLUX_TOKEN: $(DASHBOARD_INFLUX_TOKEN) # requires explicit mapping to be used as an env var
+                VERSION_NUMBER: $(BUILD_BUILDNUMBER)
