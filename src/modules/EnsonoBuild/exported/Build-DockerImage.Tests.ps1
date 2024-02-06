@@ -222,6 +222,12 @@ Describe "Build-DockerImage" {
 
         It "will build the image but not push if the NO_ENV variable has been set" {
 
+            # Check to see if the NO_PUSH env var already exists
+            $no_push_exists = $false
+            if (Test-Path -Path env:\NO_PUSH) {
+                $no_push_exists = $env:NO_PUSH
+            }
+
             # Set the environment variable to prevent the push
             $env:NO_PUSH = "do not push"
 
@@ -235,7 +241,11 @@ Describe "Build-DockerImage" {
             $Session.commands.list[0] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests -t docker.io/pester-tests:unittests --platform linux/arm64,linux/amd64"
 
             # Remove the environment variable
-            remove-item -path env:\NO_PUSH
+            if ($no_push_exists) {
+                $env:NO_PUSH = $no_push_exists
+            } else {
+                remove-item -path env:\NO_PUSH
+            }
 
 
         }
