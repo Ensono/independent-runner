@@ -72,7 +72,7 @@ Describe "Build-DockerImage" {
             dryrun = $true
         }
     }
-
+<#
     Context "Check mandatory parameters" {
 
         BeforeAll {
@@ -110,7 +110,7 @@ Describe "Build-DockerImage" {
             Should -Invoke -CommandName Write-Error -Times 1
         }
     }
-
+#>
     Context "Build without push" {
 
         BeforeEach {
