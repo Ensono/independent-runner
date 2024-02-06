@@ -32,6 +32,9 @@ param (
 
 )
 
+# Update Pester
+Update-Module -Name Pester
+
 $pesterErrorCodePath = "./test"
 $pesterErrorCodeFile = ".PesterErrorCode"
 $pesterErrorCodeFilePath = "${pesterErrorCodePath}/${pesterErrorCodeFile}"
