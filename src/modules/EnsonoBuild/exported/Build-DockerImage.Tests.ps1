@@ -1,5 +1,29 @@
 Describe "Build-DockerImage" {
 
+    BeforeAll {
+        # Import the function being tested
+        . $PSScriptRoot/Build-DockerImage.ps1
+    }
+
+    Context "Check mandatory parameters" {
+        It "must error if no name is given for the image" {
+            $ShouldParams = @{
+                Throw = $true
+                ExpectedMessage = "Parameter set cannot be resolved using the specified named parameters. One or more parameters issued cannot be used together or an insufficient number of parameters were provided."
+                ExceptionType = [System.Management.Automation.ParameterBindingException]
+                # Command to run
+                ActualValue = { Build-DockerImage }
+            }
+
+            Should @ShouldParams
+        }
+    }
+}
+
+
+<#
+Describe "Build-DockerImage" {
+
     $ModulePath
 
     BeforeAll {
@@ -72,7 +96,7 @@ Describe "Build-DockerImage" {
             dryrun = $true
         }
     }
-<#
+
     Context "Check mandatory parameters" {
 
         BeforeAll {
@@ -110,7 +134,7 @@ Describe "Build-DockerImage" {
             Should -Invoke -CommandName Write-Error -Times 1
         }
     }
-#>
+
     Context "Build without push" {
 
         BeforeEach {
@@ -336,3 +360,4 @@ Describe "Build-DockerImage" {
         }
     }
 }
+#>
