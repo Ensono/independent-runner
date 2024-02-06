@@ -4,6 +4,8 @@ Describe "Build-DockerImage" {
 
     BeforeAll {
 
+        $InformationPreference = 'Continue'
+
         # Null any env vars which can be used to alter behaviour of the command
         $env:REGISTRY_RESOURCE_GROUP = $null
         $env:DOCKER_IMAGE_NAME = $null
