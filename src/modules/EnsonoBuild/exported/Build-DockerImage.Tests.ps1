@@ -14,6 +14,7 @@ Describe "Build-DockerImage" {
 
         # Import dependent scripts
         . $PSScriptRoot/../command/Invoke-External.ps1
+        . $PSScriptRoot/../command/Stop-Task.ps1
         . $PSScriptRoot/../utils/Confirm-TrunkBranch.ps1
 
         # Make stubbed module available
