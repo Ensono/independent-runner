@@ -25,6 +25,21 @@ Describe "Build-DockerImage" {
         Mock -Command Confirm-TrunkBranch -MockWith { $true }
     }
 
+    AfterAll {
+        $env:PSModulePath = $ModulePath
+    }    
+
+    BeforeEach {
+        # Create a session object so that the Invoke-External function does not
+        # execute any commands but the command that would be run can be checked
+        $global:Session = @{
+            commands = @{
+                list = @()
+            }
+            dryrun = $true
+        }
+    }
+
     Context "Check mandatory parameters" {
         BeforeAll {
             Mock -CommandName Write-Error -MockWith {} -Verifiable
@@ -59,6 +74,24 @@ Describe "Build-DockerImage" {
             Build-DockerImage  -Name unittests -Push -Provider "Generic"
 
             Should -Invoke -CommandName Write-Error -Times 1
+        }
+    }
+
+    Context "Build without push" {
+
+        BeforeEach {
+            # Reset the commands list to an empty array
+            $global:Session.commands.list = @()
+        }
+
+        It "will build an image using parameter values from the command line" {
+
+            # Call the function under test
+            Build-DockerImage -name pester-tests -tag "unittests"
+
+            # Check that the command that will be run is correct
+            # This is done by checking the command list
+            $Session.commands.list[0] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests --platform linux/arm64,linux/amd64"
         }
     }
 }
