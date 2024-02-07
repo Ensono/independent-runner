@@ -2,12 +2,12 @@ Describe "Build-DockerImage" {
 
     BeforeAll {
         # Null any env vars which can be used to alter behaviour of the command
-        $env:REGISTRY_RESOURCE_GROUP = $null
-        $env:DOCKER_IMAGE_NAME = $null
-        $env:DOCKER_IMAGE_TAG = $null
-        $env:DOCKER_CONTAINER_REGISTRY_NAME = $null
-        $env:ECR_REGION = $null
-        $env:REGISTRY_RESOURCE_GROUP = $null
+        #$env:REGISTRY_RESOURCE_GROUP = $null
+        #$env:DOCKER_IMAGE_NAME = $null
+        #$env:DOCKER_IMAGE_TAG = $null
+        #$env:DOCKER_CONTAINER_REGISTRY_NAME = $null
+        #$env:ECR_REGION = $null
+        #$env:REGISTRY_RESOURCE_GROUP = $null
 
         # Import the function being tested
         . $PSScriptRoot/Build-DockerImage.ps1
