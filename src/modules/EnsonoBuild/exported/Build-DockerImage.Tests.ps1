@@ -1,8 +1,21 @@
 Describe "Build-DockerImage" {
 
     BeforeAll {
+        # Null any env vars which can be used to alter behaviour of the command
+        $env:REGISTRY_RESOURCE_GROUP = $null
+        $env:DOCKER_IMAGE_NAME = $null
+        $env:DOCKER_IMAGE_TAG = $null
+        $env:DOCKER_CONTAINER_REGISTRY_NAME = $null
+        $env:ECR_REGION = $null
+        $env:REGISTRY_RESOURCE_GROUP = $null
+
         # Import the function being tested
         . $PSScriptRoot/Build-DockerImage.ps1
+
+        # Make stubbed module available
+        # This stubs out Az.ContainerRegistry and Powershell-Yaml so that the full modules are not required
+        $ModulePath = $env:PSModulePath
+        $env:PSModulePath = "$PSScriptRoot/../../../../test/stubs/modules$([IO.Path]::PathSeparator)$env:PSModulePath"
     }
 
     Context "Check mandatory parameters" {
