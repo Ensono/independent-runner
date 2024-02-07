@@ -26,7 +26,7 @@ Describe "Build-DockerImage" {
         # Mock functions that are called
         # - Find-Command - return "docker" as the command withouth looking at the filesystem as Docker may
         #                  not exist in the testing environment
-        Mock -Command Find-Command -MockWith { return "docker" }
+        # Mock -Command Find-Command -MockWith { return "docker" }
 
         # Mock commands for the tests
         Mock -Command Confirm-TrunkBranch -MockWith { $true }
@@ -65,6 +65,7 @@ Describe "Build-DockerImage" {
             Should @ShouldParams
         }
 
+
         It "will set a default tag if one is not set" {
             Build-DockerImage -Name unittests
 
@@ -82,6 +83,7 @@ Describe "Build-DockerImage" {
 
             Should -Invoke -CommandName Write-Error -Times 1
         }
+        
     }
 
     <#
