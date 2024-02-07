@@ -22,7 +22,7 @@ Describe "Build-DockerImage" {
         $env:PSModulePath = "$PSScriptRoot/../../../../test/stubs/modules$([IO.Path]::PathSeparator)$env:PSModulePath"
 
         # Mock commands for the tests
-        Mock -Command Confirm-TrunkBranch -MockWith { $true }
+        # Mock -Command Confirm-TrunkBranch -MockWith { $true }
     }
 
     AfterAll {
