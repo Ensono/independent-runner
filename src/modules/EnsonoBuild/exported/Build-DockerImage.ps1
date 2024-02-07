@@ -164,7 +164,24 @@ function Build-DockerImage() {
 
   # set a default for the platforms if none have been set
   if ([string]::IsNullOrEmpty($platforms)) {
-    $platforms = @("linux/arm64", "linux/amd64")
+
+    # detect the processor that the process is being run on
+    if ($IsWindows) {
+      $arch = $env:PROCESSOR_ARCHITECTURE.ToLower()
+    } else {
+      $processor = Invoke-External "uname -m"
+      switch ($processor) {
+        "x86_64" {
+          $arch = "amd64"
+        }
+        "arm64" {
+          $arch = "arm64"
+        }
+      }
+    }
+
+    # configure the platform to build for
+    $platforms = @("linux/${arch}")
   }
 
   # If the push switch has been specified then check that a registry
