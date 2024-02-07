@@ -14,12 +14,19 @@ Describe "Build-DockerImage" {
 
         # Import dependent scripts
         . $PSScriptRoot/../command/Invoke-External.ps1
+        . $PSScriptRoot/../command/Find-Command.ps1
+        . $PSScriptRoot/../command/Stop-Task.ps1
         . $PSScriptRoot/../utils/Confirm-TrunkBranch.ps1
 
         # Make stubbed module available
         # This stubs out Az.ContainerRegistry and Powershell-Yaml so that the full modules are not required
         $ModulePath = $env:PSModulePath
         $env:PSModulePath = "$PSScriptRoot/../../../../test/stubs/modules$([IO.Path]::PathSeparator)$env:PSModulePath"
+
+        # Mock functions that are called
+        # - Find-Command - return "docker" as the command withouth looking at the filesystem as Docker may
+        #                  not exist in the testing environment
+        Mock -Command Find-Command -MockWith { return "docker" }
 
         # Mock commands for the tests
         # Mock -Command Confirm-TrunkBranch -MockWith { $true }
