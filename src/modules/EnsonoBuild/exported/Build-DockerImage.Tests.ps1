@@ -20,8 +20,8 @@ Describe "Build-DockerImage" {
 
         # Make stubbed module available
         # This stubs out Az.ContainerRegistry and Powershell-Yaml so that the full modules are not required
-        $ModulePath = $env:PSModulePath
-        $env:PSModulePath = "$PSScriptRoot/../../../../test/stubs/modules$([IO.Path]::PathSeparator)$env:PSModulePath"
+        #$ModulePath = $env:PSModulePath
+        #$env:PSModulePath = "$PSScriptRoot/../../../../test/stubs/modules$([IO.Path]::PathSeparator)$env:PSModulePath"
 
         # Mock functions that are called
         # - Find-Command - return "docker" as the command withouth looking at the filesystem as Docker may
@@ -32,9 +32,9 @@ Describe "Build-DockerImage" {
         Mock -Command Confirm-TrunkBranch -MockWith { $true }
     }
 
-    AfterAll {
-        $env:PSModulePath = $ModulePath
-    }    
+    #AfterAll {
+    #    $env:PSModulePath = $ModulePath
+    #}    
 
     BeforeEach {
         # Create a session object so that the Invoke-External function does not
