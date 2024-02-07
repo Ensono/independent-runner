@@ -1,6 +1,7 @@
 BeforeDiscovery {
 
     # Determine if being run on Azure DevOps, and skip the Build-DockerImage tests if it is
+    # TODO: This has been done to prevent an issue with running tests in ADO. GitHub Issue - https://github.com/Ensono/independent-runner/issues/44
     $skipDockerTests = 0
     if ((Test-Path -Path env:\TF_BUILD)) {
         $skipDockerTests = 1
