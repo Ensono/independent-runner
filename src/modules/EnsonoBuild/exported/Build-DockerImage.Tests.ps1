@@ -12,10 +12,17 @@ Describe "Build-DockerImage" {
         # Import the function being tested
         . $PSScriptRoot/Build-DockerImage.ps1
 
+        # Import dependent scripts
+        . $PSScriptRoot/../command/Invoke-External.ps1
+        . $PSScriptRoot/../utils/Confirm-TrunkBranch.ps1
+
         # Make stubbed module available
         # This stubs out Az.ContainerRegistry and Powershell-Yaml so that the full modules are not required
         $ModulePath = $env:PSModulePath
         $env:PSModulePath = "$PSScriptRoot/../../../../test/stubs/modules$([IO.Path]::PathSeparator)$env:PSModulePath"
+
+        # Mock commands for the tests
+        Mock -Command Confirm-TrunkBranch -MockWith { $true }
     }
 
     Context "Check mandatory parameters" {
