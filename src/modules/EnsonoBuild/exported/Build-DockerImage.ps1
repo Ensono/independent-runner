@@ -247,7 +247,7 @@ function Build-DockerImage() {
     $setAsLatest = $true
   }
 
-  # Ensure that the name and the tagare lowercase so that Docker does not
+  # Ensure that the name and the tags are lowercase so that Docker does not
   # throw an error with invalid strings
   $name = $name.ToLower()
   $tag = $tag.ToLower()
