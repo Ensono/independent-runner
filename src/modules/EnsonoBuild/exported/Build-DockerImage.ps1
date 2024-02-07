@@ -239,17 +239,6 @@ function Build-DockerImage() {
     # Set the build_+and_push to tru
     $build_and_push = $true
 
-    # Push the image with the desired tag
-    # $cmd = "docker push {0}/{1}:{2}" -f $registry, $name, $tag
-    # Invoke-External -Command $cmd
-
-    # Push the image with the latest tag if latest flag is declared
-    # if ($setAsLatest) {
-    #   $cmd = "docker push {0}/{1}:latest" -f $registry, $name
-    #  Invoke-External -Command $cmd
-    # }
-
-    # $LASTEXITCODE
   }
 
   # Determine if latest tag should be applied
