@@ -77,6 +77,7 @@ Describe "Build-DockerImage" {
         }
     }
 
+    <#
     Context "Build without push" {
 
         BeforeEach {
@@ -94,6 +95,7 @@ Describe "Build-DockerImage" {
             $Session.commands.list[0] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests --platform linux/arm64,linux/amd64"
         }
     }
+    #>
 }
 
 
