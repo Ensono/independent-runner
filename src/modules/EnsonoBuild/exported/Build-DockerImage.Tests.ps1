@@ -29,7 +29,7 @@ Describe "Build-DockerImage" {
         Mock -Command Find-Command -MockWith { return "docker" }
 
         # Mock commands for the tests
-        # Mock -Command Confirm-TrunkBranch -MockWith { $true }
+        Mock -Command Confirm-TrunkBranch -MockWith { $true }
     }
 
     AfterAll {
