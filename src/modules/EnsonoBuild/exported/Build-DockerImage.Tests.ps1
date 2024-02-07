@@ -14,7 +14,6 @@ Describe "Build-DockerImage" {
 
         # Import dependent scripts
         . $PSScriptRoot/../command/Invoke-External.ps1
-        . $PSScriptRoot/../command/Stop-Task.ps1
         . $PSScriptRoot/../utils/Confirm-TrunkBranch.ps1
 
         # Make stubbed module available
@@ -30,6 +29,7 @@ Describe "Build-DockerImage" {
         $env:PSModulePath = $ModulePath
     }    
 
+    <#
     BeforeEach {
         # Create a session object so that the Invoke-External function does not
         # execute any commands but the command that would be run can be checked
@@ -40,6 +40,7 @@ Describe "Build-DockerImage" {
             dryrun = $true
         }
     }
+    #>
 
     Context "Check mandatory parameters" {
         BeforeAll {
