@@ -1,4 +1,13 @@
-Describe "Build-DockerImage" {
+BeforeDiscovery {
+
+    # Determine if being run on Azure DevOps, and skip the Build-DockerImage tests if it is
+    $skipDockerTests = 0
+    if ((Test-Path -Path env:\TF_BUILD)) {
+        $skipDockerTests = 1
+    }
+}
+
+Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
 
     $ModulePath
 
