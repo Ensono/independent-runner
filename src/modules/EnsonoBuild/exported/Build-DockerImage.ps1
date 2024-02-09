@@ -166,19 +166,7 @@ function Build-DockerImage() {
   if ([string]::IsNullOrEmpty($platforms)) {
 
     # detect the processor that the process is being run on
-    if ($IsWindows) {
-      $arch = $env:PROCESSOR_ARCHITECTURE.ToLower()
-    } else {
-      $processor = Invoke-External "uname -m"
-      switch ($processor) {
-        "x86_64" {
-          $arch = "amd64"
-        }
-        "arm64" {
-          $arch = "arm64"
-        }
-      }
-    }
+    $arch = Get-CPUArchitecture
 
     # configure the platform to build for
     $platforms = @("linux/${arch}")

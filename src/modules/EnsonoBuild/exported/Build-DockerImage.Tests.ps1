@@ -36,6 +36,7 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
         . $PSScriptRoot/../command/Invoke-External.ps1
         . $PSScriptRoot/../cloud/Connect-Azure.ps1
         . $PSScriptRoot/../utils/Confirm-TrunkBranch.ps1
+        . $PSScriptRoot/../utils/Get-CPUArchitecture.ps1
 
         # Write function to mimic the Get-AzContainerRegistryCredential which is supplied
         # by the PowerShell AZ Module, but this might not be available in the test environment
@@ -120,6 +121,42 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
             Should -Invoke -CommandName Write-Error -Times 1
         }
     }
+
+    Context "Check platform build flags for Intel CPU" {
+
+        BeforeAll {
+            Mock Get-CPUArchitecture -MockWith { return "amd64" }
+        }
+
+        It "will attempt to build an image for linux/amd64" {
+            # Call the function under test
+            Build-DockerImage -name pester-tests -tag "unittests"
+
+            $Session.commands.list[0] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests --platform linux/amd64"
+        }
+
+        AfterAll {
+            Remove-Item Alias:\Get-CPUArchitecture
+        }        
+    }
+
+    Context "Check platform build flags for ARM based CPU" {
+
+        BeforeAll {
+            Mock Get-CPUArchitecture -MockWith { return "arm64" }
+        }
+
+        It "will attempt to build an image for linux/amd64" {
+            # Call the function under test
+            Build-DockerImage -name pester-tests -tag "unittests"
+
+            $Session.commands.list[0] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests --platform linux/arm64"
+        }
+
+        AfterAll {
+            Remove-Item Alias:\Get-CPUArchitecture
+        }
+    }    
 
     Context "Build without push" {
 
@@ -208,6 +245,10 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
 
     Context "Build image and push to generic registry" {
 
+        BeforeAll {
+            Mock Get-CPUArchitecture -MockWith { return "amd64" }
+        }
+
         BeforeEach {
             # Reset the commands list to an empty array
             $global:Session.commands.list = @()
@@ -225,10 +266,10 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
             $Session.commands.list.length | Should -Be 2
 
             # Check that docker logs into the registry
-            $Session.commands.list[0] | Should -BeLike "*docker* login docker.io -u pester -p pester123" -platforms "linux/arm64","linux/amd64"
+            $Session.commands.list[0] | Should -BeLike "*docker* login docker.io -u pester -p pester123" 
 
             # Check the build command
-            $Session.commands.list[1] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests -t docker.io/pester-tests:unittests --platform linux/arm64,linux/amd64 --push"
+            $Session.commands.list[1] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests -t docker.io/pester-tests:unittests --platform linux/amd64 --push"
 
         }
 
@@ -266,6 +307,10 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
             # TODO: This should capture and re-set after
             $env:DOCKER_USERNAME = $null
             $env:DOCKER_PASSWORD = $null
+        }
+
+        AfterAll {
+            Remove-Item Alias:\Get-CPUArchitecture
         }
     }
 
