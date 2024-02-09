@@ -241,7 +241,7 @@ function Build-DockerImage() {
       exit $LASTEXITCODE
     }
 
-    # Set the build_+and_push to tru
+    # Set the build_and_push to tru
     $build_and_push = $true
 
   }
