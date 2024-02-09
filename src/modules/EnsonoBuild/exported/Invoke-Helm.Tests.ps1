@@ -10,6 +10,7 @@ Describe "Invoke-Helm" {
         # Import dependent functions
         . $PSScriptRoot/Invoke-Login.ps1
         . $PSScriptRoot/../command/Find-Command.ps1
+        . $PSScriptRoot/../command/Stop-Task.ps1
         . $PSScriptRoot/../command/Invoke-External.ps1
 
         # Create the testFolder
