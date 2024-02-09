@@ -82,6 +82,20 @@ function Build-DockerImage() {
     # Push the image to the specified registry
     $push,
 
+    [Parameter(
+      ParameterSetName = "build"
+    )]
+    [string[]]
+    # List of archiectures that need to be built
+    $platforms = $env:PLATFORMS,
+
+    [Parameter(
+      ParameterSetName = "build"
+    )]
+    [string[]]
+    # Builder to use when creating the image
+    $builder = $env:BUILDX_BUILDER,
+
     [string]
     [Parameter(
       ParameterSetName = "build"
@@ -131,6 +145,10 @@ function Build-DockerImage() {
     $force
   )
 
+  # Declare variables
+  # State if the build should also push the image
+  $build_and_push = $false
+
   # Check mandatory parameters
   # This is not done at the param level because even if an environment
   # variable has been set the parameter will not see this as a value
@@ -144,6 +162,16 @@ function Build-DockerImage() {
     Write-Information -MessageData ("No tag has been specified for the image, a default one has been set: {0}" -f $tag)
   }
 
+  # set a default for the platforms if none have been set
+  if ([string]::IsNullOrEmpty($platforms)) {
+
+    # detect the processor that the process is being run on
+    $arch = Get-CPUArchitecture
+
+    # configure the platform to build for
+    $platforms = @("linux/${arch}")
+  }
+
   # If the push switch has been specified then check that a registry
   # has been specified
   if ($push.IsPresent -and ([string]::IsNullOrEmpty($provider) -or ([string]::IsNullOrEmpty($registry) -and !(Test-Path -Path env:\NO_PUSH)))) {
@@ -151,7 +179,7 @@ function Build-DockerImage() {
     return 1
   }
 
-  if ($provider -eq "generic" -and ([string]::IsNullOrEmpty($env:DOCKER_USERNAME) -Or [string]::IsNullOrEmpty($env:DOCKER_PASSWORD))) {
+  if ($provider -eq "generic" -and ([string]::IsNullOrEmpty($env:DOCKER_USERNAME) -Or [string]::IsNullOrEmpty($env:DOCKER_PASSWORD)) -and !(Test-Path -Path env:\NO_PUSH)) {
     Write-Error -Message "Pushing to a generic registry requires environment variables DOCKER_USERNAME and DOCKER_PASSWORD to be set"
     return
   }
@@ -166,40 +194,8 @@ function Build-DockerImage() {
     return
   }
 
-  # Determine if latest tag should be applied
-  $setAsLatest = $false
-  if (((Confirm-TrunkBranch) -or $force.IsPresent) -and $latest.IsPresent) {
-    $setAsLatest = $true
-  }
-
-  # Ensure that the name and the tagare lowercase so that Docker does not
-  # throw an error with invalid strings
-  $name = $name.ToLower()
-  $tag = $tag.ToLower()
-
-  # Create an array to store the arguments to pass to docker
-  $arguments = @()
-  $arguments += $buildArgs.Trim("`"", " ")
-  $arguments += "-t {0}:{1}" -f $name, $tag
-
-  # if the registry name has been set, add t to the tasks
-  if (![String]::IsNullOrEmpty($registry)) {
-    $arguments += "-t {0}/{1}:{2}" -f $registry, $name, $tag
-
-    if ($setAsLatest) {
-      $arguments += "-t {0}/{1}:latest" -f $registry, $name
-    }
-  }
-
-  # Create the cmd to execute
-  $cmd = "docker build {0}" -f ($arguments -Join " ")
-  Invoke-External -Command $cmd
-
-  if ($LASTEXITCODE -ne 0) {
-    exit $LASTEXITCODE
-  }
-
-  # Proceed if a registry has been specified
+  # Run commands to peform the login to the target registry
+  # This has to be done before the build command as that is reponsible for pushing the image as well
   if (![String]::IsNullOrEmpty($registry) -and $push.IsPresent -and !(Test-Path -Path env:\NO_PUSH)) {
 
     switch ($provider) {
@@ -245,17 +241,55 @@ function Build-DockerImage() {
       exit $LASTEXITCODE
     }
 
-    # Push the image with the desired tag
-    $cmd = "docker push {0}/{1}:{2}" -f $registry, $name, $tag
-    Invoke-External -Command $cmd
-
-    # Push the image with the latest tag if latest flag is declared
-    if ($setAsLatest) {
-      $cmd = "docker push {0}/{1}:latest" -f $registry, $name
-      Invoke-External -Command $cmd
-    }
-
-    $LASTEXITCODE
+    # Set the build_and_push to tru
+    $build_and_push = $true
 
   }
+
+  # Determine if latest tag should be applied
+  $setAsLatest = $false
+  if (((Confirm-TrunkBranch) -or $force.IsPresent) -and $latest.IsPresent) {
+    $setAsLatest = $true
+  }
+
+  # Ensure that the name and the tags are lowercase so that Docker does not
+  # throw an error with invalid strings
+  $name = $name.ToLower()
+  $tag = $tag.ToLower()
+
+  # Create an array to store the arguments to pass to docker
+  $arguments = @()
+  $arguments += $buildArgs.Trim("`"", " ")
+  $arguments += "-t {0}:{1}" -f $name, $tag
+
+  # if the registry name has been set, add t to the tasks
+  if (![String]::IsNullOrEmpty($registry)) {
+    $arguments += "-t {0}/{1}:{2}" -f $registry, $name, $tag
+
+    if ($setAsLatest) {
+      $arguments += "-t {0}/{1}:latest" -f $registry, $name
+    }
+  }
+
+  # Add in the platforms that need to be built
+  $arguments += "--platform {0}" -f ($platforms -join ",")
+
+  # If a builder has been specified, add it to the arguments
+  if (!([string]::IsNullOrEmpty($builder))) {
+    $arguments += "--builder {0}" -f $builder
+  }
+
+  # Add push to the arguments if needed
+  if ($build_and_push) {
+    $arguments += "--push"
+  }
+
+  # Create the cmd to execute
+  $cmd = "docker buildx build {0}" -f ($arguments -Join " ")
+  Invoke-External -Command $cmd
+
+  if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+  }
+
 }

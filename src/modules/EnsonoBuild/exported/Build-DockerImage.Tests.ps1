@@ -1,8 +1,20 @@
-Describe "Build-DockerImage" {
+BeforeDiscovery {
+
+    # Determine if being run on Azure DevOps, and skip the Build-DockerImage tests if it is
+    # TODO: This has been done to prevent an issue with running tests in ADO. GitHub Issue - https://github.com/Ensono/independent-runner/issues/44
+    $skipDockerTests = 0
+    if ((Test-Path -Path env:\TF_BUILD)) {
+        $skipDockerTests = 1
+    }
+}
+
+Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
 
     $ModulePath
 
     BeforeAll {
+
+        $InformationPreference = 'Continue'
 
         # Null any env vars which can be used to alter behaviour of the command
         $env:REGISTRY_RESOURCE_GROUP = $null
@@ -24,6 +36,7 @@ Describe "Build-DockerImage" {
         . $PSScriptRoot/../command/Invoke-External.ps1
         . $PSScriptRoot/../cloud/Connect-Azure.ps1
         . $PSScriptRoot/../utils/Confirm-TrunkBranch.ps1
+        . $PSScriptRoot/../utils/Get-CPUArchitecture.ps1
 
         # Write function to mimic the Get-AzContainerRegistryCredential which is supplied
         # by the PowerShell AZ Module, but this might not be available in the test environment
@@ -109,6 +122,42 @@ Describe "Build-DockerImage" {
         }
     }
 
+    Context "Check platform build flags for Intel CPU" {
+
+        BeforeAll {
+            Mock Get-CPUArchitecture -MockWith { return "amd64" }
+        }
+
+        It "will attempt to build an image for linux/amd64" {
+            # Call the function under test
+            Build-DockerImage -name pester-tests -tag "unittests"
+
+            $Session.commands.list[0] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests --platform linux/amd64"
+        }
+
+        AfterAll {
+            Remove-Item Alias:\Get-CPUArchitecture
+        }        
+    }
+
+    Context "Check platform build flags for ARM based CPU" {
+
+        BeforeAll {
+            Mock Get-CPUArchitecture -MockWith { return "arm64" }
+        }
+
+        It "will attempt to build an image for linux/amd64" {
+            # Call the function under test
+            Build-DockerImage -name pester-tests -tag "unittests"
+
+            $Session.commands.list[0] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests --platform linux/arm64"
+        }
+
+        AfterAll {
+            Remove-Item Alias:\Get-CPUArchitecture
+        }
+    }    
+
     Context "Build without push" {
 
         BeforeEach {
@@ -119,27 +168,37 @@ Describe "Build-DockerImage" {
         It "will build an image using parameter values from the command line" {
 
             # Call the function under test
-            Build-DockerImage -name pester-tests -tag "unittests"
+            Build-DockerImage -name pester-tests -tag "unittests" -platforms "linux/arm64","linux/amd64"
 
             # Check that the command that will be run is correct
             # This is done by checking the command list
-            $Session.commands.list[0] | Should -BeLike "*docker* build . -t pester-tests:unittests"
+            $Session.commands.list[0] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests --platform linux/arm64,linux/amd64"
+        }
+
+        It "will build the image and set a different platform to build for" {
+
+            # Call the function under test
+            Build-DockerImage -name pester-tests -tag "unittests" -platforms "linux/arm/v7"
+
+            # Check that the command that will be run is correct
+            # This is done by checking the command list
+            $Session.commands.list[0] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests --platform linux/arm/v7"
         }
 
         It "will tag the image accordingly if a registry is specified" {
 
             # Call the function under test
-            Build-DockerImage -name pester-tests -tag "unittests" -Registry "pesterreg"
+            Build-DockerImage -name pester-tests -tag "unittests" -Registry "pesterreg" -platforms "linux/arm64","linux/amd64"
 
-            $Session.commands.list[0] | Should -BeLike "*docker* build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests"
+            $Session.commands.list[0] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests --platform linux/arm64,linux/amd64"
         }
 
         It "will correctly change the case of the input to create a valid image" {
 
             # Call the function under test
-            Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg"
+            Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -platforms "linux/arm64","linux/amd64"
 
-            $Session.commands.list[0] | Should -BeLikeExactly "*docker* build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests"
+            $Session.commands.list[0] | Should -BeLikeExactly "*docker* buildx build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests --platform linux/arm64,linux/amd64"
 
         }
 
@@ -148,18 +207,19 @@ Describe "Build-DockerImage" {
             Mock -Command Confirm-TrunkBranch -MockWith { $false }
 
             # Call the function under test
-            Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -latest -force
+            Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -latest -force -platforms "linux/arm64","linux/amd64"
 
-            $Session.commands.list[0] | Should -BeLikeExactly "*docker* build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests -t pesterreg/pester-tests:latest"
+            $Session.commands.list[0] | Should -BeLikeExactly "*docker* buildx build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests -t pesterreg/pester-tests:latest --platform linux/arm64,linux/amd64"
         }
 
         It "will remove quotes surrounding build args when passing to Docker" {
 
             # Call the function to test
-            Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -BuildArgs "`"--build-arg functionName=PesterFunction .`""
+            Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -BuildArgs "`"--build-arg functionName=PesterFunction .`"" -platforms "linux/arm64","linux/amd64"
 
-            $Session.commands.list[0] | Should -BeLikeExactly "*docker* build --build-arg functionName=PesterFunction . -t pester-tests:unittests -t pesterreg/pester-tests:unittests"
+            $Session.commands.list[0] | Should -BeLikeExactly "*docker* buildx build --build-arg functionName=PesterFunction . -t pester-tests:unittests -t pesterreg/pester-tests:unittests --platform linux/arm64,linux/amd64"
         }
+
     }
 
     Context "Build without push and set latest" {
@@ -167,9 +227,9 @@ Describe "Build-DockerImage" {
         it "will tag with latest when on trunk branch and latest has been set" {
 
             # Call the function under test
-            Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -latest
+            Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -latest -platforms "linux/arm64","linux/amd64"
 
-            $Session.commands.list[0] | Should -BeLikeExactly "*docker* build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests -t pesterreg/pester-tests:latest"
+            $Session.commands.list[0] | Should -BeLikeExactly "*docker* buildx build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests -t pesterreg/pester-tests:latest --platform linux/arm64,linux/amd64"
         }
 
         it "will not set latest if not on a trunk branch" {
@@ -177,13 +237,17 @@ Describe "Build-DockerImage" {
             Mock -Command Confirm-TrunkBranch -MockWith { $false }
 
              # Call the function under test
-             Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -latest
+             Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -latest -platforms "linux/arm64","linux/amd64"
 
-             $Session.commands.list[0] | Should -BeLikeExactly "*docker* build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests"
+             $Session.commands.list[0] | Should -BeLikeExactly "*docker* buildx build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests --platform linux/arm64,linux/amd64"
         }
     }
 
     Context "Build image and push to generic registry" {
+
+        BeforeAll {
+            Mock Get-CPUArchitecture -MockWith { return "amd64" }
+        }
 
         BeforeEach {
             # Reset the commands list to an empty array
@@ -198,19 +262,55 @@ Describe "Build-DockerImage" {
             # Call the function under test
             Build-DockerImage -provider "generic" -name pester-tests -tag "unittests" -registry "docker.io" -push
 
-            # Check the build command
-            $Session.commands.list[0] | Should -BeLike "*docker* build . -t pester-tests:unittests -t docker.io/pester-tests:unittests"
+            # There should be two commands
+            $Session.commands.list.length | Should -Be 2
 
             # Check that docker logs into the registry
-            $Session.commands.list[1] | Should -BeLike "*docker* login docker.io -u pester -p pester123"
+            $Session.commands.list[0] | Should -BeLike "*docker* login docker.io -u pester -p pester123" 
 
-            # Ensure that the image is pused to the registry
-            $Session.commands.list[2] | Should -BeLike "*docker* push docker.io/pester-tests:unittests"
+            # Check the build command
+            $Session.commands.list[1] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests -t docker.io/pester-tests:unittests --platform linux/amd64 --push"
+
         }
+
+        It "will build the image but not push if the NO_ENV variable has been set" {
+
+            # Check to see if the NO_PUSH env var already exists
+            $no_push_exists = $false
+            if (Test-Path -Path env:\NO_PUSH) {
+                $no_push_exists = $env:NO_PUSH
+            }
+
+            # Set the environment variable to prevent the push
+            $env:NO_PUSH = "do not push"
+
+            # Call the function under test
+            Build-DockerImage -provider "generic" -name pester-tests -tag "unittests" -registry "docker.io" -push -platforms "linux/arm64","linux/amd64"
+
+            # There should only be one command
+            $Session.commands.list.length | Should -Be 1
+
+            # Check the build command
+            $Session.commands.list[0] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests -t docker.io/pester-tests:unittests --platform linux/arm64,linux/amd64"
+
+            # Remove the environment variable
+            if ($no_push_exists) {
+                $env:NO_PUSH = $no_push_exists
+            } else {
+                remove-item -path env:\NO_PUSH
+            }
+
+
+        }
+
         AfterEach {
             # TODO: This should capture and re-set after
             $env:DOCKER_USERNAME = $null
             $env:DOCKER_PASSWORD = $null
+        }
+
+        AfterAll {
+            Remove-Item Alias:\Get-CPUArchitecture
         }
     }
 
@@ -227,19 +327,16 @@ Describe "Build-DockerImage" {
         It "will build and push the image to the specified generic registry with a latest tag" {
 
             # Call the function under test
-            Build-DockerImage -provider "generic" -name pester-tests -tag "unittests" -registry "docker.io" -push -latest
+            Build-DockerImage -provider "generic" -name pester-tests -tag "unittests" -registry "docker.io" -push -latest -platforms "linux/arm64","linux/amd64"
 
-            # Check the build command
-            $Session.commands.list[0] | Should -BeLike "*docker* build . -t pester-tests:unittests -t docker.io/pester-tests:unittests -t docker.io/pester-tests:latest"
+            # There should be two commands
+            $Session.commands.list.length | Should -Be 2
 
             # Check that docker logs into the registry
-            $Session.commands.list[1] | Should -BeLike "*docker* login docker.io -u pester -p pester123"
+            $Session.commands.list[0] | Should -BeLike "*docker* login docker.io -u pester -p pester123"
 
-            # Ensure that the image is pushed to the registry with specific tag
-            $Session.commands.list[2] | Should -BeLike "*docker* push docker.io/pester-tests:unittests"
-
-            # Ensure that the image is pushed to the registry with latest tag
-            $Session.commands.list[3] | Should -BeLike "*docker* push docker.io/pester-tests:latest"
+            # Check the build command
+            $Session.commands.list[1] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests -t docker.io/pester-tests:unittests -t docker.io/pester-tests:latest --platform linux/arm64,linux/amd64 --push"
         }
 
         AfterEach {
@@ -258,16 +355,17 @@ Describe "Build-DockerImage" {
         It "will build and push the image to the specified azure registry" {
 
             # Call the function under test
-            Build-DockerImage -provider "azure" -group "test" -name pester-tests -tag "unittests" -registry "docker.io" -push
+            Build-DockerImage -provider "azure" -group "test" -name pester-tests -tag "unittests" -registry "docker.io" -push -platforms "linux/arm64","linux/amd64"
 
-            # Check the build command
-            $Session.commands.list[0] | Should -BeLike "*docker* build . -t pester-tests:unittests -t docker.io/pester-tests:unittests"
+            # There should be two commands
+            $Session.commands.list.length | Should -Be 2
 
             # Check that docker logs into the registry
-            $Session.commands.list[1] | Should -BeLike "*docker* login docker.io -u pester -p pester123"
+            $Session.commands.list[0] | Should -BeLike "*docker* login docker.io -u pester -p pester123"
 
-            # Ensure that the image is pused to the registry
-            $Session.commands.list[2] | Should -BeLike "*docker* push docker.io/pester-tests:unittests"
+            # Check the build command
+            $Session.commands.list[1] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests -t docker.io/pester-tests:unittests --platform linux/arm64,linux/amd64 --push"
+
         }
     }
 
@@ -280,19 +378,16 @@ Describe "Build-DockerImage" {
         It "will build and push the image to the specified azure registry with a latest tag" {
 
             # Call the function under test
-            Build-DockerImage -provider "azure"  -group "test"  -name pester-tests -tag "unittests" -registry "docker.io" -push -latest
+            Build-DockerImage -provider "azure"  -group "test"  -name pester-tests -tag "unittests" -registry "docker.io" -push -latest -platforms "linux/arm64","linux/amd64"
 
-            # Check the build command
-            $Session.commands.list[0] | Should -BeLike "*docker* build . -t pester-tests:unittests -t docker.io/pester-tests:unittests -t docker.io/pester-tests:latest"
+            # There should be two commands
+            $Session.commands.list.length | Should -Be 2
 
             # Check that docker logs into the registry
-            $Session.commands.list[1] | Should -BeLike "*docker* login docker.io -u pester -p pester123"
+            $Session.commands.list[0] | Should -BeLike "*docker* login docker.io -u pester -p pester123"
 
-            # Ensure that the image is pushed to the registry with specific tag
-            $Session.commands.list[2] | Should -BeLike "*docker* push docker.io/pester-tests:unittests"
-
-            # Ensure that the image is pushed to the registry with latest tag
-            $Session.commands.list[3] | Should -BeLike "*docker* push docker.io/pester-tests:latest"
+            # Check the build command
+            $Session.commands.list[1] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests -t docker.io/pester-tests:unittests -t docker.io/pester-tests:latest --platform linux/arm64,linux/amd64 --push"
         }
     }
 }

@@ -1,5 +1,4 @@
 tasks:
-
   clean:
     description: Clean the output directory
     command:

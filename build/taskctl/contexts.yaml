@@ -1,4 +1,3 @@
-
 contexts:
   docsenv:
     executable:
@@ -33,6 +32,8 @@ contexts:
         - ${PWD}:/app
         - -v
         - /var/run/docker.sock:/var/run/docker.sock
+        - --env-file
+        - envfile
         - -e
         - PSModulePath=/app/src/modules
         - -w
@@ -42,6 +43,10 @@ contexts:
         - -NoProfile
         - -Command
     quote: "'"
+    envfile:
+      generate: true
+      include:
+        - TF_BUILD
 
   powershell_localmodule:
     executable:
