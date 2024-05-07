@@ -20,9 +20,9 @@ function Get-AzureServiceVersions() {
     At the moment this cmdlet only supports AKS.
 
     .EXAMPLE
-    $env:AZURE_CLIENT_ID = "12345"
-    $env:AZURE_CLIENT_PASWORD = "67890"
-    $env:AZURE_TENANT_ID = "064c340f-eeae-48d2-badf-6a3b87c9830e"
+    $env:ARM_CLIENT_ID = "12345"
+    $env:ARM_CLIENT_PASWORD = "67890"
+    $env:ARM_TENANT_ID = "064c340f-eeae-48d2-badf-6a3b87c9830e"
 
     Get-AzureServiceVersions -service aks -location westeurope
 
@@ -37,15 +37,15 @@ function Get-AzureServiceVersions() {
 
         [string]
         # Service principal Client ID
-        $client_id = $env:AZURE_CLIENT_ID,
+        $client_id = $env:ARM_CLIENT_ID,
 
         [string]
         # Service principal password
-        $client_password = $env:AZURE_CLIENT_SECRET,
+        $client_password = $env:ARM_CLIENT_SECRET,
 
         [string]
         # Tenant ID for the Service Principal
-        $tenant_id = $env:AZURE_TENANT_ID,
+        $tenant_id = $env:ARM_TENANT_ID,
 
         [string]
         # Location to check for kubernetes versions
