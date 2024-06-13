@@ -172,6 +172,13 @@ function Build-DockerImage() {
     $platforms = @("linux/${arch}")
   }
 
+  # If the registry is null, then set to docker.io
+  # This is done so that all the naming of images is performed correctly
+  if ([String]::IsNullOrEmpty($registry)) {
+    Write-Information -MessageData "No registry has been specified, defaulting to docker.io"
+    $registry = "docker.io"
+  }
+
   # If the push switch has been specified then check that a registry
   # has been specified
   if ($push.IsPresent -and ([string]::IsNullOrEmpty($provider) -or ([string]::IsNullOrEmpty($registry) -and !(Test-Path -Path env:\NO_PUSH)))) {
@@ -260,16 +267,13 @@ function Build-DockerImage() {
   # Create an array to store the arguments to pass to docker
   $arguments = @()
   $arguments += $buildArgs.Trim("`"", " ")
-  $arguments += "-t {0}:{1}" -f $name, $tag
 
-  # if the registry name has been set, add t to the tasks
-  if (![String]::IsNullOrEmpty($registry)) {
-    $arguments += "-t {0}/{1}:{2}" -f $registry, $name, $tag
+  $arguments += "-t {0}/{1}:{2}" -f $registry, $name, $tag
 
-    if ($setAsLatest) {
-      $arguments += "-t {0}/{1}:latest" -f $registry, $name
-    }
+  if ($setAsLatest) {
+    $arguments += "-t {0}/{1}:latest" -f $registry, $name
   }
+
 
   # Add in the platforms that need to be built
   $arguments += "--platform {0}" -f ($platforms -join ",")
