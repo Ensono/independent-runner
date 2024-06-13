@@ -38,7 +38,14 @@ function Build-DockerImage() {
     )]
     [string]
     # Arguments for docker build
-    $buildargs = ".",
+    $buildargs,
+
+    [Parameter(
+      ParameterSetName = "build"
+    )]
+    [string]
+    # Path to the build directory
+    $BuildPath = ".",
 
     [Parameter(
       ParameterSetName = "build",
@@ -287,6 +294,9 @@ function Build-DockerImage() {
   if ($build_and_push) {
     $arguments += "--push"
   }
+
+  # Add the buildPath to the end of the arguments
+  $arguments += $BuildPath
 
   # Create the cmd to execute
   $cmd = "docker buildx build {0}" -f ($arguments -Join " ")
