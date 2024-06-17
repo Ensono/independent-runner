@@ -89,7 +89,12 @@ function Invoke-Inspec() {
 
         [string]
         # Output path for test report
-        $output = $env:INSPEC_OUTPUT_PATH
+        $output = $env:INSPEC_OUTPUT_PATH,
+
+        [Int[]]
+        # List of exit codes that are accepatable
+        # Zero is always accepted
+        $ExitCodes = @()
 
     )
 
@@ -219,7 +224,7 @@ function Invoke-Inspec() {
 
     # Run the command that has been built up
     if (![string]::IsNullOrEmpty($command)) {
-        Invoke-External -Command $command
+        Invoke-External -Command $command -AdditionalExitCodes $ExitCodes
     }
 
     # Change back to the original dirrectory if changed at the begining
