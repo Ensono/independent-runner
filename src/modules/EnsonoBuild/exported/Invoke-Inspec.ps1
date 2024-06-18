@@ -27,6 +27,10 @@ function Invoke-Inspec() {
 
     The `exec` switch is used to perform the tests against the deployed infrastructure.
 
+    Inspec uses different exit codes to denotes when tests have been skipped. For example, in this case
+    the exit code is 1, which will cause `Invoke-External` to stop. To avoid this issue, this cmdlet
+    has an `ExitCodes` parameter that can be used to specify which exit codes are acceptable, in addition to 0.
+
     When the tests are run they are generated using the JUnit format so that they can be
     uploaded to the CI/CD system as test results.
 
