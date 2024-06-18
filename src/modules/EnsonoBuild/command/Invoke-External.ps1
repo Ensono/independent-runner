@@ -72,8 +72,9 @@ function Invoke-External {
                 $global:Session.commands.exitcodes += $LASTEXITCODE
             }
 
-
             # Stop the task if the LASTEXITCODE is greater than 0
+            Write-Host ("Permitted exit codes: {0}" -f ($exitCodes -join ", "))
+            Write-Host ("Exit code: {0}" -f $LASTEXITCODE)
             if ($LASTEXITCODE -notin $exitCodes) {
                 Stop-Task -ExitCode $LASTEXITCODE
             }
