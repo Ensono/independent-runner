@@ -45,6 +45,12 @@ function Invoke-Inspec() {
 
     This will run the tests from the current directory and target the Azure provider.
 
+    .EXAMPLE
+    Invoke-Inspec -exec -path . -cloud azure -exitCodes 101
+
+    This will run the tests from the current directory and target the Azure provider. Any skipped tests
+    will result in an exit code of 101, which will now be accepted.
+
     #>
 
     [CmdletBinding()]
@@ -52,7 +58,7 @@ function Invoke-Inspec() {
 
         [string]
         # Path to the inspec test files
-        $path = $env:TESTS_PATH,
+        $path = ($env:INSPEC_FILES ? $env:INSPEC_FILES : $env:TESTS_PATH),
 
         [Parameter(
             ParameterSetName = "init"
@@ -93,7 +99,7 @@ function Invoke-Inspec() {
 
         [string]
         # Output path for test report
-        $output = $env:INSPEC_OUTPUT_PATH,
+        $output = ($env:INSPEC_OUTPUT ? $env:INSPEC_OUTPUT : $env:INSPEC_OUTPUT_PATH),
 
         [Int[]]
         # List of exit codes that are accepatable
