@@ -20,8 +20,15 @@ function Invoke-External {
 
         [switch]
         # State if should be run in DryRun mode, e.g. do not execute the command
-        $dryrun
+        $dryrun,
+
+        [Int[]]
+        # Additional exit codes that are acceptable from the command
+        $AdditionalExitCodes = @()
     )
+
+    # Set all of the exit codes that are acceptable
+    $exitCodes = @(0) + $AdditionalExitCodes
 
     foreach ($command in $commands) {
 
@@ -65,9 +72,10 @@ function Invoke-External {
                 $global:Session.commands.exitcodes += $LASTEXITCODE
             }
 
-
             # Stop the task if the LASTEXITCODE is greater than 0
-            if ($LASTEXITCODE -gt 0) {
+            Write-Host ("Permitted exit codes: {0}" -f ($exitCodes -join ", "))
+            Write-Host ("Exit code: {0}" -f $LASTEXITCODE)
+            if ($LASTEXITCODE -notin $exitCodes) {
                 Stop-Task -ExitCode $LASTEXITCODE
             }
 
