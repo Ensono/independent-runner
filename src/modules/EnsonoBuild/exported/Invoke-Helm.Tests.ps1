@@ -10,6 +10,7 @@ Describe "Invoke-Helm" {
         # Import dependent functions
         . $PSScriptRoot/Invoke-Login.ps1
         . $PSScriptRoot/../command/Find-Command.ps1
+        . $PSScriptRoot/../command/Stop-Task.ps1
         . $PSScriptRoot/../command/Invoke-External.ps1
 
         # Create the testFolder
@@ -101,6 +102,16 @@ Describe "Invoke-Helm" {
                 Invoke-Helm -provider Azure -target $testclustername -identifier $testclusteridentifier -Install -valuepath values.yml -chartpath chart.yml -releasename $testrelease -namespace $testnamespace
 
                 $Session.commands.list[0] | Should -BeLike "*helm* upgrade $testrelease chart.yml --install --namespace $testnamespace --create-namespace --atomic --values values.yml"
+                Should -Invoke -CommandName Invoke-Login -Times 1
+            }
+        }
+
+        Context "Helm Install with Version" {
+
+            it "will login to Azure and install the relevant chart to the target AKS cluster at a version specified" {
+                Invoke-Helm -provider Azure -target $testclustername -identifier $testclusteridentifier -Install -valuepath values.yml -chartpath chart.yml -releasename $testrelease -namespace $testnamespace -chartversion 1.3.2
+
+                $Session.commands.list[0] | Should -BeLike "*helm* upgrade $testrelease chart.yml --install --namespace $testnamespace --create-namespace --atomic --values values.yml --version 1.3.2"
                 Should -Invoke -CommandName Invoke-Login -Times 1
             }
         }

@@ -123,6 +123,16 @@ function Invoke-Terraform() {
         # Delimiter to use to split backend config that has been passed as one string
         $delimiter = ",",
 
+        [string]
+        # Version of Terraform to use
+        # This will look for Terraform in the specified prefix
+        # and will not use the Find-Command cmdlet
+        $Version = $env:TF_VERSION,
+
+        [string]
+        # Path to the base directory for Terraform
+        $Prefix,
+
         [Parameter(
             ParameterSetName="output"
         )]
@@ -161,8 +171,33 @@ function Invoke-Terraform() {
         }
     }
 
+    # Ensure that the prefix path has been set if it is null
+    # This is done so that the path delimiters are correctly added
+    if ([String]::IsNullOrEmpty($Prefix)) {
+
+        # determine the root
+        $root = "/"
+        if (Test-Path -Path env:\SystemDrive) {
+            $root = $env:SystemDrive
+        }
+
+        $Prefix = [IO.Path]::Combine($root, "usr", "local", "terraform")
+    }
+
     # Find the Terraform command to use
-    $terraform = Find-Command -Name "terraform"
+    if ([String]::IsNullOrEmpty($Version)) {
+        $terraform = Find-Command -Name "terraform"
+    } else {
+
+        # A version has been specified so build up the path to the specified
+        $terraform = [IO.Path]::Combine($Prefix, $Version, "bin", "terraform")
+
+        # Check to see if the versioned Terraform exists
+        if (!(Test-Path -Path $terraform)) {
+            Write-Error -Message ("Specified Terraform version does not exist: {0}" -f $terraform) -ErrorAction Stop
+            return
+        }
+    }
 
     # If a path has been specified and it is a directory
     # change to that path
