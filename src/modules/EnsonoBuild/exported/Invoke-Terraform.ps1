@@ -121,8 +121,12 @@ function Invoke-Terraform() {
 
         [string]
         # Delimiter to use to split backend config that has been passed as one string
-        $delimiter = ","
+        $delimiter = ",",
 
+        [Parameter(
+            ParameterSetName="output"
+        )]
+        $JsonDepth = 50
     )
 
     # set flag to state if the dir was changed
@@ -264,7 +268,7 @@ function Invoke-Terraform() {
 
                     $yamldata | ConvertTo-Yaml
                 } else {
-                    $data | ConvertTo-Json -Compress
+                    $data | ConvertTo-Json -Depth $JsonDepth -Compress
                 }
             }
         }
