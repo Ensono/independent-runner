@@ -315,6 +315,36 @@ Describe "Invoke-Terraform" {
             Should -InvokeVerifiable
             Should -Invoke Invoke-External -Exactly 1
         }
+
+        It "will output TF state in JSON format, custom depth of 2" {
+            Mock `
+                -Command Invoke-External `
+                -Verifiable `
+                -MockWith { return "{`"foo`": {`"value`": [[[`"foo`"]]]}}" } `
+                -ParameterFilter { $commands -eq "terraform output -json" }
+
+            $json = Invoke-Terraform -Output -JsonDepth 2
+
+            $json | Should -Be '{"foo":{"value":["System.Object[]"]}}'
+
+            Should -InvokeVerifiable
+            Should -Invoke Invoke-External -Exactly 1
+        }
+
+        It "will output TF state in JSON format, default depth (50)" {
+            Mock `
+                -Command Invoke-External `
+                -Verifiable `
+                -MockWith { return "{`"foo`": {`"value`": [[[`"foo`"]]]}}" } `
+                -ParameterFilter { $commands -eq "terraform output -json" }
+
+            $json = Invoke-Terraform -Output
+
+            $json | Should -Be '{"foo":{"value":[[["foo"]]]}}'
+
+            Should -InvokeVerifiable
+            Should -Invoke Invoke-External -Exactly 1
+        }
     }
 
     Context "Validate" {

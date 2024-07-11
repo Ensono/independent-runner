@@ -131,8 +131,12 @@ function Invoke-Terraform() {
 
         [string]
         # Path to the base directory for Terraform
-        $Prefix
+        $Prefix,
 
+        [Parameter(
+            ParameterSetName="output"
+        )]
+        $JsonDepth = 50
     )
 
     # set flag to state if the dir was changed
@@ -185,7 +189,7 @@ function Invoke-Terraform() {
         $terraform = Find-Command -Name "terraform"
     } else {
 
-        # A version has been specified so build up the path to the specified 
+        # A version has been specified so build up the path to the specified
         $terraform = [IO.Path]::Combine($Prefix, $Version, "bin", "terraform")
 
         # Check to see if the versioned Terraform exists
@@ -299,7 +303,7 @@ function Invoke-Terraform() {
 
                     $yamldata | ConvertTo-Yaml
                 } else {
-                    $data | ConvertTo-Json -Compress
+                    $data | ConvertTo-Json -Depth $JsonDepth -Compress
                 }
             }
         }
