@@ -2,6 +2,8 @@ Describe "Update-BuildNumber" {
 
     BeforeAll {
 
+        $envTfBuildBeforeTest = $env:TF_BUILD
+
         # Include the function under test
         . $PSScriptRoot/Update-BuildNumber.ps1
 
@@ -27,14 +29,13 @@ Describe "Update-BuildNumber" {
     Context "build number is set for Azure DevOps" {
 
         BeforeAll {
-
-            # Set the environment varibale to state running in Azure DevOps
+            # Set the environment variable to state running in Azure DevOps
             $env:TF_BUILD = $true
         }
 
         AfterAll {
 
-            Remove-Item env:\TF_BUILD
+            $env:TF_BUILD = $envTfBuildBeforeTest
         }
 
         It "will output update string" {

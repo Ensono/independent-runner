@@ -3,7 +3,6 @@ import:
 - ./build/taskctl/tasks.yaml
 
 pipelines:
-
   docs:
     - task: _docs
 
@@ -22,7 +21,7 @@ pipelines:
     - task: generate
       depends_on:
         - setup:environment
-  
+
   release:
     - task: setup:environment
     - task: update:dashboard
@@ -31,7 +30,7 @@ pipelines:
     - task: publish:github
       depends_on:
         - setup:environment
-    
+
   all:
     - task: clean
     - pipeline: docs
