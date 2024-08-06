@@ -7,6 +7,37 @@ Describe "Publish-GitHubRelease" {
 
         # Include dependent functions
         . $PSScriptRoot/../utils/Confirm-Parameters.ps1
+
+        # Keep track of Env Vars and unset them all
+        $envVarsToRemove = @(
+            "VERSION_NUMBER"
+            "COMMIT_ID"
+            "NOTES"
+            "ARTIFACTS_DIR"
+            "OWNER"
+            "API_KEY"
+            "REPOSITORY"
+            "PUBLISH_RELEASE"
+        )
+
+        foreach ($envVarToRemove in $envVarsToRemove) {
+            if (Test-Path -Path "Env:${envVarToRemove}") {
+                $envVar = (Get-Item -Path "Env:${envVarToRemove}").Value
+                New-Variable -Name $envVarToRemove -Value $envVar
+                Remove-Item "Env:${envVarToRemove}"
+            }
+        }
+    }
+
+    AfterAll {
+        # Set the the Env Vars as they were before the tests
+        foreach ($envVarToRemove in $envVarsToRemove) {
+            if (Test-Path -Path "Variable:${envVarToRemove}") {
+                $envVar = (Get-Item -Path "Variable:${envVarToRemove}").Value
+
+                Set-Item -Path "Env:${envVarToRemove}" -Value $envVar
+            }
+        }
     }
 
     Context "Errors will be thrown" {
@@ -83,14 +114,14 @@ Describe "Publish-GitHubRelease" {
 
             # Mock the Invoke-WebRequest cmdlet so that it returns a valid object, which contains
             # valid JSON strng
-            Mock -CommandName Invoke-WebRequest -MockWith { 
+            Mock -CommandName Invoke-WebRequest -MockWith {
                 return @{content = @"
     {
         "upload_url": "https://api.github.com/repo/upload"
     }
 "@
                 }
-             }
+            }
         }
 
         BeforeEach {
@@ -112,7 +143,7 @@ Describe "Publish-GitHubRelease" {
             $splat = @{
                 version = "100.98.99"
                 commitId = "hjggh66"
-                owner = "amido"
+                owner = "Ensono"
                 apiKey = "1245356"
                 repository = "pester"
                 artifactsDir = $testfolder
@@ -126,19 +157,19 @@ Describe "Publish-GitHubRelease" {
         It "with the specified artifacts and environment variable publishing" {
 
             $env:PUBLISH_RELEASE = 'true'
-            
+
             $splat = @{
                 version = "100.98.99"
                 commitId = "hjggh66"
-                owner = "amido"
+                owner = "Ensono"
                 apiKey = "1245356"
                 repository = "pester"
                 artifactsDir = $testfolder
-                
+
             }
 
             Publish-GitHubRelease @splat
-            
+
             $env:PUBLISH_RELEASE = $null
 
             Should -Invoke -CommandName Invoke-WebRequest -Times 2

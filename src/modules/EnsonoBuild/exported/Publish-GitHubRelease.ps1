@@ -17,7 +17,6 @@ function Publish-GitHubRelease() {
 
     [CmdletBinding()]
     param (
-
         [string]
         # Version number of the release
         $version = $env:VERSION_NUMBER,
@@ -67,7 +66,6 @@ function Publish-GitHubRelease() {
         [bool]
         # Auto-generate release Notes
         $generateReleaseNotes = $false
-
     )
 
     # Check whether we should actually publish
