@@ -196,7 +196,7 @@ function Invoke-DotNet() {
             $unittests = Find-Projects -Pattern $pattern -Path $path
 
             if ($unittests.count -eq 0) {
-                Write-Error -Message ("No tests matching the pattern '{0}' can be found" -f $pattern)
+                Write-Warning -Message ("No tests matching the pattern '{0}' can be found" -f $pattern)
                 return
             }
 
