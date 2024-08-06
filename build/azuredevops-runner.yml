@@ -19,19 +19,14 @@ variables:
 # Configure the stages
 stages:
   - stage: Build
-
     jobs:
       - job: UnitTests
 
         steps:
           # Install Taskctl for the build to run
-          - task: Bash@3
-            displayName: Install Taskctl
-            inputs:
-              targetType: inline
-              script: |
-                wget https://github.com/Ensono/taskctl/releases/download/v${{ variables.TaskctlVersion }}/taskctl_${{ variables.TaskctlVersion }}_linux_amd64.tar.gz -O /tmp/taskctl.tar.gz
-                tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl
+          - template: templates/setup.yaml
+            parameters:
+              TaskctlVersion: ${{ variables.TaskctlVersion }}
 
           # Ensure that no outputs already exist
           - task: Bash@3
@@ -123,13 +118,9 @@ stages:
               path: $(Build.SourcesDirectory)/artifacts/modules
 
           # Install Taskctl for the build to run
-          - task: Bash@3
-            displayName: Install Taskctl
-            inputs:
-              targetType: inline
-              script: |
-                wget https://github.com/Ensono/taskctl/releases/download/v${{ variables.TaskctlVersion }}/taskctl_${{ variables.TaskctlVersion }}_linux_amd64.tar.gz -O /tmp/taskctl.tar.gz
-                tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl
+          - template: templates/setup.yaml
+            parameters:
+              TaskctlVersion: ${{ variables.TaskctlVersion }}
 
           # Publish to GitHub and Build Dashboard
           - task: Bash@3

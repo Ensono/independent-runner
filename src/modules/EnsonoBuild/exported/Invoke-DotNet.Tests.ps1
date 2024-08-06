@@ -5,31 +5,31 @@ Describe "Invoke-Dotnet" {
 
         # Import the function being tested
         . $PSScriptRoot/Invoke-DotNet.ps1
-    
+
         # Import the dependenices for the function under test
         . $PSScriptRoot/../command/Find-Command.ps1
         . $PSScriptRoot/../command/Invoke-External.ps1
         . $PSScriptRoot/../projects/Find-Projects.ps1
-    
+
         # Create the testFolder
         $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
-    
+
         # Mock functions that are called
         # - Find-Command - return the name of the command that is required
         Mock -Command Find-Command -MockWith { return $name }
-    
+
         # - Write-Information - mock this internal function to check that the working directory is being defined
         Mock -Command Write-Information -MockWith { return $MessageData } -Verifiable
-    
+
         # - Write-Error - mock this internal function to check that errors are being raised
         Mock -Command Write-Error -MockWith { return $MessageData } -Verifiable
-    
+
         # - Push-Location
         Mock -Command Push-Location
-    
+
         # - Pop-Location
         Mock -Command Pop-Location
-    
+
         # - Get-Location
         Mock -Command Get-Location -ParameterFilter { $stackName -eq "dotnet" } -MockWith { @("dummy") }
     }
@@ -55,7 +55,7 @@ Describe "Invoke-Dotnet" {
             $Session.commands.list[0] | Should -BeLike "*dotnet* build"
 
             Should -Invoke -CommandName Write-Information -Times 1
-            
+
         }
 
         It "will specify a working directory" {
@@ -122,10 +122,10 @@ Describe "Invoke-Dotnet" {
 
         Context "Without test files" {
 
-            It "will error as no pattern has been specified" {
+            It "will warn as no pattern has been specified" {
                 Invoke-DotNet -Tests
 
-                Should -Invoke -CommandName Write-Error -Times 1
+                Should -Invoke -CommandName Write-Warning -Times 1
             }
 
             It "will error as no files can be found that match the pattern" {
@@ -164,6 +164,6 @@ Describe "Invoke-Dotnet" {
             }
         }
     }
-    
+
 
 }
