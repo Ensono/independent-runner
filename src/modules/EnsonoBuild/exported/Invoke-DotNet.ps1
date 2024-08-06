@@ -3,7 +3,7 @@
 function Invoke-DotNet() {
 
     <#
-    
+
     .SYNOPSIS
     Runs various different `dotnet` commands to perform builds and tests
 
@@ -28,7 +28,7 @@ function Invoke-DotNet() {
 
     [CmdletBinding()]
     param (
-        
+
         [Parameter(
             ParameterSetName="build"
         )]
@@ -60,7 +60,7 @@ function Invoke-DotNet() {
         )]
         [Parameter(
             ParameterSetName="tests"
-        )]        
+        )]
         [string]
         # Pattern used to find the files defining the coverage
         $pattern,
@@ -209,7 +209,7 @@ function Invoke-DotNet() {
     }
 
     # Execute the command
-    Invoke-External -Command $cmd
+    Invoke-External -Commands $cmd
 
     # Output the exitcode of the command
     $LASTEXITCODE

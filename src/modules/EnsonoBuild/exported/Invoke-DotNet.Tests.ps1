@@ -125,16 +125,16 @@ Describe "Invoke-Dotnet" {
 
         Context "Without test files" {
 
-            It "will warn as no pattern has been specified" {
+            It "will error as no pattern has been specified" {
                 Invoke-DotNet -Tests
 
-                Should -Invoke -CommandName Write-Warning -Times 1
+                Should -Invoke -CommandName Write-Error -Times 1
             }
 
-            It "will error as no files can be found that match the pattern" {
+            It "will warn as no files can be found that match the pattern" {
                 Invoke-DotNet -Tests -Pattern "dummy"
 
-                Should -Invoke -CommandName Write-Error -Times 1
+                Should -Invoke -CommandName Write-Warning -Times 1
             }
         }
 
