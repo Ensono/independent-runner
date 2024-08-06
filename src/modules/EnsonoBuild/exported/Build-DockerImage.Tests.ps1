@@ -110,7 +110,7 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
         }
 
         It "must error if trying to push and no registry has been specified" {
-            Build-DockerImage  -Name unittests -Push
+            Build-DockerImage -Name unittests -Push
 
             Should -Invoke -CommandName Write-Error -Times 1
         }
