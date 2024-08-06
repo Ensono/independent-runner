@@ -122,6 +122,8 @@ stages:
             parameters:
               TaskctlVersion: ${{ variables.TaskctlVersion }}
 
+          - bash: ls -la
+
           # Publish to GitHub and Build Dashboard
           - task: Bash@3
             displayName: Publish Release
