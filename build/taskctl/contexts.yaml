@@ -47,8 +47,6 @@ contexts:
       exclude:
         - home
         - path
-      include:
-        - TF_BUILD
 
   dotnet:
     executable:
