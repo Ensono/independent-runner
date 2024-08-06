@@ -13,8 +13,9 @@ variables:
     value: environment=$(System.StageName),source=$(Build.SourceBranchName),app=$(Build.DefinitionName)
   - name: DASHBOARD_MEASUREMENT
     value: deployment # Static definition within Influx Config
-  - group: amido-stacks-influx-credentials-prod
-    # Group should contain: 
+  # TODO: These won't exist in the new tenant but we're not using Influx currently anyway
+  # - group: amido-stacks-influx-credentials-prod
+    # Group should contain:
       # DASHBOARD_INFLUX_ORG
       # DASHBOARD_INFLUX_BUCKET
       # DASHBOARD_INFLUX_TOKEN
@@ -31,7 +32,6 @@ variables:
     value: independent-runner
   - name: ARTIFACTS_DIR
     value: artifacts/
-  - group: amido-stacks-github-credentials
-    # Group should contain: 
+  - group: release-github-credentials
+    # Group should contain:
       # API_KEY
-
