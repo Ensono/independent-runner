@@ -9,12 +9,12 @@ pipelines:
   tests:
     - task: tests:unit
       allow_failure: true
-    - task: tests:coverage_report
-      depends_on:
-        - tests:unit
+    # - task: tests:coverage_report
+    #   depends_on:
+    #     - tests:unit
     - task: tests:fail_on_error
       depends_on:
-        - tests:coverage_report
+        - tests:unit
 
   build:
     - task: setup:environment
