@@ -22,58 +22,6 @@ contexts:
         - path
         - home
 
-  powershell_test:
-    executable:
-      bin: docker
-      args:
-        - run
-        - --rm
-        - -v
-        - ${PWD}:/app
-        - -v
-        - /var/run/docker.sock:/var/run/docker.sock
-        - --env-file
-        - envfile
-        - -e
-        - PSModulePath=/app/src/modules
-        - -w
-        - /app
-        - amidostacks/runner-pwsh:0.4.129-stable
-        - pwsh
-        - -NoProfile
-        - -Command
-    quote: "'"
-    envfile:
-      generate: true
-      include:
-        - TF_BUILD
-
-  powershell_localmodule:
-    executable:
-      bin: docker
-      args:
-        - run
-        - --env-file envfile
-        - --rm
-        - -v
-        - ${PWD}:/app
-        - -v
-        - /var/run/docker.sock:/var/run/docker.sock
-        - -e
-        - PSModulePath=/app/src/modules
-        - -w
-        - /app
-        - amidostacks/runner-pwsh:0.4.129-stable
-        - pwsh
-        - -NoProfile
-        - -Command
-    quote: "'"
-    envfile:
-      exclude:
-        - home
-        - path
-      generate: true
-
   powershell:
     executable:
       bin: docker
@@ -95,10 +43,12 @@ contexts:
         - -Command
     quote: "'"
     envfile:
+      generate: true
       exclude:
         - home
         - path
-      generate: true
+      include:
+        - TF_BUILD
 
   dotnet:
     executable:

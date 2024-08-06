@@ -21,12 +21,32 @@ stages:
   - stage: Build
     jobs:
       - job: UnitTests
-
         steps:
           # Install Taskctl for the build to run
           - template: templates/setup.yaml
             parameters:
               TaskctlVersion: ${{ variables.TaskctlVersion }}
+
+          - task: Bash@3
+            displayName: Pull Powershell Image
+            inputs:
+              targetType: inline
+              script: |
+                taskctl image-pull
+
+          - task: Bash@3
+            displayName: Pull Docs Image
+            inputs:
+              targetType: inline
+              script: |
+                taskctl image-pull-docs
+
+          - task: Bash@3
+            displayName: Pull Dotnet Image
+            inputs:
+              targetType: inline
+              script: |
+                taskctl image-pull-dotnet
 
           # Ensure that no outputs already exist
           - task: Bash@3
@@ -101,8 +121,6 @@ stages:
     jobs:
       - job: Publish
         steps:
-          - checkout: self
-
           # Download the necessary artifacts from the previous stage
           # - documentation
           - task: DownloadPipelineArtifact@2
@@ -122,7 +140,14 @@ stages:
             parameters:
               TaskctlVersion: ${{ variables.TaskctlVersion }}
 
-          - bash: ls -la
+          - bash: ls -la; echo ${PWD}
+
+          - task: Bash@3
+            displayName: Pull Powershell Image
+            inputs:
+              targetType: inline
+              script: |
+                taskctl image-pull
 
           # Publish to GitHub and Build Dashboard
           - task: Bash@3
