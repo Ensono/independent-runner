@@ -45,10 +45,19 @@ Describe "Update-BuildNumber" {
     }
 
     Context "Build number not updated for unupported platform" {
+        BeforeAll {
+            # Remove environment variable, set to state running not in Azure DevOps
+            if (Test-Path -Path "Env:TF_BUILD") {
+                Remove-Item -Path "Env:TF_BUILD"
+            }
+        }
 
-        It "will return null" {
+        AfterAll {
+            $env:TF_BUILD = $envTfBuildBeforeTest
+        }
 
-            Update-BuildNumber -BuildNumber "100.98.99" | Should -Be "100.98.99"
+        It "will return basic string" {
+            Update-BuildNumber -BuildNumber "100.98.98" | Should -Be "100.98.98"
         }
     }
 }

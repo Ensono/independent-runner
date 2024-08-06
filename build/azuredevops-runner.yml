@@ -92,7 +92,7 @@ stages:
             condition: always()
             inputs:
               summaryFileLocation: $(Build.SourcesDirectory)/outputs/tests/pester-coverage.xml
-              pathToSources: $(Build.SourcesDirectory)
+              pathToSources: $(Build.SourcesDirectory)/src/modules/EnsonoBuild
               failIfCoverageEmpty: true
 
           # Upload the documentation
