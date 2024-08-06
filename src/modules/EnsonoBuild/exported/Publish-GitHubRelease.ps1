@@ -171,6 +171,7 @@ function Publish-GitHubRelease() {
             ContentType = "application/octet-stream"
             InFile = $uploadFile
         }
+
         # Perform the upload of the artifact
         try {
             $result = Invoke-WebRequest @uploadArgs
