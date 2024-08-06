@@ -34,19 +34,12 @@ stages:
               script: |
                 taskctl image-pull
 
-          - task: Bash@3
-            displayName: Pull Docs Image
-            inputs:
-              targetType: inline
-              script: |
-                taskctl image-pull-docs
-
-          - task: Bash@3
-            displayName: Pull Dotnet Image
-            inputs:
-              targetType: inline
-              script: |
-                taskctl image-pull-dotnet
+          # - task: Bash@3
+          #   displayName: Pull Dotnet Image
+          #   inputs:
+          #     targetType: inline
+          #     script: |
+          #       taskctl image-pull-dotnet
 
           # Ensure that no outputs already exist
           - task: Bash@3
@@ -72,6 +65,13 @@ stages:
               script: |
                 taskctl build
 
+          - task: Bash@3
+            displayName: Pull Docs Image
+            inputs:
+              targetType: inline
+              script: |
+                taskctl image-pull-docs
+
           # Generate the documentation
           - task: Bash@3
             displayName: Generate Documentation
@@ -79,15 +79,6 @@ stages:
               targetType: inline
               script: |
                 taskctl docs
-
-          # Munges the file paths by replacing the bound `/app` directory with the $(Build.SourcesDirectory) variable where the files are
-          - task: Bash@3
-            condition: always()
-            displayName: Updates paths to files outside of TaskCTL Docker Contexts on the Host
-            inputs:
-              targetType: inline
-              script: |
-                sudo sed -i 's%/app/src/%$(Build.SourcesDirectory)/src/%' $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
 
           # Upload tests and the coverage results
           - task: PublishTestResults@2
@@ -97,11 +88,12 @@ stages:
               testResultsFiles: "**/pester-unittest-results.xml"
               testRunTitle: UnitTests
 
-          - task: PublishCodeCoverageResults@1
+          - task: PublishCodeCoverageResults@2
             condition: always()
             inputs:
-              codeCoverageTool: "Cobertura"
-              summaryFileLocation: $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
+              summaryFileLocation: $(Build.SourcesDirectory)/outputs/tests/pester-coverage.xml
+              pathToSources: $(Build.SourcesDirectory)
+              failIfCoverageEmpty: true
 
           # Upload the documentation
           - task: PublishBuildArtifacts@1

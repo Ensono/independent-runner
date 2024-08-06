@@ -41,11 +41,11 @@ tasks:
     command:
       - /app/build/scripts/Invoke-PesterTests.ps1 -Path /app/src/modules/EnsonoBuild -UnitTests -Coverage
 
-  tests:coverage_report:
-    context: dotnet
-    description: Create HTML report from coverage doc
-    command:
-      - Invoke-DotNet -Coverage -Pattern pester-coverage.xml -Path /app -Source /app/src/modules/EnsonoBuild -Target /app/outputs/tests
+  # tests:coverage_report:
+  #   context: dotnet
+  #   description: Create HTML report from coverage doc
+  #   command:
+  #     - Invoke-DotNet -Coverage -Pattern pester-coverage.xml -Path /app -Source /app/src/modules/EnsonoBuild -Target /app/outputs/tests
 
   tests:fail_on_error:
     context: powershell
