@@ -24,6 +24,9 @@ Describe "Invoke-Dotnet" {
         # - Write-Error - mock this internal function to check that errors are being raised
         Mock -Command Write-Error -MockWith { return $MessageData } -Verifiable
 
+        # - Write-Warning - mock this internal function to check that warnings are being raised
+        Mock -Command Write-Warning -MockWith { return $MessageData } -Verifiable
+
         # - Push-Location
         Mock -Command Push-Location
 
