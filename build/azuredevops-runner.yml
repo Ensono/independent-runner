@@ -103,11 +103,10 @@ stages:
               artifactName: modules
 
   - stage: Release
-
     jobs:
       - job: Publish
         steps:
-          - checkout: self # Local use of Powershell Modules
+          - checkout: self
 
           # Download the necessary artifacts from the previous stage
           # - documentation
@@ -116,6 +115,7 @@ stages:
               artifact: "docs"
               patterns: "**/*.pdf"
               path: $(Build.SourcesDirectory)/artifacts/docs
+
           # - module
           - task: DownloadPipelineArtifact@2
             inputs:
@@ -138,7 +138,7 @@ stages:
               targetType: inline
               script: |
                 taskctl release
-            ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}: # On main branch runs
+            ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
               env:
                 STAGE: release
                 PUBLISH_RELEASE: "true"
