@@ -22,6 +22,32 @@ contexts:
         - path
         - home
 
+  powershell_test:
+    executable:
+      bin: docker
+      args:
+        - run
+        - --rm
+        - -v
+        - ${PWD}:/app
+        - -v
+        - /var/run/docker.sock:/var/run/docker.sock
+        - --env-file
+        - envfile
+        - -e
+        - PSModulePath=/app/src/modules
+        - -w
+        - /app
+        - amidostacks/runner-pwsh:0.4.129-stable
+        - pwsh
+        - -NoProfile
+        - -Command
+    quote: "'"
+    envfile:
+      generate: true
+      include:
+        - TF_BUILD
+
   powershell:
     executable:
       bin: docker
