@@ -132,8 +132,6 @@ stages:
             parameters:
               TaskctlVersion: ${{ variables.TaskctlVersion }}
 
-          - bash: ls -la; echo ${PWD}
-
           - task: Bash@3
             displayName: Pull Powershell Image
             inputs:
