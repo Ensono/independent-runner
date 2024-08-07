@@ -83,14 +83,14 @@ Describe "Publish-GitHubRelease" {
 
             # Mock the Invoke-WebRequest cmdlet so that it returns a valid object, which contains
             # valid JSON strng
-            Mock -CommandName Invoke-WebRequest -MockWith { 
+            Mock -CommandName Invoke-WebRequest -MockWith {
                 return @{content = @"
     {
         "upload_url": "https://api.github.com/repo/upload"
     }
 "@
                 }
-             }
+            }
         }
 
         BeforeEach {
@@ -126,7 +126,7 @@ Describe "Publish-GitHubRelease" {
         It "with the specified artifacts and environment variable publishing" {
 
             $env:PUBLISH_RELEASE = 'true'
-            
+
             $splat = @{
                 version = "100.98.99"
                 commitId = "hjggh66"
@@ -134,11 +134,11 @@ Describe "Publish-GitHubRelease" {
                 apiKey = "1245356"
                 repository = "pester"
                 artifactsDir = $testfolder
-                
+
             }
 
             Publish-GitHubRelease @splat
-            
+
             $env:PUBLISH_RELEASE = $null
 
             Should -Invoke -CommandName Invoke-WebRequest -Times 2

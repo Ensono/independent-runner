@@ -19,19 +19,26 @@ variables:
 # Configure the stages
 stages:
   - stage: Build
-
     jobs:
       - job: UnitTests
-
         steps:
-          # Install Taskctl for the build to run
+          - template: templates/setup.yaml
+            parameters:
+              TaskctlVersion: ${{ variables.TaskctlVersion }}
+
           - task: Bash@3
-            displayName: Install Taskctl
+            displayName: Pull Powershell Image
             inputs:
               targetType: inline
               script: |
-                wget https://github.com/Ensono/taskctl/releases/download/v${{ variables.TaskctlVersion }}/taskctl_${{ variables.TaskctlVersion }}_linux_amd64.tar.gz -O /tmp/taskctl.tar.gz
-                tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl
+                taskctl image-pull
+
+          - task: Bash@3
+            displayName: Pull Dotnet Image
+            inputs:
+              targetType: inline
+              script: |
+                taskctl image-pull-dotnet
 
           # Ensure that no outputs already exist
           - task: Bash@3
@@ -56,6 +63,13 @@ stages:
               targetType: inline
               script: |
                 taskctl build
+
+          - task: Bash@3
+            displayName: Pull Docs Image
+            inputs:
+              targetType: inline
+              script: |
+                taskctl image-pull-docs
 
           # Generate the documentation
           - task: Bash@3
@@ -103,12 +117,11 @@ stages:
               artifactName: modules
 
   - stage: Release
-
+    dependsOn: Build
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
     jobs:
       - job: Publish
         steps:
-          - checkout: self # Local use of Powershell Modules
-
           # Download the necessary artifacts from the previous stage
           # - documentation
           - task: DownloadPipelineArtifact@2
@@ -116,31 +129,32 @@ stages:
               artifact: "docs"
               patterns: "**/*.pdf"
               path: $(Build.SourcesDirectory)/artifacts/docs
+
           # - module
           - task: DownloadPipelineArtifact@2
             inputs:
               artifact: "modules"
               path: $(Build.SourcesDirectory)/artifacts/modules
 
-          # Install Taskctl for the build to run
+          - template: templates/setup.yaml
+            parameters:
+              TaskctlVersion: ${{ variables.TaskctlVersion }}
+
           - task: Bash@3
-            displayName: Install Taskctl
+            displayName: Pull Powershell Image
             inputs:
               targetType: inline
               script: |
-                wget https://github.com/Ensono/taskctl/releases/download/v${{ variables.TaskctlVersion }}/taskctl_${{ variables.TaskctlVersion }}_linux_amd64.tar.gz -O /tmp/taskctl.tar.gz
-                tar zxf /tmp/taskctl.tar.gz -C /usr/local/bin taskctl
+                taskctl image-pull
 
-          # Publish to GitHub and Build Dashboard
           - task: Bash@3
             displayName: Publish Release
             inputs:
               targetType: inline
               script: |
                 taskctl release
-            ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}: # On main branch runs
-              env:
-                STAGE: release
-                PUBLISH_RELEASE: "true"
-                DASHBOARD_INFLUX_TOKEN: $(DASHBOARD_INFLUX_TOKEN) # requires explicit mapping to be used as an env var
-                VERSION_NUMBER: $(BUILD_BUILDNUMBER)
+            env:
+              STAGE: release
+              PUBLISH_RELEASE: "true"
+              DASHBOARD_INFLUX_TOKEN: $(DASHBOARD_INFLUX_TOKEN) # requires explicit mapping to be used as an env var
+              VERSION_NUMBER: $(BUILD_BUILDNUMBER)
