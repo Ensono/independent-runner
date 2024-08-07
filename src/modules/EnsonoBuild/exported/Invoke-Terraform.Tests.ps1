@@ -60,7 +60,7 @@ Describe "Invoke-Terraform" {
 
             Should -InvokeVerifiable
             Should -Invoke Invoke-External -Exactly 1
-        }        
+        }
     }
 
     Context "Initialise" {
@@ -325,10 +325,10 @@ Describe "Invoke-Terraform" {
 
             $json = Invoke-Terraform -Output -JsonDepth 2
 
-            $json | Should -Be '{"foo":{"value":["System.Object[]"]}}'
-
             Should -InvokeVerifiable
             Should -Invoke Invoke-External -Exactly 1
+
+            $json | Should -Be '{"foo":{"value":["System.Object[]"]}}'
         }
 
         It "will output TF state in JSON format, default depth (50)" {
@@ -340,10 +340,10 @@ Describe "Invoke-Terraform" {
 
             $json = Invoke-Terraform -Output
 
-            $json | Should -Be '{"foo":{"value":[[["foo"]]]}}'
-
             Should -InvokeVerifiable
             Should -Invoke Invoke-External -Exactly 1
+
+            $json | Should -Be '{"foo":{"value":[[["foo"]]]}}'
         }
     }
 

@@ -1,4 +1,16 @@
 tasks:
+  image-pull:
+    context: powershell
+    command: ""
+
+  image-pull-docs:
+    context: docsenv
+    command: ""
+
+  image-pull-dotnet:
+    context: dotnet
+    command: ""
+
   clean:
     description: Clean the output directory
     command:
@@ -18,7 +30,7 @@ tasks:
       - Invoke-AsciiDoc -PDF -basepath /app -config /app/docs.json -debug
 
   generate:
-    context: powershell_localmodule
+    context: powershell
     description: Build the local PowerShell module
     command:
       - Build-PowerShellModule -Path /app/src/modules -name EnsonoBuild -target /app/outputs/module
@@ -36,10 +48,16 @@ tasks:
       - Invoke-DotNet -Coverage -Pattern pester-coverage.xml -Path /app -Source /app/src/modules/EnsonoBuild -Target /app/outputs/tests
 
   tests:fail_on_error:
-    context: powershell_test
+    context: powershell
     description: A task that fails if the `.PesterErrorCode` is present from `Invoke-PesterTests.ps1`
     command:
       - /app/build/scripts/Test-PesterExitCode.ps1
+
+  setup:environment:
+    context: powershell
+    description: Ensure that the environment is configured correctly
+    command:
+      - Confirm-Environment -Path /app/build/config/stage_envvars.yml
 
   update:dashboard:
     context: powershell
@@ -49,12 +67,6 @@ tasks:
     # TODO: Currently handled by ADO pipeline var, captured in Story 4122
     # env:
     #  PUBLISH_RELEASE: $true
-
-  setup:environment:
-    context: powershell
-    description: Ensure that the environment is configured correctly
-    command:
-      - Confirm-Environment -Path /app/build/config/stage_envvars.yml
 
   publish:github:
     context: powershell
