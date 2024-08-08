@@ -181,7 +181,6 @@ function Publish-GitHubRelease() {
         try {
             $result = Invoke-WebRequest @uploadArgs
         } catch {
-            $_.Exception.Message >> fool
             Write-Error ("An error has occured, cannot upload {0}: {1}" -f $uploadFile, $_.Exception.Message)
             continue
         }
