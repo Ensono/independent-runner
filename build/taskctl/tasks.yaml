@@ -43,9 +43,15 @@ tasks:
 
   tests:coverage_report:
     context: dotnet
-    description: Create HTML report from coverage doc
+    description: Create Cobertura report xml from coverage xml
     command:
       - Invoke-DotNet -Coverage -Pattern pester-coverage.xml -Path /app -Source /app/src/modules/EnsonoBuild -Target /app/outputs/tests
+
+  tests:coverage_report_html:
+    context: dotnet
+    description: Create HTML report from coverage xml
+    command:
+      - Invoke-DotNet -Coverage -Type Html -Pattern Cobertura.xml -Path /app -Source src/modules/EnsonoBuild -Target /app/outputs/tests
 
   tests:fail_on_error:
     context: powershell
@@ -59,20 +65,25 @@ tasks:
     command:
       - Confirm-Environment -Path /app/build/config/stage_envvars.yml
 
-  update:dashboard:
-    context: powershell
-    description: Update the Deployment Dashboard
-    command:
-      - Update-InfluxDashboard
-    # TODO: Currently handled by ADO pipeline var, captured in Story 4122
-    # env:
-    #  PUBLISH_RELEASE: $true
+  # TODO: Re-enable when we have a new Influx
+  # update:dashboard:
+  #   context: powershell
+  #   description: Update the Deployment Dashboard
+  #   command:
+  #     - |
+  #       $ErrorActionPreference = "Stop"
+  #       Update-InfluxDashboard
+  #   # TODO: Currently handled by ADO pipeline var, captured in Story 4122
+  #   # env:
+  #   #  PUBLISH_RELEASE: $true
 
   publish:github:
     context: powershell
     description: Publish Release to GitHub
     command:
-      - Publish-GitHubRelease -artifactsList "EnsonoBuild.psd1","EnsonoBuild.psm1","Independent Runner.pdf"
+      - |
+        $ErrorActionPreference = "Stop"
+        Publish-GitHubRelease -artifactsList "EnsonoBuild.psd1","EnsonoBuild.psm1","Ensono Independent Runner.pdf"
     env:
       generateReleaseNotes: true
       # TODO: Currently handled by ADO pipeline var, captured in Story 4122
