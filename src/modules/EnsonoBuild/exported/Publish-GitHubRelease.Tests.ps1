@@ -1,4 +1,4 @@
-Describe "Publish-GitHubRelease" -Tag "Foo" {
+Describe "Publish-GitHubRelease" {
 
     BeforeAll {
 
