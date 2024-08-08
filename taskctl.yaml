@@ -24,9 +24,10 @@ pipelines:
 
   release:
     - task: setup:environment
-    - task: update:dashboard
-      depends_on:
-        - setup:environment
+    # TODO: Re-enable when we have a new Influx
+    # - task: update:dashboard
+    #   depends_on:
+    #     - setup:environment
     - task: publish:github
       depends_on:
         - setup:environment
