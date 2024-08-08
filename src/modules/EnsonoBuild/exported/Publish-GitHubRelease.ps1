@@ -1,4 +1,3 @@
-
 function Publish-GitHubRelease() {
 
     <#
@@ -98,7 +97,13 @@ function Publish-GitHubRelease() {
 
         foreach ($file in $files) {
             try {
-                $artifactsList += , (Get-ChildItem -Path $artifactsDir -Recurse -Filter $file -ErrorAction "Stop")
+                $artifact = Get-ChildItem -Path $artifactsDir -Recurse -Filter $file -ErrorAction "Stop"
+
+                if ($null -eq $artifact) {
+                    throw
+                }
+
+                $artifactsList += , $artifact
             # Get-ChildItem errors to the terminal rather than throwing a typed Exception
             } catch {
                 $fileError = $true
