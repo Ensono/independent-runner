@@ -83,7 +83,7 @@ tasks:
     command:
       - |
         $ErrorActionPreference = "Stop"
-        Publish-GitHubRelease -artifactsList "EnsonoBuild.psd1","EnsonoBuild.psm1","Independent Runner.pdf"
+        Publish-GitHubRelease -artifactsList "EnsonoBuild.psd1","EnsonoBuild.psm1","Ensono Independent Runner.pdf"
     env:
       generateReleaseNotes: true
       # TODO: Currently handled by ADO pipeline var, captured in Story 4122
