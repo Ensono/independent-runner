@@ -3,7 +3,8 @@ parameters:
     type: string
 
 steps:
-  # Checkout self repo
+  # TODO: Remove
+  # Checkout self irepo
   - checkout: self
 
   # Install Taskfile so that the tests can be run
