@@ -76,23 +76,17 @@ function Publish-GitHubRelease() {
 
     # As environment variables cannot be easily used for the boolean values
     # check to see if they have been set and overwite the values if they have
-    if ([string]::IsNullOrEmpty($env:DRAFT)) {
-        $draft = $false
-    } else {
-        $draft = $true
-    }
+    $draft = ![string]::IsNullOrEmpty($env:DRAFT)
 
-    if ([string]::IsNullOrEmpty($env:PRERELEASE)) {
-        $preRelease = $false
-    } else {
-        $preRelease = $true
-    }
+    $preRelease = ![string]::IsNullOrEmpty($env:PRERELEASE)
 
     # Confirm that the required parameters have been passed to the function
     $result = Confirm-Parameters -List @("version", "commitid", "owner", "apikey", "repository", "artifactsDir")
     if (!$result) {
         return $false
     }
+
+    $fileError = $false
 
     # if the artifactsList is empty, get all the files in the specified artifactsDir
     # otherwise find the files that have been specified
@@ -103,8 +97,19 @@ function Publish-GitHubRelease() {
         $artifactsList = @()
 
         foreach ($file in $files) {
-            $artifactsList += , (Get-ChildItem -Path $artifactsDir -Recurse -Filter $file)
+            try {
+                $artifactsList += , (Get-ChildItem -Path $artifactsDir -Recurse -Filter $file -ErrorAction "Stop")
+            # Get-ChildItem errors to the terminal rather than throwing a typed Exception
+            } catch {
+                $fileError = $true
+                Write-Host "Can't find file(s) with filter '${file}' and path '${artifactsDir}'..."
+            }
         }
+    }
+
+    if ($fileError) {
+        Write-Error "One or more of the files can't be found..! See above for the files not found..."
+        return
     }
 
     # Create an object to be used as the body of the request
@@ -140,6 +145,7 @@ function Publish-GitHubRelease() {
 
     # Create the release by making the API call, artifacts will be uploaded afterwards
     Write-Information -MessageData ("Creating release for: {0}" -f $version)
+
     try {
         $result = Invoke-WebRequest @releaseArgs
     } catch {
@@ -149,6 +155,12 @@ function Publish-GitHubRelease() {
 
     # Get the uploadUri that has been returned by the initial call
     $uploadUri = $result.Content | ConvertFrom-JSON | Select-Object -ExpandProperty upload_url
+
+    $uploadArgs = @{
+        Method = "POST"
+        Headers = $header
+        ContentType = "application/octet-stream"
+    }
 
     # Iterate around all of the artifacts that are to be uploaded
     foreach ($uploadFile in $artifactsList) {
@@ -162,18 +174,14 @@ function Publish-GitHubRelease() {
         $artifactUri = $uploadUri -replace "\{\?name,label\}", ("?name={0}" -f $artifact.Name)
 
         # Create the argument hash to perform the upload
-        $uploadArgs = @{
-            Uri = $artifactUri
-            Method = "POST"
-            Headers = $header
-            ContentType = "application/octet-stream"
-            InFile = $uploadFile
-        }
+        $uploadArgs["Uri"] = $artifactUri
+        $uploadArgs["InFile"] = $uploadFile
 
         # Perform the upload of the artifact
         try {
             $result = Invoke-WebRequest @uploadArgs
         } catch {
+            $_.Exception.Message >> fool
             Write-Error ("An error has occured, cannot upload {0}: {1}" -f $uploadFile, $_.Exception.Message)
             continue
         }
