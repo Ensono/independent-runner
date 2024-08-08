@@ -118,8 +118,7 @@ stages:
 
   - stage: Release
     dependsOn: Build
-    # TODO: Uncomment
-    # condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
     jobs:
       - job: Publish
         steps:
