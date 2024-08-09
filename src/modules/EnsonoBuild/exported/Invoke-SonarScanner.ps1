@@ -137,7 +137,7 @@ function Invoke-SonarScanner() {
         $arguments += "/v:{0}" -f $BuildVersion
         $arguments += "/d:sonar.host.url={0}" -f $URL
         $arguments += "/o:{0}" -f $Organisation
-        $arguments += "/d:sonar.login={0}" -f $Token
+        $arguments += "/d:sonar.token={0}" -f $Token
         if (![string]::IsNullOrEmpty($Properties)) {
             $arguments += $Properties
         }
@@ -148,7 +148,7 @@ function Invoke-SonarScanner() {
 
     if ($stop.IsPresent) {
         $arguments = @()
-        $arguments += "/d:sonar.login={0}" -f $Token
+        $arguments += "/d:sonar.token={0}" -f $Token
         if (![string]::IsNullOrEmpty($Properties)) {
             $arguments += $Properties
         }
