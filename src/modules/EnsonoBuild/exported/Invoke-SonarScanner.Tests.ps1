@@ -92,7 +92,7 @@ Describe "Invoke-SonarScanner" {
             Invoke-SonarScanner @Splat
 
             # Build up the command that is expected
-            $expected = "*dotnet-sonarscanner* begin /k:{0} /v:{1} /d:sonar.host.url={2} /o:{3} /d:sonar.login={4}" -f `
+            $expected = "*dotnet-sonarscanner* begin /k:{0} /v:{1} /d:sonar.host.url={2} /o:{3} /d:sonar.token={4}" -f `
                 $splat.ProjectName, `
                 $splat.BuildVersion, `
                 $splat.URL, `
@@ -110,7 +110,7 @@ Describe "Invoke-SonarScanner" {
             Invoke-SonarScanner -Start
 
             # Build up the command that is expected
-            $expected = "*dotnet-sonarscanner* begin /k:{0} /v:{1} /d:sonar.host.url={2} /o:{3} /d:sonar.login={4}" -f `
+            $expected = "*dotnet-sonarscanner* begin /k:{0} /v:{1} /d:sonar.host.url={2} /o:{3} /d:sonar.token={4}" -f `
                 $env:PROJECT_NAME, `
                 $env:BUILD_BUILDNUMBER, `
                 $env:SONAR_URL, `
@@ -140,7 +140,7 @@ Describe "Invoke-SonarScanner" {
             Invoke-SonarScanner -Stop -Token 11111
 
             # Check the command that would be executed
-            $Session.commands.list[0] | Should -BeLike "*dotnet-sonarscanner* end /d:sonar.login=11111"
+            $Session.commands.list[0] | Should -BeLike "*dotnet-sonarscanner* end /d:sonar.token=11111"
         }
 
         It "environment vars" {
@@ -148,7 +148,7 @@ Describe "Invoke-SonarScanner" {
             Invoke-SonarScanner -Stop
 
             # Check the command that would be executed
-            $Session.commands.list[0] | Should -BeLike "*dotnet-sonarscanner* end /d:sonar.login=654321"
+            $Session.commands.list[0] | Should -BeLike "*dotnet-sonarscanner* end /d:sonar.token=654321"
         }
     }
 }
