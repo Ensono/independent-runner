@@ -5,7 +5,7 @@ tasks:
       - rm -rf outputs
 
   build:number:
-    context: powershell_docker
+    context: powershell
     description: Update the build number
     command:
       - Update-BuildNumber
@@ -15,7 +15,9 @@ tasks:
     description: Build Docs
     context: docsenv
     command:
-      - Invoke-AsciiDoc -PDF -basepath /app -config /app/docs.json -debug
+      # - Invoke-AsciiDoc -PDF -basepath /app -config /app/docs.json -debug
+      - Build-Help -Output /app/docs/reference -Module EnsonoBuild
+      - Build-Documentation -Formats pdf -Config /app/docs.json
 
   generate:
     context: powershell_localmodule

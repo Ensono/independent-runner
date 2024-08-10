@@ -72,6 +72,7 @@
     FunctionsToExport = @(
         "Build-DockerImage",
         "Build-Documentation",
+        "Build-Help",
         "Build-PowerShellModule",
         "Confirm-Environment",
         "ConvertTo-Yaml",
@@ -87,6 +88,7 @@
         "Invoke-Inspec",
         "Invoke-Kubectl",
         "Invoke-Login",
+        "Invoke-Pandoc",
         "Invoke-SonarScanner",
         "Invoke-Templater",
         "Invoke-Terraform",
