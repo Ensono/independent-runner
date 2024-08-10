@@ -60,4 +60,17 @@ Describe "Replace-Tokens" {
         $data | Should -BeExactly ("/app/content/{0}/{1}/newsletter.adoc" -f (Get-Date -Uformat "%Y"), (Get-Date -Uformat "%B"))
     }
 
+    it "will replace all token instances within an array" {
+
+        $data = @("{{ name }}", "{{ project }}", "{{ name }} - {{ project }}")
+        $tokens = @{"name" = "Pester"; "project" = "independent-runner"}
+
+        $data = Replace-Tokens -Tokens $tokens -Data $data
+
+        $data[0] | Should -BeExactly "Pester"
+        $data[1] | Should -BeExactly "independent-runner"
+        $data[2] | Should -BeExactly "Pester - independent-runner"
+
+    }
+
 }

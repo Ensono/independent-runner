@@ -120,6 +120,8 @@ function Publish-GitHubRelease() {
         generate_release_notes = $generateReleaseNotes
     }
 
+Write-Host ($requestBody | ConvertTo-JSON)
+
     # Create the Base64encoded string for the APIKey to be used in the header of the API call
     $base64key = [Convert]::ToBase64String(
         [Text.Encoding]::Ascii.GetBytes($("{0}:x-oauth-basic" -f $apikey))

@@ -1,248 +1,331 @@
 
-function Build-Documentation() {
-
-    <#
-    
-    .SYNOPSIS
-    Build documentation in a project in different formats
-
-    .DESCRIPTION
-    The Build-Documentation cmdlet is used to generate documentation from the Asciidoc source in a project.
-
-    The cmdlet allows for PDF and MD files to be generated.
-
-    .NOTES
-
-    In order for the documentation to be generated the asciidoctor, asciidoctor-pdf and pandoc binaries
-    must be available. These can be installed locally or run in a container. 
-
-    #>
+function Build-Documentation {
 
     [CmdletBinding()]
     param (
 
-        [string]
-        # Application or base path from which the docs can be found
-        $basePath = (Get-Location),
-
-        [string]
-        # Docs directory beneath the base path
-        $docsDir = "docs",
-
-        [Alias("target")]
-        [string]
-        # Output directory for the documentation
-        $outputDir = "outputs",
-
-        [string]
-        # Set the build number to be applied to the documenation
-        $buildNumber = $env:BUILDNUMBER,
-
-        [Parameter(
-            ParameterSetName="pdf"
-        )]
-        [switch]
-        # State if PDF documentation should be generated
-        $pdf,
-
-        [Parameter(
-            ParameterSetName="pdf"
-        )]
         [string[]]
-        # Attributes that should be passed to the generation of the PDF
-        $attributes,
+        # List of formats that need to be generated
+        $Formats = @(),
 
-        [Parameter(
-            ParameterSetName="pdf"
-        )]
         [string]
-        # Path to file containing attribuites that are required for the PDF creation
-        $attributeFile,        
+        # Base path from which all paths will be derived
+        # By default this will be the current directory, but in docker this should be the dir
+        # that the directory is mapped into
+        $Basepath = $(Get-Location),
 
-        [Parameter(
-            ParameterSetName="pdf"
-        )]
         [string]
-        # Title of the PDF document
-        $title,
+        [Alias("BuildNumber")]
+        # Version number to apply to the generated documentation
+        $Version = $(if ([String]::IsNullOrEmpty($env:BUILDNUMBER)) { $env:VERSION } else { $env:BUILDNUMBER }),
 
-        [Parameter(
-            ParameterSetName="pdf"
-        )]
         [string]
-        # Name of file that should be used to generate the document
-        # This is likely an indesx file that contains links to the other files to be included
-        $indexFile = "index.adoc",        
-
         [Parameter(
-            ParameterSetName="md"
+            ParameterSetName="config"
         )]
-        [switch]
-        # State if markdown should be generated
-        $md,
+        # Path to configuration file with all the necessary settings
+        # If specified additional specific parameters are specifed, those values will 
+        # override the ones in the configuration file
+        $Config = $env:DOC_CONFIG_FILE,
 
+        [string]
         [Parameter(
-            ParameterSetName="md"
+            ParameterSetName="type"
         )]
-        [switch]
-        # state if the MDX flavour of MD needs to be created
-        $mdx
+        [ValidateSet("md", "pdf", "docx", "txt", "jira", "html")]
+        # Format that the document should be generated in. This is used to genarate a document
+        # in one format. If you wish to generate multiple formats, use the Config file option
+        $Type,
+
+        [string]
+        [Parameter(
+            ParameterSetName="type"
+        )]
+        # Path to the AsciiDoc template to render
+        $Path = $env:DOC_FILE,
+
+        [string]
+        [Parameter(
+            ParameterSetName="type"
+        )]
+        # Title to be given to the file - this can have tokens
+        $Title = $env:DOC_TITLE,
+
+        [string[]]
+        [Parameter(
+            ParameterSetName="type"
+        )]
+        # Attributes that need to be set when generating the document
+        $ADocAttributes = @()
     )
 
-    # Determine the directories
-    # - raw documentation dir
-    $docsDir = [IO.Path]::Combine($basePath, $docsDir)
+    # Set the list of formats that are supported
+    $required_formats = @()
 
-    # - output directory
-    $outputDir = Protect-Filesystem -Path $outputDir -BasePath (Get-Location).Path
-    if (!$outputDir) {
-        return $false
-    }
-
-    # Check that the documentation directory exists
-    if (!(Test-Path -Path $docsDir)) {
-        Write-Error -Message ("Documentation directory does not exist: {0}" -f $docsDir)
-        return $false
-    }
-
-    # generate the documentation based on the switch that has been specified
-    switch ($PSCmdlet.ParameterSetName) {
-        "pdf" {
-
-            # determine the pdf output dir and create if it does not exist
-            $pdfOutputDir = [IO.Path]::Combine($outputDir, "docs", "pdf")
-            if (!(Test-Path -Path $pdfOutputDir)) {
-                Write-Output ("Creating output dir: {0}" -f $pdfOutputDir)
-                New-Item -ItemType Directory -Path $pdfOutputDir | Out-Null
+    # Create an empty config hashtable to be used to grab the settings for the generation
+    $settings = @{
+        title = ""
+        output = ""
+        path = ""
+        trunkBranch = ""
+        attributes = @{
+            asciidoc = @()
+        }
+        libs = @{
+            asciidoc = @()
+            pandoc = @()
+        }
+        pdf = @{
+            attributes = @{
+                asciidoc = @()
+                pandoc = @()
             }
+        }
+        html = @{
+            attributes = @{
+                asciidoc = @()
+                pandoc = @()
+            }
+        }
+        docx = @{
+            attributes = @{
+                asciidoc = @()
+                pandoc = @()
+            }
+        }
+        md = @{
+            attributes = @{
+                asciidoc = @()
+                pandoc = @()
+            }
+        }
+        txt = @{
+            attributes = @{
+                asciidoc = @()
+                pandoc = @()
+            }
+        }
+    }
 
-            # Ensure that the command to generate the PDF can be found
-            $pdfCommand = Find-Command -Name "asciidoctor-pdf"
-            if ([string]::IsNullOrEmpty($pdfCommand)) {
+    # Ensure that the necessary values have been set, based on the paramater set that is being used
+    
+    switch ($PSCmdlet.ParameterSetName) {
+        "config" {
+            if (Test-Path -Path $Config) {
+                # Read in the config using and merge with the empty settings hashtable
+                $data = Get-Content -Path $Config -Raw | ConvertFrom-Json -AsHashtable
+
+                # Configure the settings
+                $settings = Merge-Hashtables -Primary $data -Secondary $settings
+            } else {
+                Write-Error "The configuration file specified does not exist: ${Config}"
                 return
             }
-
-            # Configure the attributes
-            $attrs = @()
-
-            # if an attribute file has been specified read trhe values from there
-            if (![string]::IsNullOrEmpty($attributeFile)) {
-
-                # check to see if the file exists
-                if (Test-Path -Path $attributeFile) {
-
-                    # get the file extension of the file to check that it is the correct format
-                    $extn = [IO.Path]::GetExtension($attributeFile)
-
-                    switch ($extn) {
-                        ".ps1" {
-
-                            # read the file into the attributes array
-                            $attributes = Invoke-Expression -Command (Get-Content -Path $attributeFile -Raw)
-                        }
-                        default {
-                            Write-Warning -Message "Specified file format is not supported"
-                        }
-                    }
-
-
-                } else {
-
-                    Write-Warning -Message ("Unable to find specified attributes file: {0}" -f $attributeFile)
-                }
-            }
-
-            # configure the attributes correctly
-            foreach ($attribute in $attributes) {
-                
-                # do not add the -a if it already starts with that
-                $line = ""
-                if ($attribute.StartsWith("-a")) {
-                    $line = "{0}"
-                } else {
-                    $line = "-a {0}" 
-                }
-
-                $attrs += , $line -f $attribute
-            }
-
-            
-
-            # Build up the array to hold the parts of the command to run
-            $cmdParts = @(
-                $pdfCommand
-                $attrs
-                '-o "{0}.pdf"' -f $title
-                "-D {0}" -f $pdfOutputDir
-                "{0}/{1}" -f $docsDir, $indexFile
-            )
-
-            # run the command by joining the command and then executing it
-            $cmd = $cmdParts -join " "
-            Invoke-External -Command $cmd
-
-            Write-Information -Message ("Created PDF documentation: {0}.pdf" -f ([IO.Path]::Combine($pdfOutputDir, $title)))
         }
+        "type" {
 
-        "md" {
+            # Add the type to the Formats array
+            $Formats = @($Type)
 
-            # Create a temporary directory to store transitional XML files
-            $mdOutputDir = [IO.Path]::Combine($outputDir, "docs", "md")
-            if (!(Test-Path -Path $mdOutputDir)) {
-                Write-Output ("Creating output dir: {0}" -f $mdOutputDir)
-                New-Item -ItemType Directory -Path $mdOutputDir | Out-Null
-            }
-
-            $tempOutputDir = [IO.Path]::Combine($outputDir, "docs", "temp")
-            if (!(Test-Path -Path $tempOutputDir)) {
-                Write-Output ("Creating temporary output dir: {0}" -f $tempOutputDir)
-                New-Item -ItemType Directory -Path $tempOutputDir | Out-Null
-            }
-
-            # Get a list of the document files
-            $list = Get-ChildItem -Path $DocsDir/* -Attributes !Directory -Include *.adoc
-
-            # Iterate around the list of files
-            foreach ($item in $list) {
-
-                # Get the name of the file from the pipeline
-                $fileTitle = [System.IO.Path]::GetFileNameWithoutExtension($item.FullName)
-
-                # define the filenames
-                $xmlFile = [IO.Path]::Combine($tempOutputDir, ("{0}.xml" -f $fileTitle))
-                $mdFile = [IO.Path]::Combine($mdOutputDir, ("{0}.md" -f $fileTitle))
-
-                # Find the necessary commands
-                $asciidoctorCmd = Find-Command -Name "asciidoctor"
-                $pandocCmd = Find-Command -Name "pandoc"
-
-                # build up the commands that need to be executed
-                $commands = @()
-
-                # -- convert to xml
-                $commands += "{0} -b docbook -o {1} {2}" -f $asciidoctorCmd, $xmlFile, $item.FullName
-
-                # -- convert XML to markdown
-                $commands += "{0} -f docbook -t gfm --wrap none {1} -o {2}" -f $pandocCmd, $xmlFile, $mdFile
-
-                Invoke-External -Command $commands
-
-                Write-Information -MessageData ("Create Markdown file: {0}" -f $mdFile)
-
-                # If the switch to generate MDX file has been set, execute it
-                if ($MDX.IsPresent) {
-
-                    # create the mdx file path
-                    $mdxOutputDir = [IO.Path]::Combine($outputDir, "docs", "mdx")
-                    $mdxFile = [IO.Path]::Combine($mdxOutputDir, ("{0}.mdx" -f $fileTitle))
-
-                    ConvertTo-MDX -Path $mdFile -Destination $mdxFile
-                }
-            }
-
-            # Remove the temporary directory
-            Remove-Item -Path $tempOutputDir -Force -Recurse
+            # Build up an object that will be used to generate the document using the existing engine
+            $settings.title = $Title
+            $settings.path = $Path
         }
     }
 
+    # Set the mapping of formats to the BACKEND required for asciidoctor
+    $format_mapping = @{
+        "md" = @{
+            commands = [ordered]@{
+                "asciidoctor" = @{
+                    format = "docbook"
+                }
+                "pandoc" = @{
+                    from = "docbook"
+                    to = "gfm"
+                }
+            }
+            extension = @{
+                "asciidoctor" = ".xml"
+                "pandoc" = ".md"
+            }
+        }
+        "txt" = @{
+            commands = [ordered]@{
+                "asciidoctor" = @{
+                    format = "docbook"
+                }
+                "pandoc" = @{
+                    from = "docbook"
+                    to = "plain"
+                }
+            }
+            extension = @{
+                "asciidoctor" = ".xml"
+                "pandoc" = ".txt"
+            }
+        }
+        "pdf" = @{
+            commands = [ordered]@{
+                "asciidoctor" = @{
+                    format = "pdf"
+                }
+            }
+            extension = @{
+                "asciidoctor" = ".pdf"
+            }
+        }
+        "html" = @{
+            commands = [ordered]@{
+                "asciidoctor" = @{
+                    format = "html"
+                }
+            }
+            extension = @{
+                "asciidoctor" = ".html"
+            }
+        }
+        "docx" = @{
+            commands = [ordered]@{
+                "asciidoctor" = @{
+                    format = "docbook"
+                }
+                "pandoc" = @{
+                    from = "docbook"
+                    to = "docx"
+                }
+            }
+            extension = @{
+                "asciidoctor" = ".xml"
+                "pandoc" = ".docx"
+            }
+        }
+        "jira" = @{
+            commands = [ordered]@{
+                "asciidoctor" = @{
+                    format = "docbook"
+                }
+                "pandoc" = @{
+                    from = "docbook"
+                    to = "jira"
+                }
+            }
+            extension = @{
+                "asciidoctor" = ".xml"
+                "pandoc" = ".jira"
+            }
+        }
+    }
+
+    # Detremine the supported formats from the mappings
+    $supported_formats = $format_mapping.Keys
+
+    # Check that the format is supported
+    foreach ($format in $Formats) {
+        if ($supported_formats -notcontains $format) {
+            Write-Warning ("The format '{0}' is not supported, and will be skipped" -f $format)
+        } else {
+            $required_formats += $format
+        }
+    }
+
+    # Iterate around the formats and build up the commands that need to be run
+    # The commands will be added to a list and executed in turn
+    foreach ($format in $required_formats) {
+
+        # Set a variable to hold the previous filename, this is so that it can be passed to the
+        # next command in the chain for the format
+        $previous_filename = ""
+
+        # Get all the tokens that are available
+        $tokens = Set-Tokens -Version $Version -ExtraTokens @{"basepath" = $Basepath; "format" = $format}
+
+        # Ensure the tokens are replaced the settings
+        $settings.path = Replace-Tokens -Tokens $tokens -Data $settings.path
+        $settings.title = Replace-Tokens -Tokens $tokens -Data $settings.title
+
+        # Determine if the settings.path is a single file or a directory
+        # If single fil add to a single array, otherwise recursively find all *.adoc files in the folder
+        if (Test-Path -Path $settings.path -PathType Leaf) {
+            $files = @($settings.path)
+        } else {
+            $files = Get-ChildItem -Path $settings.path -Recurse -Filter "*.adoc" | Select-Object -ExpandProperty FullName
+        }
+
+        # Determine the name of the file
+        $filename = $settings.title
+
+        # iterate around the files that have been found
+        foreach ($input_file in $files) {
+
+            $previous_filename = ""
+
+            # iterate around the command hashtable to build up the commands to run
+            foreach ($h in $format_mapping[$format].commands.GetEnumerator()) {
+
+                $arguments = @()
+
+                $output = Replace-Tokens -Tokens $tokens -Data $settings.output
+
+                # determine the output filename, this is based on there being several files or just one
+                if ($files.count -eq 1) {
+                    $output_path = "{0}{1}" -f [IO.Path]::Combine($output, $filename), $format_mapping[$format].extension[$h.Name]
+                } elseif ($files.count -gt 1) {
+                    $output_path = "{0}{1}" -f [IO.Path]::Combine($output, [IO.Path]::GetFileNameWithoutExtension($input_file)), $format_mapping[$format].extension[$h.Name]
+                }
+
+                # switch on the command to determine which arguments to add
+                switch -Wildcard ($h.Name) {
+                    "asciidoctor*" {
+
+                        # $input_file = $settings.path
+                        if (![String]::IsNullOrEmpty($previous_filename)) {
+                            $input_file = $previous_filename
+                        }
+
+                        # Merge top-level command attributes with the format specific attributes
+                        $attributes = $settings.attributes.asciidoctor + $settings.$format.attributes.asciidoctor
+                        $attributes = Replace-Tokens -tokens $tokens -data $attributes
+
+                        # Create the splat for the Invoke-Asciidoc function
+                        $splat = @{
+                            Format = $format_mapping[$format].commands.asciidoctor.format
+                            Output = $output_path
+                            Path = $input_file
+                            Libraries = $settings.libs
+                            Attributes = $attributes
+                        }
+
+                        Invoke-AsciiDoc @splat
+
+                        $previous_filename = $output_path
+                    }
+
+                    "pandoc" {
+
+                        # $input_file = $settings.path
+                        if (![String]::IsNullOrEmpty($previous_filename)) {
+                            $input_file = $previous_filename
+                        }
+
+                        # Create the splat for the Invoke-Pandoc function
+                        $splat = @{
+                            From = $format_mapping[$format].commands.pandoc.from
+                            To = $format_mapping[$format].commands.pandoc.to
+                            Output = $output_path
+                            Path = $input_file
+                            Attributes = $settings.$format.attributes.pandoc
+                        }
+
+                        Invoke-Pandoc @splat
+
+                        # After invocation remove the previous filename so that it does not clutter up the output
+                        Remove-Item -Path $previous_filename -Force
+
+                        $previous_filename = $output_path
+                    }
+                }
+            }
+        }
+    }
 }

@@ -11,7 +11,8 @@ contexts:
         - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh-asciidoctor:0.4.60-stable
+        # - amidostacks/runner-pwsh-asciidoctor:0.4.60-stable
+        - ensonostackseuweirdfmu.azurecr.io/ensono/eir-asciidoctor:latest
         - pwsh
         - -NoProfile
         - -Command
