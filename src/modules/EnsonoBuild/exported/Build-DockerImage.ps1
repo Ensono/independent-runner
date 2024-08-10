@@ -273,7 +273,9 @@ function Build-DockerImage() {
 
   # Create an array to store the arguments to pass to docker
   $arguments = @()
-  $arguments += $buildArgs.Trim("`"", " ")
+  if ($buildArgs -ne "") {
+    $arguments += $buildArgs.Trim("`"", " ")
+  }
 
   $arguments += "-t {0}/{1}:{2}" -f $registry, $name, $tag
 

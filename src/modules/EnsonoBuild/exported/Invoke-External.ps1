@@ -57,28 +57,28 @@ function Invoke-External {
             Add-Content -Path $Session.commands.file -Value $command
         }
 
-        if ($execute) {
+        if (!$execute) {
+            continue
+        }
 
-            # Output the command being called
-            Write-Information -MessageData $command
+        # Output the command being called
+        Write-Information -MessageData $command
 
-            # Reset the LASTEXITCODE as it can be tripped from a variety of places...
-            $global:LASTEXITCODE = 0
+        # Reset the LASTEXITCODE as it can be tripped from a variety of places...
+        $global:LASTEXITCODE = 0
 
-            Invoke-Expression -Command $command | Tee-Object -variable output
+        Invoke-Expression -Command $command | Tee-Object -variable output
 
-            # Add the exit code to the session, if it exists
-            if (Get-Variable -Name Session -Scope global -ErrorAction SilentlyContinue) {
-                $global:Session.commands.exitcodes += $LASTEXITCODE
-            }
+        # Add the exit code to the session, if it exists
+        if (Get-Variable -Name Session -Scope global -ErrorAction SilentlyContinue) {
+            $global:Session.commands.exitcodes += $LASTEXITCODE
+        }
 
-            # Stop the task if the LASTEXITCODE is greater than 0
-            Write-Host ("Permitted exit codes: {0}" -f ($exitCodes -join ", "))
-            Write-Host ("Exit code: {0}" -f $LASTEXITCODE)
-            if ($LASTEXITCODE -notin $exitCodes) {
-                Stop-Task -ExitCode $LASTEXITCODE
-            }
-
+        # Stop the task if the LASTEXITCODE is greater than 0
+        Write-Host ("Permitted exit codes: {0}" -f ($exitCodes -join ", "))
+        Write-Host ("Exit code: {0}" -f $LASTEXITCODE)
+        if ($LASTEXITCODE -notin $exitCodes) {
+            Stop-Task -ExitCode $LASTEXITCODE
         }
     }
 }

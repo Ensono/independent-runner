@@ -108,7 +108,7 @@ Describe "Publish-GitHubRelease" {
 
             Mock `
                 -CommandName Write-Error `
-                -MockWith { "fail" >2 } `
+                -MockWith { } `
                 -Verifiable
 
             Mock `
@@ -143,7 +143,7 @@ Describe "Publish-GitHubRelease" {
 
             Mock `
                 -CommandName Write-Error `
-                -MockWith { "fail" >2 } `
+                -MockWith { } `
                 -Verifiable
 
             Mock `

@@ -11,7 +11,7 @@ Describe "Get-EnvConfig" {
         . $PSScriptRoot/Get-EnvConfig.ps1
 
         # Import dependent functions
-        . $PSScriptRoot/../command/Stop-Task.ps1
+        . $PSScriptRoot/../exported/Stop-Task.ps1
         . $PSScriptRoot/Confirm-Parameters.ps1
         . $PSScriptRoot/Get-EnvConfig.ps1
 

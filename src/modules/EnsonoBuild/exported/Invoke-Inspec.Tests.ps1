@@ -8,8 +8,8 @@ Describe "Invoke-Inspec" {
 
         # Import dependent functions
         . $PSScriptRoot/../command/Find-Command.ps1
-        . $PSScriptRoot/../command/Invoke-External.ps1
-        . $PSScriptRoot/../command/Stop-Task.ps1
+        . $PSScriptRoot/../exported/Invoke-External.ps1
+        . $PSScriptRoot/../exported/Stop-Task.ps1
         . $PSScriptRoot/../utils/Confirm-Parameters.ps1
 
         # Import dependent classes
