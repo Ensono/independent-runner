@@ -70,6 +70,8 @@ $configuration.Run.PassThru = $true
 # Set the verbosity of the tests
 $configuration.Output.Verbosity = $verbosity
 
+# $configuration.Filter.Tag = "Foo"
+
 # Run Pester with the configuration
 $result = Invoke-Pester -Configuration $configuration
 

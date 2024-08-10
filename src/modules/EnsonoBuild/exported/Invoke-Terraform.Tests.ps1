@@ -6,7 +6,7 @@ Describe "Invoke-Terraform" {
 
     BeforeAll {
         . $PSScriptRoot/Invoke-Terraform.ps1
-        . $PSScriptRoot/../command/Invoke-External.ps1
+        . $PSScriptRoot/../exported/Invoke-External.ps1
         . $PSScriptRoot/../classes/StopTaskException.ps1
 
         # Create the testFolder
@@ -323,7 +323,7 @@ Describe "Invoke-Terraform" {
                 -MockWith { return "{`"foo`": {`"value`": [[[`"foo`"]]]}}" } `
                 -ParameterFilter { $commands -eq "terraform output -json" }
 
-            $json = Invoke-Terraform -Output -JsonDepth 2
+            $json = Invoke-Terraform -Output -JsonDepth 2 -WarningAction:SilentlyContinue
 
             Should -InvokeVerifiable
             Should -Invoke Invoke-External -Exactly 1

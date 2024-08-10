@@ -33,12 +33,12 @@ function Get-CPUArchitecture() {
         default {
             $processor = Invoke-External "uname -m"
             switch ($processor) {
-              "x86_64" {
-                $arch = "amd64"
-              }
-              "arm64" {
-                $arch = "arm64"
-              }
+                "x86_64" {
+                    $arch = "amd64"
+                }
+                "arm64" {
+                    $arch = "arm64"
+                }
             }
         }
     }

@@ -7,7 +7,7 @@ Describe "Invoke-SonarScanner" {
 
         # Import dependencies
         . $PSScriptRoot/../command/Find-Command.ps1
-        . $PSScriptRoot/../command/Invoke-External.ps1
+        . $PSScriptRoot/../exported/Invoke-External.ps1
         . $PSScriptRoot/../utils/Confirm-Parameters.ps1
 
         # Mock commands
@@ -15,7 +15,7 @@ Describe "Invoke-SonarScanner" {
         Mock -Command Write-Error -MockWith { return $MessageData } -Verifiable
 
         # - Find-Command - return the name of the command that is required
-        Mock -Command Find-Command -MockWith { return $name }        
+        Mock -Command Find-Command -MockWith { return $name }
     }
 
     BeforeEach {
@@ -37,21 +37,21 @@ Describe "Invoke-SonarScanner" {
 
             Invoke-SonarScanner
 
-            Should -Invoke -CommandName Write-Error 
+            Should -Invoke -CommandName Write-Error
         }
 
         it "only start or stop should be specified" {
 
             Invoke-SonarScanner -Token xxx -Start -Stop
 
-            Should -Invoke -CommandName Write-Error 
+            Should -Invoke -CommandName Write-Error
         }
 
         it "will throw an error if not all parameters are set" {
 
             Invoke-SonarScanner -Token xxx -Start -ProjectName "pester"
 
-            Should -Invoke -CommandName Write-Error 
+            Should -Invoke -CommandName Write-Error
         }
     }
 

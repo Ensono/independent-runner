@@ -8,7 +8,7 @@ Describe "Build-Documenation" {
         # Include depdendencies
         . $PSScriptRoot/../utils/Confirm-Parameters.ps1
         . $PSScriptRoot/../utils/Protect-Filesystem.ps1
-        . $PSScriptRoot/../command/Invoke-External.ps1
+        . $PSScriptRoot/../exported/Invoke-External.ps1
         . $PSScriptRoot/../utils/ConvertTo-MDX.ps1
 
         # Mock commands
@@ -54,7 +54,7 @@ Describe "Build-Documenation" {
                 }
                 dryrun = $true
             }
-    
+
             # Create a folder to use for each test
             $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
 
@@ -82,7 +82,7 @@ Describe "Build-Documenation" {
                                 -Attributes "pdf-theme=styles/theme.yml", 'doctype="book"'
 
             # Check the command that will be run
-            $Session.commands.list[0] | Should -BeLike 'asciidoctor-pdf -a pdf-theme=styles/theme.yml -a doctype="book" -o "Pester Tests.pdf" -D*/index.adoc'            
+            $Session.commands.list[0] | Should -BeLike 'asciidoctor-pdf -a pdf-theme=styles/theme.yml -a doctype="book" -o "Pester Tests.pdf" -D*/index.adoc'
         }
 
         it "will build up attributes from a file" {
@@ -124,7 +124,7 @@ Describe "Build-Documenation" {
                 }
                 dryrun = $true
             }
-    
+
             # Create a folder to use for each test
             $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
 
@@ -139,7 +139,7 @@ Describe "Build-Documenation" {
 
             Remove-Item -Path $testFolder -Recurse -Force | Out-Null
         }
-        
+
         It "will run the commands to generate a MD file" {
 
             Build-Documentation -BasePath $testFolder -MD -MDX
@@ -149,7 +149,7 @@ Describe "Build-Documenation" {
 
             # Check that the MDX file would be created
             Should -Invoke -CommandName ConvertTo-MDX -Times 1
-        }        
+        }
     }
 
 

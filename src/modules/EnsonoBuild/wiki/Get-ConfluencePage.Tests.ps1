@@ -8,8 +8,8 @@ Describe "Get-ConfluencePage" {
 
         # Import dependencies
         . $PSScriptRoot/../api/Invoke-API.ps1
-        . $PSScriptRoot/../command/Stop-Task.ps1
-        
+        . $PSScriptRoot/../exported/Stop-Task.ps1
+
         # Mock functions
         Mock -Command Stop-Task -MockWith {}
         Mock -Command Write-Information -MockWith {}
@@ -81,7 +81,7 @@ Describe "Get-ConfluencePage" {
         }
     ]
 }
-"@ 
+"@
             } -ParameterFilter {
                 $url -like "*/content?spaceKey*"
             }
