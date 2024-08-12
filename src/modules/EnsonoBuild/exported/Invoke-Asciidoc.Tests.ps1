@@ -4,13 +4,13 @@ Describe "Invoke-Asciidoc" {
 
         # Import the function being tested
         . $PSScriptRoot/Invoke-Asciidoc.ps1
-    
+
         # Import the dependenices for the function under test
         . $PSScriptRoot/../command/Find-Command.ps1
-        . $PSScriptRoot/../command/Invoke-External.ps1
+        . $PSScriptRoot/../exported/Invoke-External.ps1
         . $PSScriptRoot/../utils/Merge-Hashtables.ps1
         . $PSScriptRoot/../utils/Copy-Object.ps1
-        . $PSScriptRoot/../command/Stop-Task.ps1
+        . $PSScriptRoot/../exported/Stop-Task.ps1
         . $PSScriptRoot/../utils/Replace-Tokens.ps1
 
         # Create the testFolder
@@ -37,7 +37,7 @@ Describe "Invoke-Asciidoc" {
         Mock -Command Find-Command -MockWith { return $name }
 
         # - Write-Information - mock this internal function to check that the working directory is being defined
-        Mock -Command Write-Information -MockWith { return $MessageData } -Verifiable        
+        Mock -Command Write-Information -MockWith { return $MessageData } -Verifiable
     }
 
     BeforeEach {
@@ -51,7 +51,7 @@ Describe "Invoke-Asciidoc" {
             dryrun = $true
         }
     }
-    
+
     Context "PDF" {
 
         it "will generate the PDF" {

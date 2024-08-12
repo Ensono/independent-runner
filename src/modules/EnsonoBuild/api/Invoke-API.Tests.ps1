@@ -26,7 +26,7 @@ Describe "Invoke-API" {
             $splat = @{
                 url = "https://domain.not.found.com/unknown.html"
             }
-            
+
         }
 
         It "Invoke-API should not run successfully" {
@@ -56,8 +56,6 @@ Describe "Invoke-API" {
 
         It "Credentials will be specified" {
             $creds = Invoke-API -credentials "pester:tests" -authtype "basic"
-
-            write-host (ConvertTo-Json $headers)
 
             $creds | Should -BeOfType [System.Management.Automation.PSCredential]
         }
