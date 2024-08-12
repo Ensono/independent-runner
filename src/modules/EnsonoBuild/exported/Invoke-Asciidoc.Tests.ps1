@@ -58,7 +58,7 @@ Describe "Invoke-Asciidoc" {
 
             Invoke-Asciidoc -pdf -path $testfolder -output "${testfolder}/newsletter.pdf"
 
-            $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -o `"newsletter.pdf`" -D `"$testfolder`" $testfolder"
+            $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -o `"newsletter.pdf`" -D `"$testfolder`" $testfolder --failure-level warn"
 
             Should -Invoke -CommandName Write-Information -Times 1
         }
@@ -74,7 +74,7 @@ Describe "Invoke-Asciidoc" {
 
             Invoke-Asciidoc -pdf -path $testfolder -output "${testfolder}/newsletter.pdf" -attributes $attributes
 
-            $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -a allow-read-uri -a pdf-fontsdir=/fonts -a stackscli_version=74.83.10.13 -o `"newsletter.pdf`" -D `"$testfolder`" $testfolder"
+            $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -a allow-read-uri -a pdf-fontsdir=/fonts -a stackscli_version=74.83.10.13 -o `"newsletter.pdf`" -D `"$testfolder`" $testfolder --failure-level warn"
 
             Should -Invoke -CommandName Write-Information -Times 1
         }
@@ -83,7 +83,7 @@ Describe "Invoke-Asciidoc" {
 
             Invoke-AsciiDoc -pdf -basepath $testfolder -config $settings_file
 
-            $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -a allow-read-uri -o `"Pester Newsletter.pdf`" -D `"$testfolder`" $testfolder"
+            $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -a allow-read-uri -o `"Pester Newsletter.pdf`" -D `"$testfolder`" $testfolder --failure-level warn"
 
             Should -Invoke -CommandName Write-Information -Times 1
         }

@@ -4,4 +4,29 @@ To ensure that the pipeline runs the same on any machine, Docker images are used
 
 Each of the docker images in use is defined in the repo https://github.com/Ensono/stacks-docker-images.
 
-include::https://raw.githubusercontent.com/Ensono/stacks-docker-images/main/docs/index.adoc[lines=7..-1]
+
+include::https://raw.githubusercontent.com/Ensono/stacks-docker-images/main/docs/docker-definitions/foundation/azure-cli.adoc[]
+
+include::https://raw.githubusercontent.com/Ensono/stacks-docker-images/main/docs/docker-definitions/foundation/builder.adoc[]
+
+include::https://raw.githubusercontent.com/Ensono/stacks-docker-images/main/docs/docker-definitions/foundation/powershell.adoc[]
+
+include::https://raw.githubusercontent.com/Ensono/stacks-docker-images/main/docs/docker-definitions/foundation/tools.adoc[]
+
+include::https://raw.githubusercontent.com/Ensono/stacks-docker-images/main/docs/docker-definitions/asciidoctor.adoc[]
+
+include::https://raw.githubusercontent.com/Ensono/stacks-docker-images/main/docs/docker-definitions/data.adoc[]
+
+include::https://raw.githubusercontent.com/Ensono/stacks-docker-images/main/docs/docker-definitions/dotnet.adoc[]
+
+include::https://raw.githubusercontent.com/Ensono/stacks-docker-images/main/docs/docker-definitions/golang.adoc[]
+
+include::https://raw.githubusercontent.com/Ensono/stacks-docker-images/main/docs/docker-definitions/infrastructure.adoc[]
+
+include::https://raw.githubusercontent.com/Ensono/stacks-docker-images/main/docs/docker-definitions/inspec.adoc[]
+
+include::https://raw.githubusercontent.com/Ensono/stacks-docker-images/main/docs/docker-definitions/java.adoc[]
+
+include::https://raw.githubusercontent.com/Ensono/stacks-docker-images/main/docs/docker-definitions/kong.adoc[]
+
+include::https://raw.githubusercontent.com/Ensono/stacks-docker-images/main/docs/docker-definitions/node.adoc[]
