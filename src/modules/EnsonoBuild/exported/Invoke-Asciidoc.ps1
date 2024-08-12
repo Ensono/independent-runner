@@ -2,7 +2,7 @@
 function Invoke-Asciidoc() {
 
     <#
-    
+
     .SYNOPSIS
     Runs AsciiDoc to convert documents to the desired format
 
@@ -17,7 +17,7 @@ function Invoke-Asciidoc() {
     will run. For example:
 
     ```
-   {
+    {
         "title": "MRBuild Manual",
         "output": "{{ basepath }}/outputs/docs/{{ format }}",
         "trunkBranch": "main",
@@ -32,7 +32,7 @@ function Invoke-Asciidoc() {
                 "allow-uri-read"
             ]
         }
-    } 
+    }
     ```
 
     As can be seen the cmdlet supports inserting values into the strings. This allows for the most
@@ -58,7 +58,7 @@ function Invoke-Asciidoc() {
     Invoke-AsciiDoc -pdf -folder . -config ./config.json -output outputs/
 
     Generate a PDF document from the current folder and put the resultant file in
-    the `outputs/` directory.    
+    the `outputs/` directory.
     #>
 
     [CmdletBinding()]
@@ -77,10 +77,10 @@ function Invoke-Asciidoc() {
         [switch]
         # State that the document should be HTML
         $html,
-        
+
         [string]
         # Path to configuration file with all the necessary settings
-        # If specified additional specific parameters are specifed, those values will 
+        # If specified additional specific parameters are specifed, those values will
         # override the ones in the configuration file
         $config,
 
@@ -101,7 +101,12 @@ function Invoke-Asciidoc() {
 
         [string[]]
         # List of attributes to pass to the AsciiDoc command
-        $attributes
+        $attributes,
+
+        [string]
+        [ValidateSet('info', 'warn', 'warning', 'error', 'fatal')]
+        # A level of logging which will trigger a failed exit code
+        $failureLevel = "warn"
     )
 
     # Define variables to be used in the function
@@ -220,7 +225,7 @@ function Invoke-Asciidoc() {
     }
 
     # Stitch the full command together
-    $cmd = "{0} {1} {2}" -f $cmd, ($cmdline -join " "), (Replace-Tokens -Tokens $tokens $settings.path)
+    $cmd = "{0} {1} {2}" -f ($cmdline -join " "), (Replace-Tokens -Tokens $tokens $settings.path), "--failure-level ${failureLevel}"
 
     # Execute the command
     Invoke-External -Command $cmd
