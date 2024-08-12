@@ -1,6 +1,6 @@
 local
 outputs
-envfile
+envfile*
 .DS_Store
 docs/reference
 
