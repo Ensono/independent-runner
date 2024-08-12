@@ -33,7 +33,7 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
 
         # Import dependencies that the function under test requires
         . $PSScriptRoot/../command/Find-Command.ps1
-        . $PSScriptRoot/../command/Invoke-External.ps1
+        . $PSScriptRoot/../exported/Invoke-External.ps1
         . $PSScriptRoot/../cloud/Connect-Azure.ps1
         . $PSScriptRoot/../utils/Confirm-TrunkBranch.ps1
         . $PSScriptRoot/../utils/Get-CPUArchitecture.ps1
@@ -137,7 +137,7 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
 
         AfterAll {
             Remove-Item Alias:\Get-CPUArchitecture
-        }        
+        }
     }
 
     Context "Check platform build flags for ARM based CPU" {
@@ -156,7 +156,7 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
         AfterAll {
             Remove-Item Alias:\Get-CPUArchitecture
         }
-    }    
+    }
 
     Context "Build without push" {
 
@@ -236,10 +236,10 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
 
             Mock -Command Confirm-TrunkBranch -MockWith { $false }
 
-             # Call the function under test
-             Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -latest -platforms "linux/arm64","linux/amd64"
+            # Call the function under test
+            Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -latest -platforms "linux/arm64","linux/amd64"
 
-             $Session.commands.list[0] | Should -BeLikeExactly "*docker* buildx build -t pesterreg/pester-tests:unittests --platform linux/arm64,linux/amd64 ."
+            $Session.commands.list[0] | Should -BeLikeExactly "*docker* buildx build -t pesterreg/pester-tests:unittests --platform linux/arm64,linux/amd64 ."
         }
     }
 
@@ -266,7 +266,7 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
             $Session.commands.list.length | Should -Be 2
 
             # Check that docker logs into the registry
-            $Session.commands.list[0] | Should -BeLike "*docker* login docker.io -u pester -p pester123" 
+            $Session.commands.list[0] | Should -BeLike "*docker* login docker.io -u pester -p pester123"
 
             # Check the build command
             $Session.commands.list[1] | Should -BeLike "*docker* buildx build -t docker.io/pester-tests:unittests --platform linux/amd64 --push ."

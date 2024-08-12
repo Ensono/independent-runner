@@ -8,7 +8,7 @@ Describe "Invoke-Dotnet" {
 
         # Import the dependenices for the function under test
         . $PSScriptRoot/../command/Find-Command.ps1
-        . $PSScriptRoot/../command/Invoke-External.ps1
+        . $PSScriptRoot/../exported/Invoke-External.ps1
         . $PSScriptRoot/../projects/Find-Projects.ps1
 
         # Create the testFolder
@@ -155,6 +155,8 @@ Describe "Invoke-Dotnet" {
                 $Session.commands.list.Count | Should -Be 3
 
                 $Session.commands.list[0] | Should -BeLike "*dotnet* test *pester1.UnitTests.csproj"
+                $Session.commands.list[1] | Should -BeLike "*dotnet* test *pester2.UnitTests.csproj"
+                $Session.commands.list[2] | Should -BeLike "*dotnet* test *pester3.UnitTests.csproj"
             }
 
             It "will append arguments to the command" {
@@ -164,6 +166,8 @@ Describe "Invoke-Dotnet" {
                 $Session.commands.list.Count | Should -Be 3
 
                 $Session.commands.list[0] | Should -BeLike "*dotnet* test *pester1.UnitTests.csproj --no-restore"
+                $Session.commands.list[1] | Should -BeLike "*dotnet* test *pester2.UnitTests.csproj --no-restore"
+                $Session.commands.list[2] | Should -BeLike "*dotnet* test *pester3.UnitTests.csproj --no-restore"
             }
         }
     }
