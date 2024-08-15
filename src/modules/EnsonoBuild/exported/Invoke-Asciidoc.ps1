@@ -106,7 +106,12 @@ function Invoke-Asciidoc() {
         [string]
         [ValidateSet('info', 'warn', 'warning', 'error', 'fatal')]
         # A level of logging which will trigger a failed exit code
-        $failureLevel = "warn"
+        $failureLevel = "warn",
+
+        [Int[]]
+        # List of exit codes that are accepatable
+        # Zero is always accepted
+        $ExitCodes = @()
     )
 
     # Define variables to be used in the function
@@ -228,7 +233,7 @@ function Invoke-Asciidoc() {
     $cmd = "{0} {1} {2}" -f ($cmdline -join " "), (Replace-Tokens -Tokens $tokens $settings.path), "--failure-level ${failureLevel}"
 
     # Execute the command
-    Invoke-External -Command $cmd
+    Invoke-External -Command $cmd -AdditionalExitCodes $ExitCodes
 
     # Output the exitcode of the command
     $LASTEXITCODE
