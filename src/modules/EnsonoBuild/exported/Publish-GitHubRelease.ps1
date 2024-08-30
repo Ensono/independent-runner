@@ -30,6 +30,11 @@ function Publish-GitHubRelease() {
         # that will be specific to the release
         $notes = $env:NOTES,
 
+        [bool]
+        # Whether to upload artefacts or not
+        # NOTE: The artifactsList must be empty also if this variable is false
+        $uploadArtifacts = $true,
+
         [string]
         # Artifacts directory, items in this folder will be added to the release
         $artifactsDir = $env:ARTIFACTS_DIR,
@@ -87,11 +92,18 @@ function Publish-GitHubRelease() {
 
     $fileError = $false
 
-    # if the artifactsList is empty, get all the files in the specified artifactsDir
-    # otherwise find the files that have been specified
+    # If the artifactsList is empty, get all the files in the specified
+    # artifactsDir otherwise find the files that have been specified
     if ($artifactsList.Count -eq 0) {
-        $artifactsList = Get-ChildItem -Path $artifactsDir -Recurse -File
+        if ($uploadArtifacts) {
+            $artifactsList = Get-ChildItem -Path $artifactsDir -Recurse -File
+        }
     } else {
+        if (!$uploadArtifacts) {
+            Write-Error "'uploadArtifacts' is set to false, but 'artifactsList' isn't empty..."
+            return
+        }
+
         $files = $artifactsList
         $artifactsList = @()
 
