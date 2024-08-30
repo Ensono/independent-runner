@@ -4,7 +4,8 @@
     "trunkBranch": "main",
     "path": "{{ basepath }}/docs/index.adoc",
     "libs": [
-        "asciidoctor-diagram"
+        "asciidoctor-diagram",
+        "/usr/local/ensono/lib/glob-include-processor.rb"
     ],
     "pdf": {
         "attributes": [
