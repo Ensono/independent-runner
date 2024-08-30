@@ -55,7 +55,7 @@ contexts:
         - /var/run/docker.sock:/var/run/docker.sock
         - -w
         - /app
-        - ensono/eir-foundation-powershell:1.1.222
+        - ensono/eir-infrastructure:1.1.222
         - pwsh
         - -Command
     quote: "'"
