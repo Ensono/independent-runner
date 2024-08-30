@@ -7,13 +7,10 @@ contexts:
         - --rm
         - -v
         - ${PWD}:/app
-        - -e
-        - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh-asciidoctor:0.4.129-stable
+        - ensono/eir-asciidoctor:1.1.222
         - pwsh
-        - -NoProfile
         - -Command
     quote: "'"
     envfile:
@@ -34,13 +31,10 @@ contexts:
         - /var/run/docker.sock:/var/run/docker.sock
         - --env-file
         - envfile
-        - -e
-        - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh:0.4.129-stable
+        - ensono/eir-infrastructure:1.1.222
         - pwsh
-        - -NoProfile
         - -Command
     quote: "'"
     envfile:
@@ -59,13 +53,10 @@ contexts:
         - ${PWD}:/app
         - -v
         - /var/run/docker.sock:/var/run/docker.sock
-        - -e
-        - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh:0.4.129-stable
+        - ensono/eir-foundation-powershell:1.1.222
         - pwsh
-        - -NoProfile
         - -Command
     quote: "'"
     envfile:
@@ -84,12 +75,9 @@ contexts:
         - ${PWD}:/app
         - -v
         - /var/run/docker.sock:/var/run/docker.sock
-        - -e
-        - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh-dotnet:0.4.129-stable
+        - ensono/eir-dotnet:1.1.222
         - pwsh
-        - -NoProfile
         - -Command
     quote: "'"
