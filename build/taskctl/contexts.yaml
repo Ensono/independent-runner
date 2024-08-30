@@ -31,6 +31,8 @@ contexts:
         - /var/run/docker.sock:/var/run/docker.sock
         - --env-file
         - envfile
+        - -e
+        - PSModulePath=/app/src/modules
         - -w
         - /app
         - ensono/eir-infrastructure:1.1.222
