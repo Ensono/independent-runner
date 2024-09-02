@@ -195,6 +195,95 @@ Describe "Publish-GitHubRelease" {
         }
     }
 
+    Context "Setting 'uploadArtifacts' to `$false (artefact handling)" {
+
+        BeforeEach {
+
+            # Create a folder to use for each test
+            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        }
+
+        AfterEach {
+
+            Remove-Item -Path $testFolder -Recurse -Force
+        }
+
+        It "if 'artifactsDir' does not exist, should not error" {
+
+            Mock `
+                -CommandName Get-ChildItem `
+                -MockWith { }
+
+            Mock `
+                -CommandName Write-Error `
+                -MockWith { }
+
+            Mock `
+                -CommandName Invoke-WebRequest `
+                -MockWith { return @{content = @"
+                {
+                    "upload_url": "https://api.github.com/repo/upload"
+                }
+"@
+                } } `
+                -Verifiable
+
+            $splat = @{
+                version = "100.98.99"
+                commitId = "hjggh66"
+                owner = "Ensono"
+                apiKey = "1245356"
+                repository = "pester"
+                artifactsDir = $testfolder
+                artifactsList = @()
+                publishRelease = $true
+                uploadArtifacts = $false
+            }
+
+            Publish-GitHubRelease @splat
+
+            Should -InvokeVerifiable
+            Should -Invoke -CommandName Write-Error -Times 0
+            Should -Invoke -CommandName Get-ChildItem -Times 0
+            Should -Invoke -CommandName Invoke-WebRequest -Times 1
+        }
+
+        It "if 'artifactsList is not empty" {
+
+            Mock `
+                -CommandName Get-ChildItem `
+                -MockWith { }
+
+            Mock `
+                -CommandName Write-Error `
+                -MockWith { } `
+                -Verifiable
+
+            Mock `
+                -CommandName Invoke-WebRequest `
+                -MockWith { }
+
+            $splat = @{
+                version = "100.98.99"
+                commitId = "hjggh66"
+                owner = "Ensono"
+                apiKey = "1245356"
+                repository = "pester"
+                artifactsDir = $testfolder
+                artifactsList = @("file", "file2")
+                publishRelease = $true
+                uploadArtifacts = $false
+            }
+
+            Publish-GitHubRelease @splat
+
+            Should -InvokeVerifiable
+            Should -Invoke -CommandName Write-Error -Times 1 -ParameterFilter { $Message -eq "'uploadArtifacts' is set to false, but 'artifactsList' isn't empty..." }
+            Should -Invoke -CommandName Get-ChildItem -Times 0
+            Should -Invoke -CommandName Invoke-WebRequest -Times 0
+        }
+    }
+
     Context "Release is created" {
 
         BeforeAll {
