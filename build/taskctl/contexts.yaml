@@ -9,7 +9,9 @@ contexts:
         - ${PWD}:/app
         - -w
         - /app
-        - ensono/eir-asciidoctor:1.1.222
+        - -e
+        - PSModulePath=/app/src/modules
+        - ensono/eir-asciidoctor:1.1.224
         - pwsh
         - -Command
     quote: "'"
@@ -35,7 +37,7 @@ contexts:
         - PSModulePath=/app/src/modules
         - -w
         - /app
-        - ensono/eir-infrastructure:1.1.222
+        - ensono/eir-infrastructure:1.1.224
         - pwsh
         - -Command
     quote: "'"
@@ -57,7 +59,7 @@ contexts:
         - /var/run/docker.sock:/var/run/docker.sock
         - -w
         - /app
-        - ensono/eir-infrastructure:1.1.222
+        - ensono/eir-infrastructure:1.1.224
         - pwsh
         - -Command
     quote: "'"
@@ -79,7 +81,7 @@ contexts:
         - /var/run/docker.sock:/var/run/docker.sock
         - -w
         - /app
-        - ensono/eir-dotnet:1.1.222
+        - ensono/eir-dotnet:1.1.224
         - pwsh
         - -Command
     quote: "'"

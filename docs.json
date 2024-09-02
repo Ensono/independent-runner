@@ -15,10 +15,5 @@
             "blockdiag=/usr/bin/blockdiag",
             "skip-front-matter"
         ]
-    },
-    "html": {
-        "attributes": [
-            "allow-uri-read"
-        ]
     }
 }
