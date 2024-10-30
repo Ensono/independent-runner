@@ -33,7 +33,7 @@ function Confirm-Environment() {
         required: boolean
         cloud: <CLOUD>
 
-    When thisd function runs it merges the default variables, the cloud cerdential variables
+    When this function runs it merges the default variables, the cloud cerdential variables
     and the stage variables and checks to see that they have been set. If they have not it will
     output a message stating whicch ones have not been set and then fail the task.
 
