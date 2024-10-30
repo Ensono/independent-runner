@@ -21,7 +21,6 @@ tasks:
     description: Update the build number
     command:
       - Update-BuildNumber
-    exportAs: BUILDNUMBER
 
   _docs:
     description: Build Docs
