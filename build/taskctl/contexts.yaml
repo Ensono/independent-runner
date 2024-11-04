@@ -35,6 +35,7 @@ contexts:
         - envfile
         - -e
         - PSModulePath=/app/src/modules
+        - -e HOST_UIDGID=$UID:$GID
         - -w
         - /app
         - ensono/eir-infrastructure:1.1.224
