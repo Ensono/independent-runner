@@ -54,7 +54,7 @@ function Invoke-Asciidoc() {
     $Path = Replace-Tokens -Tokens $tokens -Data $Path
 
     # Add in the extra arguments
-    $arguments += @("-o `"{0}`"" -f $Output)
+    $arguments += @("-o `"{0}`"" -f (Split-Path -Path $Output -Leaf))
 
     # If there are any libraries, iterate around each of them and add to the arguments
     if ($Libraries.count -gt 0) {
@@ -71,7 +71,7 @@ function Invoke-Asciidoc() {
     }
 
     # Add in the output directory
-    $arguments += @("-D `"{0}`"" -f (Split-Path -Path $Path -Parent))
+    $arguments += @("-D `"{0}`"" -f (Split-Path -Path $Output -Parent))
 
     # Build up the command to be run
     $cmd = "{0} {1} {2}" -f $command, ($arguments -join " "), $path
