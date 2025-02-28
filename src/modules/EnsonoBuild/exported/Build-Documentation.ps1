@@ -21,7 +21,7 @@ function Build-Documentation {
 
         [string]
         [Parameter(
-            ParameterSetName="config"
+            ParameterSetName = "config"
         )]
         # Path to configuration file with all the necessary settings
         # If specified additional specific parameters are specifed, those values will 
@@ -30,7 +30,7 @@ function Build-Documentation {
 
         [string]
         [Parameter(
-            ParameterSetName="type"
+            ParameterSetName = "type"
         )]
         [ValidateSet("md", "pdf", "docx", "txt", "jira", "html")]
         # Format that the document should be generated in. This is used to genarate a document
@@ -39,21 +39,21 @@ function Build-Documentation {
 
         [string]
         [Parameter(
-            ParameterSetName="type"
+            ParameterSetName = "type"
         )]
         # Path to the AsciiDoc template to render
         $Path = $env:DOC_FILE,
 
         [string]
         [Parameter(
-            ParameterSetName="type"
+            ParameterSetName = "type"
         )]
         # Title to be given to the file - this can have tokens
         $Title = $env:DOC_TITLE,
 
         [string[]]
         [Parameter(
-            ParameterSetName="type"
+            ParameterSetName = "type"
         )]
         # Attributes that need to be set when generating the document
         $ADocAttributes = @()
@@ -64,45 +64,45 @@ function Build-Documentation {
 
     # Create an empty config hashtable to be used to grab the settings for the generation
     $settings = @{
-        title = ""
-        output = ""
-        path = ""
+        title       = ""
+        output      = ""
+        path        = ""
         trunkBranch = ""
-        attributes = @{
+        attributes  = @{
             asciidoc = @()
         }
-        libs = @{
+        libs        = @{
             asciidoc = @()
-            pandoc = @()
+            pandoc   = @()
         }
-        pdf = @{
+        pdf         = @{
             attributes = @{
                 asciidoc = @()
-                pandoc = @()
+                pandoc   = @()
             }
         }
-        html = @{
+        html        = @{
             attributes = @{
                 asciidoc = @()
-                pandoc = @()
+                pandoc   = @()
             }
         }
-        docx = @{
+        docx        = @{
             attributes = @{
                 asciidoc = @()
-                pandoc = @()
+                pandoc   = @()
             }
         }
-        md = @{
+        md          = @{
             attributes = @{
                 asciidoc = @()
-                pandoc = @()
+                pandoc   = @()
             }
         }
-        txt = @{
+        txt         = @{
             attributes = @{
                 asciidoc = @()
-                pandoc = @()
+                pandoc   = @()
             }
         }
     }
@@ -117,7 +117,8 @@ function Build-Documentation {
 
                 # Configure the settings
                 $settings = Merge-Hashtables -Primary $data -Secondary $settings
-            } else {
+            }
+            else {
                 Write-Error "The configuration file specified does not exist: ${Config}"
                 return
             }
@@ -135,38 +136,38 @@ function Build-Documentation {
 
     # Set the mapping of formats to the BACKEND required for asciidoctor
     $format_mapping = @{
-        "md" = @{
-            commands = [ordered]@{
+        "md"   = @{
+            commands  = [ordered]@{
                 "asciidoctor" = @{
                     format = "docbook"
                 }
-                "pandoc" = @{
+                "pandoc"      = @{
                     from = "docbook"
-                    to = "gfm"
+                    to   = "gfm"
                 }
             }
             extension = @{
                 "asciidoctor" = ".xml"
-                "pandoc" = ".md"
+                "pandoc"      = ".md"
             }
         }
-        "txt" = @{
-            commands = [ordered]@{
+        "txt"  = @{
+            commands  = [ordered]@{
                 "asciidoctor" = @{
                     format = "docbook"
                 }
-                "pandoc" = @{
+                "pandoc"      = @{
                     from = "docbook"
-                    to = "plain"
+                    to   = "plain"
                 }
             }
             extension = @{
                 "asciidoctor" = ".xml"
-                "pandoc" = ".txt"
+                "pandoc"      = ".txt"
             }
         }
-        "pdf" = @{
-            commands = [ordered]@{
+        "pdf"  = @{
+            commands  = [ordered]@{
                 "asciidoctor" = @{
                     format = "pdf"
                 }
@@ -176,7 +177,7 @@ function Build-Documentation {
             }
         }
         "html" = @{
-            commands = [ordered]@{
+            commands  = [ordered]@{
                 "asciidoctor" = @{
                     format = "html"
                 }
@@ -186,33 +187,33 @@ function Build-Documentation {
             }
         }
         "docx" = @{
-            commands = [ordered]@{
+            commands  = [ordered]@{
                 "asciidoctor" = @{
                     format = "docbook"
                 }
-                "pandoc" = @{
+                "pandoc"      = @{
                     from = "docbook"
-                    to = "docx"
+                    to   = "docx"
                 }
             }
             extension = @{
                 "asciidoctor" = ".xml"
-                "pandoc" = ".docx"
+                "pandoc"      = ".docx"
             }
         }
         "jira" = @{
-            commands = [ordered]@{
+            commands  = [ordered]@{
                 "asciidoctor" = @{
                     format = "docbook"
                 }
-                "pandoc" = @{
+                "pandoc"      = @{
                     from = "docbook"
-                    to = "jira"
+                    to   = "jira"
                 }
             }
             extension = @{
                 "asciidoctor" = ".xml"
-                "pandoc" = ".jira"
+                "pandoc"      = ".jira"
             }
         }
     }
@@ -224,42 +225,44 @@ function Build-Documentation {
     foreach ($format in $Formats) {
         if ($supported_formats -notcontains $format) {
             Write-Warning ("The format '{0}' is not supported, and will be skipped" -f $format)
-        } else {
+        }
+        else {
             $required_formats += $format
         }
     }
-
+    
     # Iterate around the formats and build up the commands that need to be run
     # The commands will be added to a list and executed in turn
     foreach ($format in $required_formats) {
-
+        
         # Set a variable to hold the previous filename, this is so that it can be passed to the
         # next command in the chain for the format
         $previous_filename = ""
 
         # Get all the tokens that are available
-        $tokens = Set-Tokens -Version $Version -ExtraTokens @{"basepath" = $Basepath; "format" = $format}
+        $tokens = Set-Tokens -Version $Version -ExtraTokens @{"basepath" = $Basepath; "format" = $format }
 
         # Ensure the tokens are replaced the settings
         $settings.path = Replace-Tokens -Tokens $tokens -Data $settings.path
         $settings.title = Replace-Tokens -Tokens $tokens -Data $settings.title
-
+        
         # Determine if the settings.path is a single file or a directory
         # If single fil add to a single array, otherwise recursively find all *.adoc files in the folder
         if (Test-Path -Path $settings.path -PathType Leaf) {
             $files = @($settings.path)
-        } else {
+        }
+        else {
             $files = Get-ChildItem -Path $settings.path -Recurse -Filter "*.adoc" | Select-Object -ExpandProperty FullName
         }
-
+        
         # Determine the name of the file
         $filename = $settings.title
-
+        
         # iterate around the files that have been found
         foreach ($input_file in $files) {
 
             $previous_filename = ""
-
+            
             # iterate around the command hashtable to build up the commands to run
             foreach ($h in $format_mapping[$format].commands.GetEnumerator()) {
 
@@ -270,10 +273,18 @@ function Build-Documentation {
                 # determine the output filename, this is based on there being several files or just one
                 if ($files.count -eq 1) {
                     $output_path = "{0}{1}" -f [IO.Path]::Combine($output, $filename), $format_mapping[$format].extension[$h.Name]
-                } elseif ($files.count -gt 1) {
+                }
+                elseif ($files.count -gt 1) {
                     $output_path = "{0}{1}" -f [IO.Path]::Combine($output, [IO.Path]::GetFileNameWithoutExtension($input_file)), $format_mapping[$format].extension[$h.Name]
                 }
 
+                # Ensure the parent path for the output file exists
+                $output_parent_path = Split-Path -Path $output_path -Parent
+                if (!(Test-Path -Path $output_parent_path)) {
+                    Write-Information ("Creating output directory: {0}" -f $output_parent_path)
+                    New-Item -Path $output_parent_path -ItemType Directory -Force | Out-Null
+                }
+                
                 # switch on the command to determine which arguments to add
                 switch -Wildcard ($h.Name) {
                     "asciidoctor*" {
@@ -284,15 +295,19 @@ function Build-Documentation {
                         }
 
                         # Merge top-level command attributes with the format specific attributes
-                        $attributes = $settings.attributes.asciidoctor + $settings.$format.attributes.asciidoctor
+                        $attributes = $settings.attributes.asciidoctor
+                        "before"
+                        if ($settings.$format.attributes.asciidoctor.length -gt 0) {
+                            $attributes += $settings.$format.attributes.asciidoctor
+                        }
                         $attributes = Replace-Tokens -tokens $tokens -data $attributes
 
                         # Create the splat for the Invoke-Asciidoc function
                         $splat = @{
-                            Format = $format_mapping[$format].commands.asciidoctor.format
-                            Output = $output_path
-                            Path = $input_file
-                            Libraries = $settings.libs
+                            Format     = $format_mapping[$format].commands.asciidoctor.format
+                            Output     = $output_path
+                            Path       = $input_file
+                            Libraries  = $settings.libs
                             Attributes = $attributes
                         }
 
@@ -310,10 +325,10 @@ function Build-Documentation {
 
                         # Create the splat for the Invoke-Pandoc function
                         $splat = @{
-                            From = $format_mapping[$format].commands.pandoc.from
-                            To = $format_mapping[$format].commands.pandoc.to
-                            Output = $output_path
-                            Path = $input_file
+                            From       = $format_mapping[$format].commands.pandoc.from
+                            To         = $format_mapping[$format].commands.pandoc.to
+                            Output     = $output_path
+                            Path       = $input_file
                             Attributes = $settings.$format.attributes.pandoc
                         }
 
