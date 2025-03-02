@@ -89,7 +89,7 @@ function Build-PowerShellModule() {
         Write-Error -Message ("Module data file cannot be found: {0}" -f $modulePSD)
         return $false
     }
-    
+
     # Get all the functions in the module, except the tests
     $splat = @{
         Path = $moduleDir

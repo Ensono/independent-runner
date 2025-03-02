@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Ensono/taskctl/refs/heads/master/schemas/schema_v1.json
 tasks:
   image-pull:
     context: powershell
@@ -32,7 +33,7 @@ tasks:
     context: powershell
     description: Build the local PowerShell module
     command:
-      - Build-PowerShellModule -Path /app/src/modules -name EnsonoBuild -target /app/outputs/module
+      - Build-PowerShellModule -Path /app/src/modules -name EnsonoBuild -target /app/outputs/module -version ${env:BUILD_BUILDNUMBER}
 
   tests:unit:
     context: powershell_test
