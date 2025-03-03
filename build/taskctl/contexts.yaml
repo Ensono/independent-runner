@@ -67,8 +67,8 @@ contexts:
     envfile:
       generate: true
       exclude:
-        - home
-        - path
+        - HOME
+        - PATH
 
   dotnet:
     executable:
