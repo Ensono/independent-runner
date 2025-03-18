@@ -27,6 +27,10 @@ function Invoke-Inspec() {
 
     The `exec` switch is used to perform the tests against the deployed infrastructure.
 
+    Inspec uses different exit codes to denotes when tests have been skipped. For example, in this case
+    the exit code is 1, which will cause `Invoke-External` to stop. To avoid this issue, this cmdlet
+    has an `ExitCodes` parameter that can be used to specify which exit codes are acceptable, in addition to 0.
+
     When the tests are run they are generated using the JUnit format so that they can be
     uploaded to the CI/CD system as test results.
 
@@ -41,6 +45,12 @@ function Invoke-Inspec() {
 
     This will run the tests from the current directory and target the Azure provider.
 
+    .EXAMPLE
+    Invoke-Inspec -exec -path . -cloud azure -exitCodes 101
+
+    This will run the tests from the current directory and target the Azure provider. Any skipped tests
+    will result in an exit code of 101, which will now be accepted.
+
     #>
 
     [CmdletBinding()]
@@ -48,7 +58,7 @@ function Invoke-Inspec() {
 
         [string]
         # Path to the inspec test files
-        $path = $env:TESTS_PATH,
+        $path = ($env:INSPEC_FILES ? $env:INSPEC_FILES : $env:TESTS_PATH),
 
         [Parameter(
             ParameterSetName = "init"
@@ -89,7 +99,12 @@ function Invoke-Inspec() {
 
         [string]
         # Output path for test report
-        $output = $env:INSPEC_OUTPUT_PATH
+        $output = ($env:INSPEC_OUTPUT ? $env:INSPEC_OUTPUT : $env:INSPEC_OUTPUT_PATH),
+
+        [Int[]]
+        # List of exit codes that are accepatable
+        # Zero is always accepted
+        $ExitCodes = @()
 
     )
 
@@ -219,7 +234,7 @@ function Invoke-Inspec() {
 
     # Run the command that has been built up
     if (![string]::IsNullOrEmpty($command)) {
-        Invoke-External -Command $command
+        Invoke-External -Command $command -AdditionalExitCodes $ExitCodes
     }
 
     # Change back to the original dirrectory if changed at the begining

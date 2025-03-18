@@ -1,12 +1,12 @@
 Describe "Get-CPUArchitecture" {
-    
+
     BeforeAll {
 
         # Include the function under test
         . $PSScriptRoot/Get-CPUArchitecture.ps1
 
         # Include dependent functions
-        . $PSScriptRoot/../command/Invoke-External.ps1
+        . $PSScriptRoot/../exported/Invoke-External.ps1
     }
 
     Context "Windows platform" {
@@ -56,5 +56,5 @@ Describe "Get-CPUArchitecture" {
 
             $result | Should -be "arm64"
         }
-    }    
+    }
 }

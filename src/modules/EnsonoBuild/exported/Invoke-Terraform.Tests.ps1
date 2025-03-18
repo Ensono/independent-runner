@@ -6,11 +6,14 @@ Describe "Invoke-Terraform" {
 
     BeforeAll {
         . $PSScriptRoot/Invoke-Terraform.ps1
-        . $PSScriptRoot/../command/Invoke-External.ps1
+        . $PSScriptRoot/../exported/Invoke-External.ps1
         . $PSScriptRoot/../classes/StopTaskException.ps1
 
         # Create the testFolder
         $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+
+        # Create a dummy version of Terrform to use
+        $terraform = New-Item -ItemType File -Path ([IO.Path]::Combine($testFolder, "1.5.1", "bin", "terraform")) -Force
 
         # This test uses this variable, clear if user has set it...
         if ($env:TF_BACKEND) {
@@ -29,6 +32,35 @@ Describe "Invoke-Terraform" {
     AfterAll {
         # Restore the user's TF_BACKEND variable after all the tests
         $env:TF_BACKEND = $TF_BACKEND
+    }
+
+    Context "Terraform Version" {
+        It "will error as the version does not exist" {
+
+            Mock `
+                -Command Invoke-External `
+                -MockWith { }
+
+            # run the function to call terraform with some arguments for the backend
+            Invoke-Terraform -init -Backend "key=tfstate,access_key=123456" -Version 1.7.1
+
+            Should -Invoke Write-Error -Exactly 1 -ParameterFilter { $Message -like "Specified Terraform version does not exist*" -and $ErrorAction -eq "Stop" }
+            Should -Invoke Invoke-External -Exactly 0
+        }
+
+        It "will initialise Terraform with the supplied argument and specifid version of Terraform" {
+            Mock `
+                -Command Invoke-External `
+                -Verifiable `
+                -MockWith { } `
+                -ParameterFilter { $commands -like "*init -backend-config='key=tfstate' -backend-config='access_key=123456'" }
+
+            # run the function to call terraform with some arguments for the backend
+            Invoke-Terraform -init -Backend "key=tfstate,access_key=123456" -Prefix $testFolder -Version 1.5.1
+
+            Should -InvokeVerifiable
+            Should -Invoke Invoke-External -Exactly 1
+        }
     }
 
     Context "Initialise" {
@@ -282,6 +314,36 @@ Describe "Invoke-Terraform" {
 
             Should -InvokeVerifiable
             Should -Invoke Invoke-External -Exactly 1
+        }
+
+        It "will output TF state in JSON format, custom depth of 2" {
+            Mock `
+                -Command Invoke-External `
+                -Verifiable `
+                -MockWith { return "{`"foo`": {`"value`": [[[`"foo`"]]]}}" } `
+                -ParameterFilter { $commands -eq "terraform output -json" }
+
+            $json = Invoke-Terraform -Output -JsonDepth 2 -WarningAction:SilentlyContinue
+
+            Should -InvokeVerifiable
+            Should -Invoke Invoke-External -Exactly 1
+
+            $json | Should -Be '{"foo":{"value":["System.Object[]"]}}'
+        }
+
+        It "will output TF state in JSON format, default depth (50)" {
+            Mock `
+                -Command Invoke-External `
+                -Verifiable `
+                -MockWith { return "{`"foo`": {`"value`": [[[`"foo`"]]]}}" } `
+                -ParameterFilter { $commands -eq "terraform output -json" }
+
+            $json = Invoke-Terraform -Output
+
+            Should -InvokeVerifiable
+            Should -Invoke Invoke-External -Exactly 1
+
+            $json | Should -Be '{"foo":{"value":[[["foo"]]]}}'
         }
     }
 

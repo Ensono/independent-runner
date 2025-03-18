@@ -6,7 +6,7 @@ Describe "Invoke-YamlLint" {
         . $PSScriptRoot/Invoke-YamlLint.ps1
 
         # Include dependencies
-        . $PSScriptRoot/../command/Invoke-External.ps1
+        . $PSScriptRoot/../exported/Invoke-External.ps1
 
         # Create the testFolder
         $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName

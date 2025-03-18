@@ -7,7 +7,7 @@ Describe "Confirm-Environment" {
         . $PSScriptRoot/Confirm-Environment.ps1
 
         # Import dependent functions
-        . $PSScriptRoot/../command/Stop-Task.ps1
+        . $PSScriptRoot/../exported/Stop-Task.ps1
         . $PSScriptRoot/../utils/Confirm-Parameters.ps1
         . $PSScriptRoot/../utils/Get-EnvConfig.ps1
 

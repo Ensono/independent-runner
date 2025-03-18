@@ -1,4 +1,3 @@
-
 function Publish-GitHubRelease() {
 
     <#
@@ -17,7 +16,6 @@ function Publish-GitHubRelease() {
 
     [CmdletBinding()]
     param (
-
         [string]
         # Version number of the release
         $version = $env:VERSION_NUMBER,
@@ -31,6 +29,11 @@ function Publish-GitHubRelease() {
         # Release notes. This can include helpful notes about installation for example
         # that will be specific to the release
         $notes = $env:NOTES,
+
+        [bool]
+        # Whether to upload artefacts or not
+        # NOTE: The artifactsList must be empty also if this variable is false
+        $uploadArtifacts = $true,
 
         [string]
         # Artifacts directory, items in this folder will be added to the release
@@ -67,7 +70,6 @@ function Publish-GitHubRelease() {
         [bool]
         # Auto-generate release Notes
         $generateReleaseNotes = $false
-
     )
 
     # Check whether we should actually publish
@@ -78,17 +80,9 @@ function Publish-GitHubRelease() {
 
     # As environment variables cannot be easily used for the boolean values
     # check to see if they have been set and overwite the values if they have
-    if ([string]::IsNullOrEmpty($env:DRAFT)) {
-        $draft = $false
-    } else {
-        $draft = $true
-    }
+    $draft = ![string]::IsNullOrEmpty($env:DRAFT)
 
-    if ([string]::IsNullOrEmpty($env:PRERELEASE)) {
-        $preRelease = $false
-    } else {
-        $preRelease = $true
-    }
+    $preRelease = ![string]::IsNullOrEmpty($env:PRERELEASE)
 
     # Confirm that the required parameters have been passed to the function
     $result = Confirm-Parameters -List @("version", "commitid", "owner", "apikey", "repository", "artifactsDir")
@@ -96,17 +90,43 @@ function Publish-GitHubRelease() {
         return $false
     }
 
-    # if the artifactsList is empty, get all the files in the specified artifactsDir
-    # otherwise find the files that have been specified
+    $fileError = $false
+
+    # If the artifactsList is empty, get all the files in the specified
+    # artifactsDir otherwise find the files that have been specified
     if ($artifactsList.Count -eq 0) {
-        $artifactsList = Get-ChildItem -Path $artifactsDir -Recurse -File
+        if ($uploadArtifacts) {
+            $artifactsList = Get-ChildItem -Path $artifactsDir -Recurse -File
+        }
     } else {
+        if (!$uploadArtifacts) {
+            Write-Error "'uploadArtifacts' is set to false, but 'artifactsList' isn't empty..."
+            return
+        }
+
         $files = $artifactsList
         $artifactsList = @()
 
         foreach ($file in $files) {
-            $artifactsList += , (Get-ChildItem -Path $artifactsDir -Recurse -Filter $file)
+            try {
+                $artifact = Get-ChildItem -Path $artifactsDir -Recurse -Filter $file -ErrorAction "Stop"
+
+                if ($null -eq $artifact) {
+                    throw
+                }
+
+                $artifactsList += , $artifact
+            # Get-ChildItem errors to the terminal rather than throwing a typed Exception
+            } catch {
+                $fileError = $true
+                Write-Host "Can't find file(s) with filter '${file}' and path '${artifactsDir}'..."
+            }
         }
+    }
+
+    if ($fileError) {
+        Write-Error "One or more of the files can't be found..! See above for the files not found..."
+        return
     }
 
     # Create an object to be used as the body of the request
@@ -144,6 +164,7 @@ Write-Host ($requestBody | ConvertTo-JSON)
 
     # Create the release by making the API call, artifacts will be uploaded afterwards
     Write-Information -MessageData ("Creating release for: {0}" -f $version)
+
     try {
         $result = Invoke-WebRequest @releaseArgs
     } catch {
@@ -153,6 +174,12 @@ Write-Host ($requestBody | ConvertTo-JSON)
 
     # Get the uploadUri that has been returned by the initial call
     $uploadUri = $result.Content | ConvertFrom-JSON | Select-Object -ExpandProperty upload_url
+
+    $uploadArgs = @{
+        Method = "POST"
+        Headers = $header
+        ContentType = "application/octet-stream"
+    }
 
     # Iterate around all of the artifacts that are to be uploaded
     foreach ($uploadFile in $artifactsList) {
@@ -166,13 +193,9 @@ Write-Host ($requestBody | ConvertTo-JSON)
         $artifactUri = $uploadUri -replace "\{\?name,label\}", ("?name={0}" -f $artifact.Name)
 
         # Create the argument hash to perform the upload
-        $uploadArgs = @{
-            Uri = $artifactUri
-            Method = "POST"
-            Headers = $header
-            ContentType = "application/octet-stream"
-            InFile = $uploadFile
-        }
+        $uploadArgs["Uri"] = $artifactUri
+        $uploadArgs["InFile"] = $uploadFile
+
         # Perform the upload of the artifact
         try {
             $result = Invoke-WebRequest @uploadArgs

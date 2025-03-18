@@ -4,10 +4,13 @@ Describe "Invoke-Asciidoc" {
 
         # Import the function being tested
         . $PSScriptRoot/Invoke-Asciidoc.ps1
-    
+
         # Import the dependenices for the function under test
         . $PSScriptRoot/../command/Find-Command.ps1
-        . $PSScriptRoot/../command/Invoke-External.ps1
+        . $PSScriptRoot/../exported/Invoke-External.ps1
+        . $PSScriptRoot/../utils/Merge-Hashtables.ps1
+        . $PSScriptRoot/../utils/Copy-Object.ps1
+        . $PSScriptRoot/../exported/Stop-Task.ps1
         . $PSScriptRoot/../utils/Replace-Tokens.ps1
         . $PSScriptRoot/../utils/Set-Tokens.ps1
 
@@ -40,15 +43,15 @@ Describe "Invoke-Asciidoc" {
                 commands = @{
                     list = @()
                 }
-                dryrun = $true
+                dryrun   = $true
             }
 
             # Create a splat to pass to the cmdlet
             $splat = @{
-                Format = "docbook"
-                Path = "$testfolder/index.adoc"
-                Output = "${testfolder}/newsletter.xml"
-                Libraries = $Libraries
+                Format     = "docbook"
+                Path       = "$testfolder/index.adoc"
+                Output     = "${testfolder}/newsletter.xml"
+                Libraries  = $Libraries
                 Attributes = $Attributes
             }
             Invoke-Asciidoc @splat
@@ -68,80 +71,6 @@ Describe "Invoke-Asciidoc" {
         }
     }
 
-    Context "Docbook" {
-
-        BeforeAll {
-            # Create a session object so that the Invoke-External function does not
-            # execute any commands but the command that would be run can be checked
-            $global:Session = @{
-                commands = @{
-                    list = @()
-                }
-                dryrun = $true
-            }
-
-            # Create a splat to pass to the cmdlet
-            $splat = @{
-                Format = "docbook"
-                Path = "$testfolder/index.adoc"
-                Output = "${testfolder}/newsletter.xml"
-                Libraries = $Libraries
-                Attributes = $Attributes
-            }
-            Invoke-Asciidoc @splat
-        }
-
-        it "will use the correct command" {
-            $Session.commands.list[0] | Should -Match "asciidoctor"
-        }
-
-        it "will use the correct output format" {
-            $Session.commands.list[0] | Should -Match "-b docbook5"
-        }
-
-        it "will write to the correct file" {
-            # Ensure that the command is correct
-            $Session.commands.list[0] | Should -Match "-o `"$matchFolder/newsletter.xml`""
-        }
-    }
-
-    Context "HTML" {
-
-        BeforeAll {
-            # Create a session object so that the Invoke-External function does not
-            # execute any commands but the command that would be run can be checked
-            $global:Session = @{
-                commands = @{
-                    list = @()
-                }
-                dryrun = $true
-            }
-
-            # Create a splat to pass to the cmdlet
-            $splat = @{
-                Format = "html"
-                Path = "$testfolder/index.adoc"
-                Output = "${testfolder}/newsletter.html"
-                Libraries = $Libraries
-                Attributes = $Attributes
-            }
-            Invoke-Asciidoc @splat
-        }
-
-        it "will use the correct command" {
-            $Session.commands.list[0] | Should -Match "asciidoctor"
-        }
-
-        it "will use the correct output format" {
-            $Session.commands.list[0] | Should -Match "-b html5"
-        }
-
-        it "will write to the correct file" {
-            # Ensure that the command is correct
-            $Session.commands.list[0] | Should -Match "-o `"$matchFolder/newsletter.html`""
-        }
-    }
-
     Context "PDF" {
 
         BeforeAll {
@@ -151,19 +80,39 @@ Describe "Invoke-Asciidoc" {
                 commands = @{
                     list = @()
                 }
-                dryrun = $true
+                dryrun   = $true
             }
 
-            Invoke-Asciidoc -Format pdf -Path "$testfolder/index.adoc" -Output "${testfolder}/newsletter.pdf"
+            Invoke-Asciidoc -pdf -path $testfolder -output "${testfolder}/newsletter.pdf"
+
+            $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -o `"newsletter.pdf`" -D `"$testfolder`" $testfolder --failure-level warn"
+
+            Should -Invoke -CommandName Write-Information -Times 1
         }
 
-        it "will use the correct command" {
-            $Session.commands.list[0] | Should -Match "asciidoctor-pdf"
+        it "will generate a PDF with attributes" {
+
+            # Create attributes array
+            $attributes = @(
+                "allow-read-uri",
+                "pdf-fontsdir=/fonts",
+                "stackscli_version={{ BUILDNUMBER }}"
+            )
+
+            Invoke-Asciidoc -pdf -path $testfolder -output "${testfolder}/newsletter.pdf" -attributes $attributes
+
+            $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -a allow-read-uri -a pdf-fontsdir=/fonts -a stackscli_version=74.83.10.13 -o `"newsletter.pdf`" -D `"$testfolder`" $testfolder --failure-level warn"
+
+            Should -Invoke -CommandName Write-Information -Times 1
         }
 
-        it "will write to the correct file" {
-            # Ensure that the command is correct
-            $Session.commands.list[0] | Should -Match "-o `"$matchFolder/newsletter.pdf`""
+        It "will use a settings file" {
+
+            Invoke-AsciiDoc -pdf -basepath $testfolder -config $settings_file
+
+            $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -a allow-read-uri -o `"Pester Newsletter.pdf`" -D `"$testfolder`" $testfolder --failure-level warn"
+
+            Should -Invoke -CommandName Write-Information -Times 1
         }
 
     }

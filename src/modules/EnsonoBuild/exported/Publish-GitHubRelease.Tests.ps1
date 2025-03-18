@@ -15,10 +15,10 @@ Describe "Publish-GitHubRelease" {
 
             # Mock commands
             Mock -CommandName Write-Error -MockWith {} -ParameterFilter { $Message.ToLower().Contains("version") }
-            Mock -CommandName Write-Error -MockWith {} -ParameterFilter { $Message.ToLower().Contains("unable to call api")}
+            Mock -CommandName Write-Error -MockWith {} -ParameterFilter { $Message.ToLower().Contains("unable to call api") }
             Mock -CommandName Write-Information -MockWith {}
 
-            Mock -CommandName Invoke-WebRequest -MockWith { throw "Unable to call API" } -ParameterFilter { $Uri.AbsoluteUri.ToLower().Contains("api.github.com/repos/amido/pester")}
+            Mock -CommandName Invoke-WebRequest -MockWith { throw "Unable to call API" } -ParameterFilter { $Uri.AbsoluteUri -eq "https://api.github.com/repos/Ensono/pester/releases" }
         }
 
         BeforeEach {
@@ -61,7 +61,7 @@ Describe "Publish-GitHubRelease" {
             $splat = @{
                 version = "100.98.99"
                 commitId = "hjggh66"
-                owner = "amido"
+                owner = "Ensono"
                 apiKey = "1245356"
                 repository = "pester"
                 artifactsDir = $testfolder
@@ -75,6 +75,215 @@ Describe "Publish-GitHubRelease" {
         }
     }
 
+    Context "Errors will be thrown (artefact handling)" {
+
+        BeforeEach {
+
+            # Create a folder to use for each test
+            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        }
+
+        AfterEach {
+
+            Remove-Item -Path $testFolder -Recurse -Force
+        }
+
+        It "if file does not exist, should error" {
+
+            Mock `
+                -CommandName Get-ChildItem `
+                -MockWith { throw } `
+                -ParameterFilter { $Path -eq $testFolder -and $Filter -eq "foo.ps1" -and $ErrorAction -eq "Stop" } `
+                -Verifiable
+
+            Mock `
+                -CommandName Get-ChildItem `
+                -MockWith { } `
+                -Verifiable
+
+            Mock `
+                -CommandName Write-Host `
+                -MockWith { } `
+                -Verifiable
+
+            Mock `
+                -CommandName Write-Error `
+                -MockWith { } `
+                -Verifiable
+
+            Mock `
+                -CommandName Invoke-WebRequest `
+                -MockWith { } `
+
+            $splat = @{
+                version = "100.98.99"
+                commitId = "hjggh66"
+                owner = "Ensono"
+                apiKey = "1245356"
+                repository = "pester"
+                artifactsDir = $testfolder
+                artifactsList = @("foo.ps1", "bar.ps1")
+                publishRelease = $true
+            }
+
+            Publish-GitHubRelease @splat
+
+            Should -InvokeVerifiable
+            Should -Invoke -CommandName Write-Error -Times 1 -ParameterFilter { $Message -eq "One or more of the files can't be found..! See above for the files not found..." }
+            Should -Invoke -CommandName Get-ChildItem -Times 2
+            Should -Invoke -CommandName Invoke-WebRequest -Times 0
+        }
+
+        It "if file exists, will error if there is an issue talking to the GitHub API for artefact uploading" {
+
+            Mock `
+                -CommandName Get-ChildItem `
+                -MockWith { $Filter } `
+                -Verifiable
+
+            Mock `
+                -CommandName Write-Error `
+                -MockWith { } `
+                -Verifiable
+
+            Mock `
+                -CommandName Invoke-WebRequest `
+                -MockWith { return @{content = @"
+                {
+                    "upload_url": "https://api.github.com/repo/upload"
+                }
+"@
+                } } `
+                -ParameterFilter { $Uri.AbsoluteUri -eq "https://api.github.com/repos/Ensono/pester/releases" } `
+                -Verifiable
+
+            Mock `
+                -CommandName Invoke-WebRequest `
+                -MockWith { throw } `
+                -Verifiable
+
+            # bar.ps1 uploads successfully
+            Mock `
+                -CommandName Invoke-WebRequest `
+                -MockWith { "uploaded" } `
+                -ParameterFilter { $InFile -eq "bar.ps1" } `
+                -Verifiable
+
+            Mock `
+                -CommandName Get-Item `
+                -MockWith { "Some amazing content" } `
+                -Verifiable
+
+            $splat = @{
+                version = "100.98.99"
+                commitId = "hjggh66"
+                owner = "Ensono"
+                apiKey = "1245356"
+                repository = "pester"
+                artifactsDir = $testfolder
+                artifactsList = @("foo.ps1", "bar.ps1")
+                publishRelease = $true
+            }
+
+            Publish-GitHubRelease @splat
+
+            Should -InvokeVerifiable
+            Should -Invoke -CommandName Get-ChildItem -Times 2
+            Should -Invoke -CommandName Invoke-WebRequest -Times 3
+            Should -Invoke -CommandName Write-Error -Times 1 -ParameterFilter { $Message -eq "An error has occured, cannot upload foo.ps1: ScriptHalted" }
+            Should -Invoke -CommandName Write-Error -Times 0 -ParameterFilter { $Message -eq "An error has occured, cannot upload bar.ps1: ScriptHalted" }
+        }
+    }
+
+    Context "Setting 'uploadArtifacts' to `$false (artefact handling)" {
+
+        BeforeEach {
+
+            # Create a folder to use for each test
+            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        }
+
+        AfterEach {
+
+            Remove-Item -Path $testFolder -Recurse -Force
+        }
+
+        It "if 'artifactsDir' does not exist, should not error" {
+
+            Mock `
+                -CommandName Get-ChildItem `
+                -MockWith { }
+
+            Mock `
+                -CommandName Write-Error `
+                -MockWith { }
+
+            Mock `
+                -CommandName Invoke-WebRequest `
+                -MockWith { return @{content = @"
+                {
+                    "upload_url": "https://api.github.com/repo/upload"
+                }
+"@
+                } } `
+                -Verifiable
+
+            $splat = @{
+                version = "100.98.99"
+                commitId = "hjggh66"
+                owner = "Ensono"
+                apiKey = "1245356"
+                repository = "pester"
+                artifactsDir = $testfolder
+                artifactsList = @()
+                publishRelease = $true
+                uploadArtifacts = $false
+            }
+
+            Publish-GitHubRelease @splat
+
+            Should -InvokeVerifiable
+            Should -Invoke -CommandName Write-Error -Times 0
+            Should -Invoke -CommandName Get-ChildItem -Times 0
+            Should -Invoke -CommandName Invoke-WebRequest -Times 1
+        }
+
+        It "if 'artifactsList is not empty" {
+
+            Mock `
+                -CommandName Get-ChildItem `
+                -MockWith { }
+
+            Mock `
+                -CommandName Write-Error `
+                -MockWith { } `
+                -Verifiable
+
+            Mock `
+                -CommandName Invoke-WebRequest `
+                -MockWith { }
+
+            $splat = @{
+                version = "100.98.99"
+                commitId = "hjggh66"
+                owner = "Ensono"
+                apiKey = "1245356"
+                repository = "pester"
+                artifactsDir = $testfolder
+                artifactsList = @("file", "file2")
+                publishRelease = $true
+                uploadArtifacts = $false
+            }
+
+            Publish-GitHubRelease @splat
+
+            Should -InvokeVerifiable
+            Should -Invoke -CommandName Write-Error -Times 1 -ParameterFilter { $Message -eq "'uploadArtifacts' is set to false, but 'artifactsList' isn't empty..." }
+            Should -Invoke -CommandName Get-ChildItem -Times 0
+            Should -Invoke -CommandName Invoke-WebRequest -Times 0
+        }
+    }
+
     Context "Release is created" {
 
         BeforeAll {
@@ -83,14 +292,14 @@ Describe "Publish-GitHubRelease" {
 
             # Mock the Invoke-WebRequest cmdlet so that it returns a valid object, which contains
             # valid JSON strng
-            Mock -CommandName Invoke-WebRequest -MockWith { 
+            Mock -CommandName Invoke-WebRequest -MockWith {
                 return @{content = @"
     {
         "upload_url": "https://api.github.com/repo/upload"
     }
 "@
                 }
-             }
+            }
         }
 
         BeforeEach {
@@ -112,7 +321,7 @@ Describe "Publish-GitHubRelease" {
             $splat = @{
                 version = "100.98.99"
                 commitId = "hjggh66"
-                owner = "amido"
+                owner = "Ensono"
                 apiKey = "1245356"
                 repository = "pester"
                 artifactsDir = $testfolder
@@ -126,19 +335,19 @@ Describe "Publish-GitHubRelease" {
         It "with the specified artifacts and environment variable publishing" {
 
             $env:PUBLISH_RELEASE = 'true'
-            
+
             $splat = @{
                 version = "100.98.99"
                 commitId = "hjggh66"
-                owner = "amido"
+                owner = "Ensono"
                 apiKey = "1245356"
                 repository = "pester"
                 artifactsDir = $testfolder
-                
+
             }
 
             Publish-GitHubRelease @splat
-            
+
             $env:PUBLISH_RELEASE = $null
 
             Should -Invoke -CommandName Invoke-WebRequest -Times 2
