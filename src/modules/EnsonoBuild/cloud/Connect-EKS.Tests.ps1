@@ -7,7 +7,7 @@ Describe "Connect-EKS" {
 
         # Import dependencies
         . $PSScriptRoot/../utils/Confirm-Parameters.ps1
-        . $PSScriptRoot/../command/Invoke-External.ps1
+        . $PSScriptRoot/../exported/Invoke-External.ps1
 
         # Mocks
         # - Write-Error

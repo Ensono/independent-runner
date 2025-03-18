@@ -75,6 +75,11 @@ $result = Invoke-Pester -Configuration $configuration
 
 $exitCode = $LASTEXITCODE
 
+if ($IsLinux) {
+    $outputRoot = ($output -Split [IO.Path]::DirectorySeparatorChar)[0] | Resolve-Path
+    chown -R $env:HOST_UIDGID $outputRoot
+}
+
 if ($exitCode -ne 0) {
     Write-Error "ERROR: $($result.FailedCount) Test Failures"
 

@@ -7,7 +7,7 @@ Describe "Publish-Confluence" {
 
         # Include dependencies
         . $PSScriptRoot/../api/Invoke-API.ps1
-        . $PSScriptRoot/../command/Stop-Task.ps1
+        . $PSScriptRoot/../exported/Stop-Task.ps1
         . $PSscriptRoot/../utils/Build-URI.ps1
         . $PSscriptRoot/../utils/Confirm-Parameters.ps1
         . $PSscriptRoot/../utils/Get-Checksum.ps1
@@ -23,7 +23,7 @@ Describe "Publish-Confluence" {
         Mock -CommandName Invoke-Api -MockWith {
             return ""
         } -ParameterFilter {
-           $method -eq "PUT"
+            $method -eq "PUT"
         }
 
         # Invoke-Api mocks
@@ -42,7 +42,7 @@ Describe "Publish-Confluence" {
 "@
                     }
         } -ParameterFilter {
-            $method -ieq "POST" -and 
+            $method -ieq "POST" -and
             $body -ilike "*Initial page created*"
         }
 
@@ -50,7 +50,7 @@ Describe "Publish-Confluence" {
             return ""
         } -ParameterFilter {
             $method -eq "PUT" -and $url -like "*/property/checksum*"
-        }        
+        }
     }
 
     Context "Adding a new page" {
@@ -68,7 +68,7 @@ Describe "Publish-Confluence" {
             # - Get-PageImage mocks
             Mock -CommandName Get-PageImages -MockWith {
                 @()
-            }            
+            }
         }
 
         It "will publish content" {
@@ -78,7 +78,7 @@ Describe "Publish-Confluence" {
             Should -Invoke -CommandName Confirm-Parameters -Times 1
             Should -Invoke -CommandName Get-ConfluencePage -Times 1
             Should -Invoke -CommandName Invoke-Api -Times 2
-            
+
         }
     }
 

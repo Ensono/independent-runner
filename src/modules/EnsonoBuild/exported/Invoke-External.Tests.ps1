@@ -56,12 +56,16 @@ Describe "Invoke-External" {
 
         BeforeAll {
             # Define the session variable
-            # Set the command log file and all commands are run in dryrun
+            # Set the command log file
             $global:Session = @{
                 commands = @{
                     list = @()
                 }
             }
+
+            Mock `
+                -Command Write-Host `
+                -MockWith {}
         }
 
         It "are run" {

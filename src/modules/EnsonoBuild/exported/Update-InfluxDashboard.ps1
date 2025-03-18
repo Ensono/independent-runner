@@ -7,7 +7,7 @@ function Update-InfluxDashboard() {
 
     .DESCRIPTION
     With pielines being defined as code, it has become more difficult to show visually what applications have
-    been deployed in what environment. This cmdlet uses InfluxDB to create a dashboard of applications and 
+    been deployed in what environment. This cmdlet uses InfluxDB to create a dashboard of applications and
     which version has been deployed into each environment.
 
     This function will send data to an InfluxDB (a time based database) so that a dahsboard can be generated. This
@@ -59,15 +59,13 @@ function Update-InfluxDashboard() {
         Write-Information -MessageData ("Neither publishRelease parameter nor PUBLISH_RELEASE environment variable set to `'true`', exiting.")
         return
     }
-    
+
     # Validate all parameters are supplied
     $result = Confirm-Parameters -list @("measurement", "tags", "version", "influx_server", "influx_token", "influx_org", "influx_bucket")
     if (!$result) {
         Write-Error -Message "Missing parameters"
         return
     }
-
-
 
     # Confirm influx server is HTTPS web address
     $result = $false
@@ -101,7 +99,7 @@ function Update-InfluxDashboard() {
 
     # Generate the request URI
     $uri = "{0}/api/v2/write?org={1}&bucket={2}" -f $influx_server,$influx_org,$influx_bucket
-    
+
     Write-Information -MessageData ("URI: {0}" -f $uri)
 
     # Generate the headers
@@ -114,9 +112,9 @@ function Update-InfluxDashboard() {
     $object = ,"$measurement" + $object
     $tags = $object -join ","
     $body = "$tags" + " version=`"$version`""
-    
+
     # Invoke-RestMethod on InfluxDB endpoint
-    try     { Invoke-RestMethod -Method POST -Header $headers -uri $uri -body $body 
+    try     { Invoke-RestMethod -Method POST -Header $headers -uri $uri -body $body
             Write-Information "InfluxDB Updated" }
     catch   { Write-Error $_
             return }

@@ -83,6 +83,7 @@
         "Expand-Template",
         "Invoke-Asciidoc",
         "Invoke-DotNet",
+        "Invoke-External",
         "Invoke-GitClone",
         "Invoke-Helm",
         "Invoke-Inspec",
@@ -97,6 +98,7 @@
         "Publish-Confluence",
         "Publish-GitHubRelease",
         "Set-Config",
+        "Stop-Task",
         "Update-BuildNumber",
         "Update-InfluxDashboard"
     )

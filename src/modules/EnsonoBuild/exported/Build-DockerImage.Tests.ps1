@@ -33,7 +33,7 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
 
         # Import dependencies that the function under test requires
         . $PSScriptRoot/../command/Find-Command.ps1
-        . $PSScriptRoot/../command/Invoke-External.ps1
+        . $PSScriptRoot/../exported/Invoke-External.ps1
         . $PSScriptRoot/../cloud/Connect-Azure.ps1
         . $PSScriptRoot/../utils/Confirm-TrunkBranch.ps1
         . $PSScriptRoot/../utils/Get-CPUArchitecture.ps1
@@ -110,7 +110,7 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
         }
 
         It "must error if trying to push and no registry has been specified" {
-            Build-DockerImage  -Name unittests -Push
+            Build-DockerImage -Name unittests -Push
 
             Should -Invoke -CommandName Write-Error -Times 1
         }
@@ -132,12 +132,12 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
             # Call the function under test
             Build-DockerImage -name pester-tests -tag "unittests"
 
-            $Session.commands.list[0] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests --platform linux/amd64"
+            $Session.commands.list[0] | Should -BeLike "*docker* buildx build -t docker.io/pester-tests:unittests --platform linux/amd64 ."
         }
 
         AfterAll {
             Remove-Item Alias:\Get-CPUArchitecture
-        }        
+        }
     }
 
     Context "Check platform build flags for ARM based CPU" {
@@ -150,13 +150,13 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
             # Call the function under test
             Build-DockerImage -name pester-tests -tag "unittests"
 
-            $Session.commands.list[0] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests --platform linux/arm64"
+            $Session.commands.list[0] | Should -BeLike "*docker* buildx build -t docker.io/pester-tests:unittests --platform linux/arm64 ."
         }
 
         AfterAll {
             Remove-Item Alias:\Get-CPUArchitecture
         }
-    }    
+    }
 
     Context "Build without push" {
 
@@ -172,7 +172,7 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
 
             # Check that the command that will be run is correct
             # This is done by checking the command list
-            $Session.commands.list[0] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests --platform linux/arm64,linux/amd64"
+            $Session.commands.list[0] | Should -BeLike "*docker* buildx build -t docker.io/pester-tests:unittests --platform linux/arm64,linux/amd64 ."
         }
 
         It "will build the image and set a different platform to build for" {
@@ -182,7 +182,7 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
 
             # Check that the command that will be run is correct
             # This is done by checking the command list
-            $Session.commands.list[0] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests --platform linux/arm/v7"
+            $Session.commands.list[0] | Should -BeLike "*docker* buildx build -t docker.io/pester-tests:unittests --platform linux/arm/v7 ."
         }
 
         It "will tag the image accordingly if a registry is specified" {
@@ -190,7 +190,7 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
             # Call the function under test
             Build-DockerImage -name pester-tests -tag "unittests" -Registry "pesterreg" -platforms "linux/arm64","linux/amd64"
 
-            $Session.commands.list[0] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests --platform linux/arm64,linux/amd64"
+            $Session.commands.list[0] | Should -BeLike "*docker* buildx build -t pesterreg/pester-tests:unittests --platform linux/arm64,linux/amd64 ."
         }
 
         It "will correctly change the case of the input to create a valid image" {
@@ -198,7 +198,7 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
             # Call the function under test
             Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -platforms "linux/arm64","linux/amd64"
 
-            $Session.commands.list[0] | Should -BeLikeExactly "*docker* buildx build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests --platform linux/arm64,linux/amd64"
+            $Session.commands.list[0] | Should -BeLikeExactly "*docker* buildx build -t pesterreg/pester-tests:unittests --platform linux/arm64,linux/amd64 ."
 
         }
 
@@ -209,15 +209,15 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
             # Call the function under test
             Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -latest -force -platforms "linux/arm64","linux/amd64"
 
-            $Session.commands.list[0] | Should -BeLikeExactly "*docker* buildx build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests -t pesterreg/pester-tests:latest --platform linux/arm64,linux/amd64"
+            $Session.commands.list[0] | Should -BeLikeExactly "*docker* buildx build -t pesterreg/pester-tests:unittests -t pesterreg/pester-tests:latest --platform linux/arm64,linux/amd64 ."
         }
 
         It "will remove quotes surrounding build args when passing to Docker" {
 
             # Call the function to test
-            Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -BuildArgs "`"--build-arg functionName=PesterFunction .`"" -platforms "linux/arm64","linux/amd64"
+            Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -BuildArgs "`"--build-arg functionName=PesterFunction`"" -BuildPath "." -platforms "linux/arm64","linux/amd64"
 
-            $Session.commands.list[0] | Should -BeLikeExactly "*docker* buildx build --build-arg functionName=PesterFunction . -t pester-tests:unittests -t pesterreg/pester-tests:unittests --platform linux/arm64,linux/amd64"
+            $Session.commands.list[0] | Should -BeLikeExactly "*docker* buildx build --build-arg functionName=PesterFunction -t pesterreg/pester-tests:unittests --platform linux/arm64,linux/amd64 ."
         }
 
     }
@@ -229,17 +229,17 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
             # Call the function under test
             Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -latest -platforms "linux/arm64","linux/amd64"
 
-            $Session.commands.list[0] | Should -BeLikeExactly "*docker* buildx build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests -t pesterreg/pester-tests:latest --platform linux/arm64,linux/amd64"
+            $Session.commands.list[0] | Should -BeLikeExactly "*docker* buildx build -t pesterreg/pester-tests:unittests -t pesterreg/pester-tests:latest --platform linux/arm64,linux/amd64 ."
         }
 
         it "will not set latest if not on a trunk branch" {
 
             Mock -Command Confirm-TrunkBranch -MockWith { $false }
 
-             # Call the function under test
-             Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -latest -platforms "linux/arm64","linux/amd64"
+            # Call the function under test
+            Build-DockerImage -name Pester-tests -tag "Unittests" -Registry "pesterreg" -latest -platforms "linux/arm64","linux/amd64"
 
-             $Session.commands.list[0] | Should -BeLikeExactly "*docker* buildx build . -t pester-tests:unittests -t pesterreg/pester-tests:unittests --platform linux/arm64,linux/amd64"
+            $Session.commands.list[0] | Should -BeLikeExactly "*docker* buildx build -t pesterreg/pester-tests:unittests --platform linux/arm64,linux/amd64 ."
         }
     }
 
@@ -266,10 +266,10 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
             $Session.commands.list.length | Should -Be 2
 
             # Check that docker logs into the registry
-            $Session.commands.list[0] | Should -BeLike "*docker* login docker.io -u pester -p pester123" 
+            $Session.commands.list[0] | Should -BeLike "*docker* login docker.io -u pester -p pester123"
 
             # Check the build command
-            $Session.commands.list[1] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests -t docker.io/pester-tests:unittests --platform linux/amd64 --push"
+            $Session.commands.list[1] | Should -BeLike "*docker* buildx build -t docker.io/pester-tests:unittests --platform linux/amd64 --push ."
 
         }
 
@@ -291,7 +291,7 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
             $Session.commands.list.length | Should -Be 1
 
             # Check the build command
-            $Session.commands.list[0] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests -t docker.io/pester-tests:unittests --platform linux/arm64,linux/amd64"
+            $Session.commands.list[0] | Should -BeLike "*docker* buildx build -t docker.io/pester-tests:unittests --platform linux/arm64,linux/amd64 ."
 
             # Remove the environment variable
             if ($no_push_exists) {
@@ -336,7 +336,7 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
             $Session.commands.list[0] | Should -BeLike "*docker* login docker.io -u pester -p pester123"
 
             # Check the build command
-            $Session.commands.list[1] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests -t docker.io/pester-tests:unittests -t docker.io/pester-tests:latest --platform linux/arm64,linux/amd64 --push"
+            $Session.commands.list[1] | Should -BeLike "*docker* buildx build -t docker.io/pester-tests:unittests -t docker.io/pester-tests:latest --platform linux/arm64,linux/amd64 --push ."
         }
 
         AfterEach {
@@ -364,7 +364,7 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
             $Session.commands.list[0] | Should -BeLike "*docker* login docker.io -u pester -p pester123"
 
             # Check the build command
-            $Session.commands.list[1] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests -t docker.io/pester-tests:unittests --platform linux/arm64,linux/amd64 --push"
+            $Session.commands.list[1] | Should -BeLike "*docker* buildx build -t docker.io/pester-tests:unittests --platform linux/arm64,linux/amd64 --push ."
 
         }
     }
@@ -387,7 +387,7 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
             $Session.commands.list[0] | Should -BeLike "*docker* login docker.io -u pester -p pester123"
 
             # Check the build command
-            $Session.commands.list[1] | Should -BeLike "*docker* buildx build . -t pester-tests:unittests -t docker.io/pester-tests:unittests -t docker.io/pester-tests:latest --platform linux/arm64,linux/amd64 --push"
+            $Session.commands.list[1] | Should -BeLike "*docker* buildx build -t docker.io/pester-tests:unittests -t docker.io/pester-tests:latest --platform linux/arm64,linux/amd64 --push ."
         }
     }
 }

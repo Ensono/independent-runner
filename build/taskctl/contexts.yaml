@@ -7,18 +7,15 @@ contexts:
         - --rm
         - -v
         - ${PWD}:/app
-        - -e
-        - PSModulePath=/app/src/modules
         - -w
         - /app
-        # - amidostacks/runner-pwsh-asciidoctor:0.4.60-stable
-        - ensonostackseuweirdfmu.azurecr.io/ensono/eir-asciidoctor:latest
+        - -e
+        - PSModulePath=/app/src/modules
+        - ensono/eir-asciidoctor:latest
         - pwsh
-        - -NoProfile
         - -Command
     quote: "'"
     envfile:
-      generate: true
       exclude:
         - path
         - home
@@ -37,43 +34,16 @@ contexts:
         - envfile
         - -e
         - PSModulePath=/app/src/modules
+        - -e HOST_UIDGID=$UID:$GID
         - -w
         - /app
-        - amidostacks/runner-pwsh:0.4.60-stable
+        - ensono/eir-infrastructure:1.1.224
         - pwsh
-        - -NoProfile
         - -Command
     quote: "'"
     envfile:
-      generate: true
       include:
         - TF_BUILD
-
-  powershell_localmodule:
-    executable:
-      bin: docker
-      args:
-        - run
-        - --env-file envfile
-        - --rm
-        - -v
-        - ${PWD}:/app
-        - -v
-        - /var/run/docker.sock:/var/run/docker.sock
-        - -e
-        - PSModulePath=/app/src/modules
-        - -w
-        - /app
-        - amidostacks/runner-pwsh:0.4.60-stable
-        - pwsh
-        - -NoProfile
-        - -Command
-    quote: "'"
-    envfile:
-      exclude:
-        - home
-        - path
-      generate: true
 
   powershell:
     executable:
@@ -86,20 +56,16 @@ contexts:
         - ${PWD}:/app
         - -v
         - /var/run/docker.sock:/var/run/docker.sock
-        - -e
-        - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh:0.4.60-stable
+        - ensono/eir-infrastructure:1.1.224
         - pwsh
-        - -NoProfile
         - -Command
     quote: "'"
     envfile:
       exclude:
         - home
         - path
-      generate: true
 
   dotnet:
     executable:
@@ -111,12 +77,9 @@ contexts:
         - ${PWD}:/app
         - -v
         - /var/run/docker.sock:/var/run/docker.sock
-        - -e
-        - PSModulePath=/app/src/modules
         - -w
         - /app
-        - amidostacks/runner-pwsh-dotnet:0.4.60-stable
+        - ensono/eir-dotnet:1.1.224
         - pwsh
-        - -NoProfile
         - -Command
     quote: "'"
