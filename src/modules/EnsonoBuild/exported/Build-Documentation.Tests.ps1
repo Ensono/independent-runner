@@ -201,7 +201,7 @@ Describe "Build-Documentation" {
 
                 $pattern = 'pdf-fontsdir="{0}/conf/fonts;GEM_FONTS_DIR"' -f ($testFolder -replace "\\", "\\")
                 $Session.commands.list[0] | Should -Match $pattern
-                =======
+                
                 # Check that the MDX file would be created
                 Should -Invoke -CommandName ConvertTo-MDX -Times 1
 
