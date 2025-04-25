@@ -64,8 +64,8 @@ contexts:
     quote: "'"
     envfile:
       exclude:
-        - home
-        - path
+        - HOME
+        - PATH
 
   dotnet:
     executable:
