@@ -64,25 +64,17 @@ function Invoke-Asciidoc() {
     [CmdletBinding()]
     param (
 
-        [Parameter(
-            ParameterSetName = "pdf"
-        )]
-        [switch]
-        # State that the document should be PDF
-        $pdf,
-
-        [Parameter(
-            ParameterSetName = "html"
-        )]
-        [switch]
-        # State that the document should be HTML
-        $html,
-
         [string]
+        $Format, 
+
+        #[string]
         # Path to configuration file with all the necessary settings
         # If specified additional specific parameters are specifed, those values will
         # override the ones in the configuration file
-        $config,
+        #$config,
+
+        [string[]]
+        $Libraries,
 
         [string]
         # Output filename
@@ -134,7 +126,8 @@ function Invoke-Asciidoc() {
     $Path = Replace-Tokens -Tokens $tokens -Data $Path
 
     # Add in the extra arguments
-    $arguments += @("-o `"{0}`"" -f (Split-Path -Path $Output -Leaf))
+    # $arguments += @("-o `"{0}`"" -f (Split-Path -Path $Output -Leaf))
+    $arguments += "-o `"{0}`"" -f $Output
 
     # If there are any libraries, iterate around each of them and add to the arguments
     if ($Libraries.count -gt 0) {
@@ -151,7 +144,7 @@ function Invoke-Asciidoc() {
     }
 
     # Stitch the full command together
-    $cmd = "{0} {1} {2}" -f ($cmdline -join " "), (Replace-Tokens -Tokens $tokens $settings.path), "--failure-level ${failureLevel}"
+    $cmd = "{0} {1} {2}" -f ($command -join " "), ($arguments -join " "), (Replace-Tokens -Tokens $tokens $settings.path), "--failure-level ${failureLevel}"
 
     # Execute the command
     Invoke-External -Command $cmd -AdditionalExitCodes $ExitCodes

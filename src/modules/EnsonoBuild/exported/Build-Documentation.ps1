@@ -296,7 +296,7 @@ function Build-Documentation {
 
                         # Merge top-level command attributes with the format specific attributes
                         $attributes = $settings.attributes.asciidoctor
-                        "before"
+
                         if ($settings.$format.attributes.asciidoctor.length -gt 0) {
                             $attributes += $settings.$format.attributes.asciidoctor
                         }
@@ -312,7 +312,7 @@ function Build-Documentation {
                         }
 
                         Invoke-AsciiDoc @splat
-
+                        
                         $previous_filename = $output_path
                     }
 
@@ -329,7 +329,7 @@ function Build-Documentation {
                             To         = $format_mapping[$format].commands.pandoc.to
                             Output     = $output_path
                             Path       = $input_file
-                            Attributes = $settings.$format.attributes.pandoc
+                            Attributes = Replace-Tokens -tokens $tokens -data $settings.$format.attributes.pandoc
                         }
 
                         Invoke-Pandoc @splat
