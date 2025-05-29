@@ -3,8 +3,7 @@ contexts:
     container:
       name: ensono/eir-asciidoctor
       container_args:
-        - -e
-        - PSModulePath=/workspace/.taskctl/src/modules
+        - -e PSModulePath=/workspace/.taskctl/src/modules
       shell: pwsh
       shell_args:
         - -Command
