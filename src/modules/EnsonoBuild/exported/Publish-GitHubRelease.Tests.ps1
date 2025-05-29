@@ -56,9 +56,9 @@ Describe "Publish-GitHubRelease" {
 
         It "if parameters have not been set" {
 
-            Publish-GitHubRelease -publishRelease $true
+            $result = Publish-GitHubRelease -publishRelease $true
 
-            Should -Invoke -CommandName Write-Error -Times 1
+            $result | Should -Be $false
         }
 
         It "will error if there is an issue talking to the GitHub API" {
