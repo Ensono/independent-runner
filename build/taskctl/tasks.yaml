@@ -46,14 +46,16 @@ tasks:
   tests:coverage_report:
     context: dotnet
     description: Create Cobertura report xml from coverage xml
-    command:
-      - Invoke-DotNet -Coverage -Pattern pester-coverage.xml -Path /app -Source /workspace/.taskctl/src/modules/EnsonoBuild -Target /workspace/.taskctl/outputs/tests
+    command: |
+      Import-Module /workspace/.taskctl/src/modules/EnsonoBuild/EnsonoBuild.psd1 -Force
+      Invoke-DotNet -Coverage -Pattern pester-coverage.xml -Path /workspace/.taskctl -Source /workspace/.taskctl/src/modules/EnsonoBuild -Target /workspace/.taskctl/outputs/tests
 
   tests:coverage_report_html:
     context: dotnet
     description: Create HTML report from coverage xml
-    command:
-      - Invoke-DotNet -Coverage -Type Html -Pattern Cobertura.xml -Path /app -Source src/modules/EnsonoBuild -Target /workspace/.taskctl/outputs/tests
+    command: |
+      Import-Module /workspace/.taskctl/src/modules/EnsonoBuild/EnsonoBuild.psd1 -Force
+      Invoke-DotNet -Coverage -Type Html -Pattern Cobertura.xml -Path /workspace/.taskctl -Source src/modules/EnsonoBuild -Target /workspace/.taskctl/outputs/tests
 
   tests:fail_on_error:
     context: powershell
