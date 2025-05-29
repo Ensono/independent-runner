@@ -249,7 +249,7 @@ Describe "Build-Documentation" {
             # Call the command and then test the output in the session
             $splat = @{
                 BasePath = $testFolder
-                Type     = "md"
+                Type     = "docx"
                 Config   = $configFile
                 Version  = "1.2-pester"
             }

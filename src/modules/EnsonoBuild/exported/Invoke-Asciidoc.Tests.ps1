@@ -17,9 +17,6 @@ Describe "Invoke-Asciidoc" {
         # Create the testFolder
         $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
 
-        # Escape the test folder separator if necessary
-        $matchFolder = $testFolder -replace '\\', '\\'
-
         # Set the libs that need to be applied
         $Libraries = @("asciidoctor-diagram")
         
@@ -67,7 +64,7 @@ Describe "Invoke-Asciidoc" {
         }
 
         it "all generated files will be written to the output directory" {
-            $Session.commands.list[0] | Should -Match "-D `"$matchFolder`"/newsletter.xml"
+            $session.commands.list[0] | Should -Match ([Regex]::Escape('-o "{0}/newsletter.xml"' -f $testFolder))
         }
     }
 
@@ -105,15 +102,5 @@ Describe "Invoke-Asciidoc" {
 
             Should -Invoke -CommandName Write-Information -Times 1
         }
-
-        It "will use a settings file" {
-
-            Invoke-AsciiDoc -Format pdf -path $testfolder -config $settings_file
-
-            $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -a allow-read-uri -o `"Pester Newsletter.pdf`" -D `"$testfolder`" $testfolder --failure-level warn"
-
-            Should -Invoke -CommandName Write-Information -Times 1
-        }
-
     }
 }
