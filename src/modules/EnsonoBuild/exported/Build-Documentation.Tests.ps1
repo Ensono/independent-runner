@@ -21,8 +21,8 @@ Describe "Build-Documentation" {
         . $PSScriptRoot/$relativePath/utils/Set-Tokens.ps1
 
         # Determine the separator for the test evnrionment
-        $separator = [IO.Path]::DirectorySeparatorChar
-        $separator = $separator -replace '\\', '\\'
+        $osDirSeparator = [IO.Path]::DirectorySeparatorChar
+        $separator = $osDirSeparator -replace '\\', '\\'
 
         ############################################################
         # Helper Functions
@@ -131,7 +131,7 @@ Describe "Build-Documentation" {
             Build-Documentation @splat
 
             # Check that the asciidoctor-pdf command was added to the session
-            $expected = 'asciidoctor-pdf -o "output\Pester Tests.pdf" {0}' -f $indexFile.FullName
+            $expected = 'asciidoctor-pdf -o "{0}" {1}' -f [IO.Path]::Combine("output", "Pester Tests.pdf"), $indexFile.FullName
             $Session.commands.list[0] | Should -BeLike $expected
         }
 
@@ -149,7 +149,7 @@ Describe "Build-Documentation" {
             Build-Documentation @splat
 
             # Check that the asciidoctor-pdf command was added to the session
-            $expected = 'asciidoctor-pdf -o "output\Pester Tests.pdf" -a pdf-theme=styles/theme.yml -a doctype="book" {0}' -f $indexFile.FullName
+            $expected = 'asciidoctor-pdf -o "{0}" -a pdf-theme=styles/theme.yml -a doctype="book" {1}' -f [IO.Path]::Combine("output", "Pester Tests.pdf"), $indexFile.FullName
             $Session.commands.list[0] | Should -BeLike $expected
         }
 
