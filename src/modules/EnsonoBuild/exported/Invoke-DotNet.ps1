@@ -39,7 +39,7 @@ function Invoke-DotNet() {
         [Alias("folder", "project", "workingDirectory")]
         [string]
         # Directory that the build should be performed in
-        $path,
+        $path = $PWD,
 
         [Parameter(
             ParameterSetName = "coverage"
