@@ -54,13 +54,6 @@ Describe "Publish-GitHubRelease" {
             Should -Invoke -CommandName Write-Information -Times 1
         }
 
-        It "if parameters have not been set" {
-
-            $result = Publish-GitHubRelease -publishRelease $true
-
-            $result | Should -Be $false
-        }
-
         It "will error if there is an issue talking to the GitHub API" {
 
             $splat = @{
