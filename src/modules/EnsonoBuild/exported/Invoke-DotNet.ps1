@@ -30,7 +30,7 @@ function Invoke-DotNet() {
     param (
 
         [Parameter(
-            ParameterSetName="build"
+            ParameterSetName = "build"
         )]
         [switch]
         # Run .NET Build
@@ -42,31 +42,31 @@ function Invoke-DotNet() {
         $path,
 
         [Parameter(
-            ParameterSetName="coverage"
+            ParameterSetName = "coverage"
         )]
         [switch]
         # Run .NET coverage command
         $coverage,
 
         [Parameter(
-            ParameterSetName="coverage"
+            ParameterSetName = "coverage"
         )]
         [string]
         # Type of report that should be generated
         $type = "Cobertura",
 
         [Parameter(
-            ParameterSetName="coverage"
+            ParameterSetName = "coverage"
         )]
         [Parameter(
-            ParameterSetName="tests"
+            ParameterSetName = "tests"
         )]
         [string]
         # Pattern used to find the files defining the coverage
         $pattern,
 
         [Parameter(
-            ParameterSetName="coverage"
+            ParameterSetName = "coverage"
         )]
         [Alias("destination")]
         [string]
@@ -74,21 +74,21 @@ function Invoke-DotNet() {
         $target = "coverage",
 
         [Parameter(
-            ParameterSetName="coverage"
+            ParameterSetName = "coverage"
         )]
         [string]
         # Target folder for outputs
         $source,
 
         [Parameter(
-            ParameterSetName="tests"
+            ParameterSetName = "tests"
         )]
         [switch]
         # Run .NET unit tests
         $tests,
 
         [Parameter(
-            ParameterSetName="custom"
+            ParameterSetName = "custom"
         )]
         [switch]
         # Run an arbitary dotnet command that is not currently defined
@@ -104,6 +104,10 @@ function Invoke-DotNet() {
     if (![String]::IsNullOrEmpty($path) -and
         (Test-Path -Path $path)) {
         Push-Location -Path $path -StackName "dotnet"
+    }
+    else {
+        Write-Error "The path specified does not exist: $path"
+        return
     }
 
     # Perform the appropriate action based on the Parameter Set Name that
@@ -124,18 +128,20 @@ function Invoke-DotNet() {
 
             # Find the path to the the reportgenerator command
             $tool = Find-Command -Name "reportgenerator"
-
+            
             # Set the pattern if it has not been defined
             if ([String]::IsNullOrEmpty($pattern)) {
                 $pattern = "*.opencover.xml"
             }
-
+            
             # Find all the files that match the pattern for coverage
             if (![IO.Path]::IsPathRooted($pattern)) {
+                Write-Host "Finding cover files in path: '$path' with pattern: $pattern"
                 $coverFiles = Find-Projects -Pattern $pattern -Path $path
-            } else {
+            }
+            else {
                 if (Test-Path -Path $pattern) {
-                    $coverFiles = @(,(Get-ChildItem -Path $pattern))
+                    $coverFiles = @(, (Get-ChildItem -Path $pattern))
                 }
             }
 
