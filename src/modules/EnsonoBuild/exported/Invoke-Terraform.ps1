@@ -45,70 +45,70 @@ function Invoke-Terraform() {
         $path,
 
         [Parameter(
-            ParameterSetName="apply"
+            ParameterSetName = "apply"
         )]
         [switch]
         # Initalise Terraform
         $apply,
 
         [Parameter(
-            ParameterSetName="custom"
+            ParameterSetName = "custom"
         )]
         [switch]
         # Initalise Terraform
         $custom,
 
         [Parameter(
-            ParameterSetName="format"
+            ParameterSetName = "format"
         )]
         [switch]
         # Validate templates
         $format,
 
         [Parameter(
-            ParameterSetName="init"
+            ParameterSetName = "init"
         )]
         [switch]
         # Initalise Terraform
         $init,
 
         [Parameter(
-            ParameterSetName="plan"
+            ParameterSetName = "plan"
         )]
         [switch]
         # Initalise Terraform
         $plan,
 
         [Parameter(
-            ParameterSetName="output"
+            ParameterSetName = "output"
         )]
         [switch]
         # Initalise Terraform
         $output,
 
         [Parameter(
-            ParameterSetName="output"
+            ParameterSetName = "output"
         )]
         [switch]
         # Allow the output of senstive values
         $sensitive,
 
         [Parameter(
-            ParameterSetName="output"
+            ParameterSetName = "output"
         )]
         [switch]
         # Set the output to be Yaml
         $yaml,
 
         [Parameter(
-            ParameterSetName="validate"
+            ParameterSetName = "validate"
         )]
         [switch]
         # Perform validate check on templates
         $validate,
 
         [Parameter(
-            ParameterSetName="workspace"
+            ParameterSetName = "workspace"
         )]
         [switch]
         # Initalise Terraform
@@ -134,7 +134,7 @@ function Invoke-Terraform() {
         $Prefix,
 
         [Parameter(
-            ParameterSetName="output"
+            ParameterSetName = "output"
         )]
         $JsonDepth = 50
     )
@@ -187,7 +187,8 @@ function Invoke-Terraform() {
     # Find the Terraform command to use
     if ([String]::IsNullOrEmpty($Version)) {
         $terraform = Find-Command -Name "terraform"
-    } else {
+    }
+    else {
 
         # A version has been specified so build up the path to the specified
         $terraform = [IO.Path]::Combine($Prefix, $Version, "bin", "terraform")
@@ -302,7 +303,8 @@ function Invoke-Terraform() {
                     }
 
                     $yamldata | ConvertTo-Yaml
-                } else {
+                }
+                else {
                     $data | ConvertTo-Json -Depth $JsonDepth -Compress
                 }
             }
@@ -339,7 +341,8 @@ function Invoke-Terraform() {
 
             if ([String]::IsNullOrEmpty($arguments)) {
                 Write-Error -Message "No workspace name specified to create or switch to."
-            } else {
+            }
+            else {
                 Write-Information -MessageData ("Attempting to select or create workspace: {0}" -f $arguments[0])
                 $command = "{0} workspace select -or-create=true {1}" -f $terraform, $arguments[0]
                 Invoke-External -Command $command
@@ -351,6 +354,4 @@ function Invoke-Terraform() {
     if ($changedDir) {
         Pop-Location
     }
-
-
 }

@@ -50,5 +50,4 @@ Describe "Set-TFVars" {
         $keyValuePairs[1] | Should -Match ('^project\s+=\s+"{0}"' -f $project)
 
     }
-
 }

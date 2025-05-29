@@ -11,7 +11,7 @@ Describe "Set-Config" {
                 list = @()
                 file = ""
             }
-            dryrun = $true
+            dryrun   = $true
         }
 
         # Mock commands
