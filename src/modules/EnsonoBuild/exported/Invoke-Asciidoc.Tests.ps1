@@ -67,7 +67,7 @@ Describe "Invoke-Asciidoc" {
         }
 
         it "all generated files will be written to the output directory" {
-            $Session.commands.list[0] | Should -Match "-D `"$matchFolder`""
+            $Session.commands.list[0] | Should -Match "-D `"$matchFolder`"/newsletter.xml"
         }
     }
 
@@ -83,9 +83,9 @@ Describe "Invoke-Asciidoc" {
                 dryrun   = $true
             }
 
-            Invoke-Asciidoc -pdf -path $testfolder -output "${testfolder}/newsletter.pdf"
+            Invoke-Asciidoc -Format pdf -path $testfolder -output "${testfolder}/newsletter.pdf"
 
-            $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -o `"newsletter.pdf`" -D `"$testfolder`" $testfolder --failure-level warn"
+            $Session.commands.list[0] | Should -BeLike ("*asciidoctor-pdf* -o `"{0}/newsletter.pdf`"" -f $testFolder)
 
             Should -Invoke -CommandName Write-Information -Times 1
         }
@@ -99,16 +99,16 @@ Describe "Invoke-Asciidoc" {
                 "stackscli_version={{ BUILDNUMBER }}"
             )
 
-            Invoke-Asciidoc -pdf -path $testfolder -output "${testfolder}/newsletter.pdf" -attributes $attributes
+            Invoke-Asciidoc -Format pdf -path $testfolder -output "${testfolder}/newsletter.pdf" -attributes $attributes
 
-            $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -a allow-read-uri -a pdf-fontsdir=/fonts -a stackscli_version=74.83.10.13 -o `"newsletter.pdf`" -D `"$testfolder`" $testfolder --failure-level warn"
+            $Session.commands.list[0] | Should -BeLike ("*asciidoctor-pdf* -o `"{0}/newsletter.pdf`"" -f $testFolder) #-a allow-read-uri -a pdf-fontsdir=/fonts -a stackscli_version=74.83.10.13 -o `"newsletter.pdf`" -D `"$testfolder`" $testfolder --failure-level warn"
 
             Should -Invoke -CommandName Write-Information -Times 1
         }
 
         It "will use a settings file" {
 
-            Invoke-AsciiDoc -pdf -basepath $testfolder -config $settings_file
+            Invoke-AsciiDoc -Format pdf -path $testfolder -config $settings_file
 
             $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -a allow-read-uri -o `"Pester Newsletter.pdf`" -D `"$testfolder`" $testfolder --failure-level warn"
 

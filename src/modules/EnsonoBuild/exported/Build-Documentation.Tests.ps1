@@ -1,4 +1,7 @@
 
+
+
+
 Describe "Build-Documentation" {
 
     BeforeAll {
@@ -12,12 +15,8 @@ Describe "Build-Documentation" {
         . $PSScriptRoot/Invoke-AsciiDoc.ps1
         . $PSScriptRoot/Invoke-Pandoc.ps1
 
-        . $PSScriptRoot/$relativePath/exported/Invoke-External.ps1
-        . $PSScriptRoot/$relativePath/utils/Confirm-Parameters.ps1
-        . $PSScriptRoot/$relativePath/utils/ConvertTo-MDX.ps1
         . $PSScriptRoot/$relativePath/utils/Copy-Object.ps1
         . $PSScriptRoot/$relativePath/utils/Merge-Hashtables.ps1
-        . $PSScriptRoot/$relativePath/utils/Protect-Filesystem.ps1
         . $PSScriptRoot/$relativePath/utils/Replace-Tokens.ps1
         . $PSScriptRoot/$relativePath/utils/Set-Tokens.ps1
 
@@ -25,23 +24,39 @@ Describe "Build-Documentation" {
         $separator = [IO.Path]::DirectorySeparatorChar
         $separator = $separator -replace '\\', '\\'
 
-        # Create a folder to use for each test
-        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        ############################################################
+        # Helper Functions
+        ############################################################
+        function Get-TestFolder() {
+            $testFolderPath = "TestDrive:\folder"
+            if (!(Test-Path -Path $testFolderPath)) {
+                $testFolder = (New-Item $testFolderPath -ItemType Directory).FullName    
+            }
+            else {
+                $testFolder = (Get-Item -Path $testFolderPath).FullName
+            }
 
-        # Escape the test folder separator if necessary
-        $testFolder = $testFolder -replace '\\', '\\'
+            return $testFolder
+        }
 
-        # Create the docs directory for each test
-        New-Item -ItemType Directory -Path (Join-Path -Path $testFolder -ChildPath "docs")
+        function Get-DocsPath($testFolder) {
+            $docsPath = [IO.Path]::Combine($testFolder, "docs")
+            if (!(Test-Path -Path $docsPath)) {
+                # Create the docs directory for each test
+                New-Item -ItemType Directory -Path $docsPath | Out-Null
+            }
 
-        # Create the configurtation file that is to be used
+            return $docsPath
+        }
+
+        # Define the configuration file to use when generating documentation
         $config = @"
 {
     "title": "Infrastructure Testing - {{ version }}",
     "output": "{{ basepath }}/output",
     "trunkBranch": "main",
-    "path": "{{ basepath }}/docs/infratesting/index.adoc",
-    "libs": ["asciidoctor-diagram"],
+    "path": "{{ basepath }}/docs/index.adoc",
+    "libs": {"asciidoc": ["asciidoctor-diagram"]},
     "attributes": {
         "asciidoctor": [
             "allow-uri-read",
@@ -72,10 +87,11 @@ Describe "Build-Documentation" {
             "pandoc": ["--reference-doc=references.docx"]
         }
     }
-"@
+}
+"@        
     }
 
-    Context "Generate PDF documents" {
+    Context "Generate PDF documents using the command line" {
 
         BeforeAll {
 
@@ -94,140 +110,111 @@ Describe "Build-Documentation" {
                 dryrun   = $true
             }
 
-            # Create a folder to use for each test
-            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+            # Get the docs document path
+            $testFolder = Get-TestFolder
+            $docsPath = Get-DocsPath $testFolder
 
-            # Create the docs directory for eac test
-            New-Item -ItemType Directory -Path (Join-Path -Path $testFolder -ChildPath "docs")
+            $indexFile = New-Item -Type File -Path ([IO.Path]::Combine($docsPath, "index.adoc")) -Force
 
         }
 
-        AfterEach {
+        it "will build up a command with a title" {
 
-            Remove-Item -Path $testFolder -Recurse -Force | Out-Null
+            $splat = @{
+                BasePath = $testFolder
+                Type     = "pdf"
+                Title    = "Pester Tests"
+                Path     = [IO.Path]::Combine("docs", "index.adoc")
+                Output   = "output"
+            }
+
+            Build-Documentation @splat
+
+            # Check that the asciidoctor-pdf command was added to the session
+            $expected = 'asciidoctor-pdf -o "output\Pester Tests.pdf" {0}' -f $indexFile.FullName
+            $Session.commands.list[0] | Should -BeLike $expected
         }
 
-        it "will build up command with a title" {
+        It "will build command with attributes" {
 
-            Build-Documentation -BasePath $testFolder -Pdf -Title "Pester Tests"
+            $splat = @{
+                BasePath       = $testFolder
+                Type           = "pdf"
+                Title          = "Pester Tests"
+                Path           = [IO.Path]::Combine("docs", "index.adoc")
+                Output         = "output"
+                ADocAttributes = @("pdf-theme=styles/theme.yml", 'doctype="book"')
+            }
 
-            # Check the command that will be run
-            $Session.commands.list[0] | Should -BeLike 'asciidoctor-pdf -o "Pester Tests.pdf" -D*/index.adoc'
+            Build-Documentation @splat
+
+            # Check that the asciidoctor-pdf command was added to the session
+            $expected = 'asciidoctor-pdf -o "output\Pester Tests.pdf" -a pdf-theme=styles/theme.yml -a doctype="book" {0}' -f $indexFile.FullName
+            $Session.commands.list[0] | Should -BeLike $expected
         }
 
-        it "will build up command with attributes" {
+    }
 
-            Build-Documentation -BasePath $testFolder -Pdf -Title "Pester Tests" `
-                -Attributes "pdf-theme=styles/theme.yml", 'doctype="book"'
+    Context "Generate PDF document with a configuration file" {
 
-            # Check the command that will be run
-            $Session.commands.list[0] | Should -BeLike 'asciidoctor-pdf -a pdf-theme=styles/theme.yml -a doctype="book" -o "Pester Tests.pdf" -D*/index.adoc'
-        }
+        BeforeAll {
 
-        it "will build up attributes from a file" {
+            # Create a session object so that the Invoke-External function does not
+            # execute any commands but the command that would be run can be checked
+            $global:Session = @{
+                commands = @{
+                    list = @()
+                }
+                dryrun   = $true
+            }
 
-            # create the attributes file
-            $attrFile = New-Item -ItemType File -Path ([io.path]::Combine($testFolder, "attrs.ps1"))
-            Add-Content -Path $attrFile -Value @"
-@(
-    "-a pdf-theme=styles/theme.yml"
-    "pdf-fonts=/app/docs/styles/fonts;GEM_FONTS_DIR"
-)
-"@
-            $configFile = Join-Path -Path $testFolder -ChildPath "config.json"
+            $testFolder = Get-TestFolder
+            $docsPath = Get-DocsPath $testFolder
+
+            $indexFile = New-Item -Type File -Path ([IO.Path]::Combine($docsPath, "index.adoc")) -Force
+
+            $configFile = [IO.Path]::Combine($testFolder, "config.json")
             Set-Content -Path $configFile -Value $config
 
-            # - Find-Command - return the name of the command that is required
             Mock -Command Find-Command -MockWith { return $name }
-        }
 
-        AfterAll {
-
-            Remove-Item -Path $testFolder -Recurse -Force | Out-Null
-        }
-    }
-
-    Context "Generate PDF document with config" {
-
-        BeforeAll {
-
-            # Create a session object so that the Invoke-External function does not
-            # execute any commands but the command that would be run can be checked
-            $global:Session = @{
-                commands = @{
-                    list = @()
-                }
-                dryrun   = $true
+            # Call the command and then test the output in the session
+            $splat = @{
+                BasePath = $testFolder
+                Type     = "pdf"
+                Config   = $configFile
+                Version  = "1.2-pester"
             }
 
-            # Create a folder to use for each test
-            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
-
-            Build-Documentation -Format "pdf" -Basepath $testFolder -Config $configFile -Version "1.2-pester"
+            Build-Documentation @splat 
         }
 
-        it "will generate the document using the correct command" {
-
-            # - should be using the asciidoctor-pdf command
+        It "will call the PDF generation command" {
             $Session.commands.list[0] | Should -Match 'asciidoctor-pdf*'
         }
 
-        It "will run the commands to generate a MD file" {
+        It "will create a document with a version number in the file name" {
 
-
-            it "will create a document with a version number" {
-
-                # - should set the filename correctly
-                $pattern = '-o "{0}{1}output/|\\Infrastructure Testing - 1.2-pester.pdf"' -f $testFolder, $separator
-                $Session.commands.list[0] | Should -Match $pattern
-            }
-
-
-            it "will use the correct libraries" {
-
-                $Session.commands.list[0] | Should -Match "-r asciidoctor-diagram"
-            }
-
-            it "will add in all the specifed attributes" {
-
-                $Session.commands.list[0] | Should -Match "-a allow-uri-read"
-                $Session.commands.list[0] | Should -Match "-a java=/usr/bin/java"
-                $Session.commands.list[0] | Should -Match "-a graphvizdot=/usr/bin/dot"
-                $Session.commands.list[0] | Should -Match "-a convert=/usr/bin/convert"
-                $Session.commands.list[0] | Should -Match "-a identify=/usr/bin/identify"
-
-                $pattern = '-a pdf-theme={0}/conf/pdf/theme.yml' -f ($testFolder -replace "\\", "\\")
-                $Session.commands.list[0] | Should -Match $pattern
-
-                $pattern = 'pdf-fontsdir="{0}/conf/fonts;GEM_FONTS_DIR"' -f ($testFolder -replace "\\", "\\")
-                $Session.commands.list[0] | Should -Match $pattern
-                
-                # Check that the MDX file would be created
-                Should -Invoke -CommandName ConvertTo-MDX -Times 1
-
-            }
-        }
-    }
-
-    Context "Generate PDF document using parameters" {
-        BeforeAll {
-
-            # Create a session object so that the Invoke-External function does not
-            # execute any commands but the command that would be run can be checked
-            $global:Session = @{
-                commands = @{
-                    list = @()
-                }
-                dryrun   = $true
-            }
-
-            Build-Documentation -Type "pdf" -Basepath $testFolder -Title "Pester Test" -Version "1.2-pester" -Path "{{ basepath }}/docs/infratesting/index.adoc"
+            $pattern = '-o "{0}{1}output/|\\Infrastructure Testing - 1.2-pester.pdf"' -f ($testFolder -replace "\\", "\\"), $separator
+            $Session.commands.list[0] | Should -Match $pattern
         }
 
-        it "will generate the document using the correct command" {
+        It "will use the correct libraries" {
+            $Session.commands.list[0] | Should -Match "-r asciidoctor-diagram"
+        }
 
-            # - should be using the asciidoctor-pdf command
-            $Session.commands.list[0] | Should -Match 'asciidoctor-pdf*'
+        It "will add all the specified attributes" {
+            $Session.commands.list[0] | Should -Match "-a allow-uri-read"
+            $Session.commands.list[0] | Should -Match "-a java=/usr/bin/java"
+            $Session.commands.list[0] | Should -Match "-a graphvizdot=/usr/bin/dot"
+            $Session.commands.list[0] | Should -Match "-a convert=/usr/bin/convert"
+            $Session.commands.list[0] | Should -Match "-a identify=/usr/bin/identify"
+
+            $pattern = '-a pdf-theme={0}/conf/pdf/theme.yml' -f ($testFolder -replace "\\", "\\")
+            $Session.commands.list[0] | Should -Match $pattern
+
+            $pattern = 'pdf-fontsdir="{0}/conf/fonts;GEM_FONTS_DIR"' -f ($testFolder -replace "\\", "\\")
+            $Session.commands.list[0] | Should -Match $pattern
         }
     }
 
@@ -244,7 +231,30 @@ Describe "Build-Documentation" {
                 dryrun   = $true
             }
 
-            Build-Documentation -Format "docx" -Basepath $testFolder -Config $configFile -Version "1.2-pester"
+            $testFolder = Get-TestFolder
+            $docsPath = Get-DocsPath $testFolder
+
+            # Create the Index file so that the cmdlet has something to work with
+            $indexFile = New-Item -Type File -Path ([IO.Path]::Combine($docsPath, "index.adoc")) -Force
+
+            # Create the XML file which is the docbook output from asciidoctor, this is so that
+            # the commands that are run can be checked
+            $pandocFile = New-Item -Type File -Path ([IO.Path]::Combine($testFolder, [IO.Path]::Combine('output', 'Infrastructure Testing - 1.2-pester.xml'))) -Force
+
+            $configFile = [IO.Path]::Combine($testFolder, "config.json")
+            Set-Content -Path $configFile -Value $config
+
+            Mock -Command Find-Command -MockWith { return $name }
+
+            # Call the command and then test the output in the session
+            $splat = @{
+                BasePath = $testFolder
+                Type     = "md"
+                Config   = $configFile
+                Version  = "1.2-pester"
+            }
+
+            Build-Documentation @splat 
         }
 
         it "will generate the document using the correct commands" {
@@ -258,28 +268,23 @@ Describe "Build-Documentation" {
             $Session.commands.list[0] | Should -Match '-b docbook5'
         }
 
-        it "will use the correct input and output arguments for pandoc" {
-            $Session.commands.list[1] | Should -Match '-f docbook -t docx'
+        it "will use the correct reference document" {
+
+            $Session.commands.list[1] | Should -Match "--reference-doc=references.docx"
         }
 
         it "will create a document with a version number" {
 
             # - should set the filename correctly
-            $pattern = '-o "{0}{1}output/|\\Infrastructure Testing - 1.2-pester.xml"' -f $testFolder, $separator
+            $pattern = '-o "{0}{1}output/|\\Infrastructure Testing - 1.2-pester.xml"' -f ($testFolder -replace "\\", "\\"), $separator
             $Session.commands.list[0] | Should -Match $pattern
 
-            $pattern = '-o "{0}{1}output/|\\Infrastructure Testing - 1.2-pester.docx"' -f $testFolder, $separator
+            $pattern = '-o "{0}{1}output/|\\Infrastructure Testing - 1.2-pester.docx"' -f ($testFolder -replace "\\", "\\"), $separator
             $Session.commands.list[1] | Should -Match $pattern
-        }
-
-        it "will use the correct reference document" {
-
-            $Session.commands.list[1] | Should -Match "--reference-doc=references.docx"
-        }
+        }        
     }
 
-    Context "Generate MD document" {
-
+    Context "Generate MD file" {
         BeforeAll {
 
             # Create a session object so that the Invoke-External function does not
@@ -291,7 +296,30 @@ Describe "Build-Documentation" {
                 dryrun   = $true
             }
 
-            Build-Documentation -Format "md" -Basepath $testFolder -Config $configFile -Version "1.2-pester"
+            $testFolder = Get-TestFolder
+            $docsPath = Get-DocsPath $testFolder
+
+            # Create the Index file so that the cmdlet has something to work with
+            $indexFile = New-Item -Type File -Path ([IO.Path]::Combine($docsPath, "index.adoc")) -Force
+
+            # Create the XML file which is the docbook output from asciidoctor, this is so that
+            # the commands that are run can be checked
+            $pandocFile = New-Item -Type File -Path ([IO.Path]::Combine($testFolder, [IO.Path]::Combine('output', 'Infrastructure Testing - 1.2-pester.xml'))) -Force
+
+            $configFile = [IO.Path]::Combine($testFolder, "config.json")
+            Set-Content -Path $configFile -Value $config
+
+            Mock -Command Find-Command -MockWith { return $name }
+
+            # Call the command and then test the output in the session
+            $splat = @{
+                BasePath = $testFolder
+                Type     = "md"
+                Config   = $configFile
+                Version  = "1.2-pester"
+            }
+
+            Build-Documentation @splat 
         }
 
         it "will generate the document using the correct commands" {
@@ -307,16 +335,80 @@ Describe "Build-Documentation" {
 
         it "will use the correct input and output arguments for pandoc" {
             $Session.commands.list[1] | Should -Match '-f docbook -t gfm'
-        }        
+        }
 
         it "will create a document with a version number" {
 
             # - should set the filename correctly
-            $pattern = '-o "{0}{1}output/|\\Infrastructure Testing - 1.2-pester.xml"' -f $testFolder, $separator
+            $pattern = '-o "{0}{1}output/|\\Infrastructure Testing - 1.2-pester.xml"' -f ($testFolder -replace "\\", "\\"), $separator
             $Session.commands.list[0] | Should -Match $pattern
 
-            $pattern = '-o "{0}{1}output/|\\Infrastructure Testing - 1.2-pester.md"' -f $testFolder, $separator
+            $pattern = '-o "{0}{1}output/|\\Infrastructure Testing - 1.2-pester.md"' -f ($testFolder -replace "\\", "\\"), $separator
             $Session.commands.list[1] | Should -Match $pattern
+        }        
+    }
+
+    Context "Generate Jira file" {
+        BeforeAll {
+
+            # Create a session object so that the Invoke-External function does not
+            # execute any commands but the command that would be run can be checked
+            $global:Session = @{
+                commands = @{
+                    list = @()
+                }
+                dryrun   = $true
+            }
+
+            $testFolder = Get-TestFolder
+            $docsPath = Get-DocsPath $testFolder
+
+            # Create the Index file so that the cmdlet has something to work with
+            $indexFile = New-Item -Type File -Path ([IO.Path]::Combine($docsPath, "index.adoc")) -Force
+
+            # Create the XML file which is the docbook output from asciidoctor, this is so that
+            # the commands that are run can be checked
+            $pandocFile = New-Item -Type File -Path ([IO.Path]::Combine($testFolder, [IO.Path]::Combine('output', 'Infrastructure Testing - 1.2-pester.xml'))) -Force
+
+            $configFile = [IO.Path]::Combine($testFolder, "config.json")
+            Set-Content -Path $configFile -Value $config
+
+            Mock -Command Find-Command -MockWith { return $name }
+
+            # Call the command and then test the output in the session
+            $splat = @{
+                BasePath = $testFolder
+                Type     = "jira"
+                Config   = $configFile
+                Version  = "1.2-pester"
+            }
+
+            Build-Documentation @splat 
         }
+
+        it "will generate the document using the correct commands" {
+
+            # - should be using the asciidoctor-pdf command
+            $Session.commands.list[0] | Should -Match 'asciidoctor'
+            $Session.commands.list[1] | Should -Match 'pandoc'
+        }
+
+        it "will use the correct output format for asciidoctor" {
+            $Session.commands.list[0] | Should -Match '-b docbook5'
+        }
+
+        it "will use the correct input and output arguments for pandoc" {
+            $Session.commands.list[1] | Should -Match '-f docbook -t jira'
+        }
+
+        it "will create a document with a version number" {
+
+            # - should set the filename correctly
+            $pattern = '-o "{0}{1}output/|\\Infrastructure Testing - 1.2-pester.xml"' -f ($testFolder -replace "\\", "\\"), $separator
+            $Session.commands.list[0] | Should -Match $pattern
+
+            $pattern = '-o "{0}{1}output/|\\Infrastructure Testing - 1.2-pester.jira"' -f ($testFolder -replace "\\", "\\"), $separator
+            $Session.commands.list[1] | Should -Match $pattern
+        }        
     }    
 }

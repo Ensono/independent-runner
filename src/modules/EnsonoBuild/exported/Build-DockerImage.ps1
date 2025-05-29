@@ -272,12 +272,16 @@ function Build-DockerImage() {
   $tag = $tag.ToLower()
 
   # Create an array to store the arguments to pass to docker
+  Write-Host ("Build Args: {0}" -f $buildargs)
   $arguments = @()
   if ($buildArgs -ne "") {
     $arguments += $buildArgs.Trim("`"", " ")
   }
 
   $arguments += "-t {0}/{1}:{2}" -f $registry, $name, $tag
+
+  Write-Host ("Argumennts: {0}" -f $arguments)
+  exit
 
   if ($setAsLatest) {
     $arguments += "-t {0}/{1}:latest" -f $registry, $name

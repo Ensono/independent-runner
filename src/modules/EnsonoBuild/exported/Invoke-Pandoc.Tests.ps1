@@ -5,7 +5,7 @@ Describe "Invoke-Pandoc" {
         . $PSScriptRoot/Invoke-Pandoc.ps1
 
         . $PSScriptRoot/../command/Find-Command.ps1
-        . $PSScriptRoot/../command/Invoke-External.ps1
+        . $PSScriptRoot/Invoke-External.ps1
         . $PSScriptRoot/../utils/Replace-Tokens.ps1
         . $PSScriptRoot/../utils/Set-Tokens.ps1
 
@@ -30,15 +30,15 @@ Describe "Invoke-Pandoc" {
                 commands = @{
                     list = @()
                 }
-                dryrun = $true
+                dryrun   = $true
             }
 
             # Create a splat to pass to the cmdlet
             $splat = @{
-                From = "docbook"
-                To = "docx"
-                Path = "$testfolder/index.xml"
-                Output = "${testfolder}/newsletter.docx"
+                From       = "docbook"
+                To         = "docx"
+                Path       = "$testfolder/index.xml"
+                Output     = "${testfolder}/newsletter.docx"
                 Attributes = $Attributes
             }
 
@@ -63,15 +63,15 @@ Describe "Invoke-Pandoc" {
                 commands = @{
                     list = @()
                 }
-                dryrun = $true
+                dryrun   = $true
             }
 
             # Create a splat to pass to the cmdlet
             $splat = @{
-                From = "docbook"
-                To = "docx"
-                Path = "$testfolder/index.xml"
-                Output = "${testfolder}/newsletter.docx"
+                From       = "docbook"
+                To         = "docx"
+                Path       = "$testfolder/index.xml"
+                Output     = "${testfolder}/newsletter.docx"
                 Attributes = $Attributes
             }
 
@@ -100,15 +100,15 @@ Describe "Invoke-Pandoc" {
                 commands = @{
                     list = @()
                 }
-                dryrun = $true
+                dryrun   = $true
             }
 
             # Create a splat to pass to the cmdlet
             $splat = @{
-                From = "docbook"
-                To = "gfm"
-                Path = "$testfolder/index.xml"
-                Output = "${testfolder}/newsletter.md"
+                From       = "docbook"
+                To         = "gfm"
+                Path       = "$testfolder/index.xml"
+                Output     = "${testfolder}/newsletter.md"
                 Attributes = $Attributes
             }
 

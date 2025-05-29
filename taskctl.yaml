@@ -1,6 +1,6 @@
 import:
-- ./build/taskctl/contexts.yaml
-- ./build/taskctl/tasks.yaml
+  - ./build/taskctl/contexts.yaml
+  - ./build/taskctl/tasks.yaml
 
 pipelines:
   docs:
@@ -18,7 +18,7 @@ pipelines:
 
   build:
     - task: setup:environment
-    - task: generate
+    - task: build:module
       depends_on:
         - setup:environment
 

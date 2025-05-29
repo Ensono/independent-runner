@@ -60,18 +60,18 @@ function Build-Help {
         $table = @()
         foreach ($param in $help.parameters.parameter) {
             $table += "| {0} | {1} | {2} | {3} | {4}" -f
-                $param.Name,
-                $param.Type.Name,
-                $param.Description.Text,
-                $param.Required,
-                $param.DefaultValue
+            $param.Name,
+            $param.Type.Name,
+            $param.Description.Text,
+            $param.Required,
+            $param.DefaultValue
         }
 
         # Build up an array for the page items
         # This is so that different things can be added in if they exist, e.g. Notes or Examples
         $helpPage = @()
         $helpPage += @"
-### {0} [[{2}]]
+=== {0} [[{2}]]
 
 {1}
 
@@ -80,24 +80,27 @@ function Build-Help {
         # If any notes have been set add them into the array
         if (![String]::IsNullOrEmpty($help.alertSet.alert.text)) {
             $helpPage += @"
-#### Notes
+==== Notes
 
 {0}
 
 "@ -f $help.alertSet.alert.text
         } 
 
-        # Add in the synatx of the command
+        # Add in the syntax of the command
         $helpPage += @"
-#### Syntax
+==== Syntax
 
+[source,powershell]
+----
 {0}
+----
 
-"@ -f ($help.syntax | out-string)
+"@ -f ($help.syntax | Format-HelpSyntax -JoinChar "`n`n")
 
         # Table of the parameters
         $helpPage += @"
-#### Parameters
+==== Parameters
 
 [cols="1,1,2,1,1",options="header"]
 |===
