@@ -7,7 +7,7 @@ Describe "Invoke-SonarScanner" {
 
         # Import dependencies
         . $PSScriptRoot/../command/Find-Command.ps1
-        . $PSScriptRoot/../exported/Invoke-External.ps1
+        . $PSScriptRoot/Invoke-External.ps1
         . $PSScriptRoot/../utils/Confirm-Parameters.ps1
 
         # Mock commands
@@ -20,13 +20,13 @@ Describe "Invoke-SonarScanner" {
 
     BeforeEach {
 
-        # Create a session object so that the Invoke-External function does not
+        # Create a session object so that the ternal function does not
         # execute any commands but the command that would be run can be checked
         $global:Session = @{
             commands = @{
                 list = @()
             }
-            dryrun = $true
+            dryrun   = $true
         }
 
     }
@@ -81,12 +81,12 @@ Describe "Invoke-SonarScanner" {
 
             # Create a hashtable to splat into the command
             $splat = @{
-                Start = $true
-                ProjectName = "pester"
+                Start        = $true
+                ProjectName  = "pester"
                 BuildVersion = "100.98.99"
-                URL = "https://sonarscanner.example"
+                URL          = "https://sonarscanner.example"
                 Organisation = "Amido"
-                Token = "123456"
+                Token        = "123456"
             }
 
             Invoke-SonarScanner @Splat

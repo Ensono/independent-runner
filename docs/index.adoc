@@ -1,20 +1,36 @@
 :source-highlighter: rouge
+:rouge-style: monokai
 :pdf-theme: styles/theme.yml
 :table-stripes: even
 :listing-caption: Listing
 :icons: font
 :page-background-image: image:images/page-image.png[position=top right]
 :project_name: Ensono Stacks
-:cr_repo_name: amidostacks
+:cr_repo_name: ensonostacks
+:toc:
+
+= Ensono Stacks Independent Runner PowerShell Module
+
+<<<
 
 include::objectives.adoc[]
 
+<<<
+
 include::tools.adoc[]
+
+<<<
 
 include::pipelines.adoc[]
 
-include::docker_images.adoc[]
+<<<
 
 include::cmdref.adoc[]
+
+<<<
+
+include::docker_images.adoc[]
+
+<<<
 
 include::reference.adoc[]

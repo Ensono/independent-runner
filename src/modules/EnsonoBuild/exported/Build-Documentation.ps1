@@ -4,10 +4,6 @@ function Build-Documentation {
     [CmdletBinding()]
     param (
 
-        [string[]]
-        # List of formats that need to be generated
-        $Formats = @(),
-
         [string]
         # Base path from which all paths will be derived
         # By default this will be the current directory, but in docker this should be the dir
@@ -28,10 +24,10 @@ function Build-Documentation {
         # override the ones in the configuration file
         $Config = $env:DOC_CONFIG_FILE,
 
-        [string]
-        [Parameter(
-            ParameterSetName = "type"
-        )]
+        [string[]]
+        #[Parameter(
+        #    ParameterSetName = "type"
+        #)]
         [ValidateSet("md", "pdf", "docx", "txt", "jira", "html")]
         # Format that the document should be generated in. This is used to genarate a document
         # in one format. If you wish to generate multiple formats, use the Config file option
@@ -43,6 +39,13 @@ function Build-Documentation {
         )]
         # Path to the AsciiDoc template to render
         $Path = $env:DOC_FILE,
+
+        [string]
+        [Parameter(
+            ParameterSetName = "type"
+        )]
+        # Path to the output folder
+        $Output = "output",
 
         [string]
         [Parameter(
@@ -68,6 +71,7 @@ function Build-Documentation {
         output      = ""
         path        = ""
         trunkBranch = ""
+        formats     = @()
         attributes  = @{
             asciidoc = @()
         }
@@ -125,14 +129,25 @@ function Build-Documentation {
         }
         "type" {
 
-            # Add the type to the Formats array
-            $Formats = @($Type)
-
             # Build up an object that will be used to generate the document using the existing engine
             $settings.title = $Title
             $settings.path = $Path
+            $settings.output = $Output
+
+            if (![IO.Path]::IsPathRooted($settings.path)) {
+                $settings.path = [IO.Path]::Combine($Basepath, $settings.path)
+            }
         }
     }
+
+    # Add the type to the Formats array
+    $Formats = $settings.formats
+    # If the type parameter is specified, then add it to the formats
+    if ($Type -and $Type.Count -gt 0) {
+        $Formats = @($Type)
+    }
+    
+    # $Formats = @($Type)
 
     # Set the mapping of formats to the BACKEND required for asciidoctor
     $format_mapping = @{
@@ -300,6 +315,13 @@ function Build-Documentation {
                         if ($settings.$format.attributes.asciidoctor.length -gt 0) {
                             $attributes += $settings.$format.attributes.asciidoctor
                         }
+
+                        # Determine if any attributes have been specifed on the command line, if they have
+                        # add them to the attributes list
+                        if ($ADocAttributes.Count -gt 0) {
+                            $attributes += $ADocAttributes
+                        }
+
                         $attributes = Replace-Tokens -tokens $tokens -data $attributes
 
                         # Create the splat for the Invoke-Asciidoc function
@@ -307,7 +329,7 @@ function Build-Documentation {
                             Format     = $format_mapping[$format].commands.asciidoctor.format
                             Output     = $output_path
                             Path       = $input_file
-                            Libraries  = $settings.libs
+                            Libraries  = $settings.libs["asciidoc"]
                             Attributes = $attributes
                         }
 
@@ -323,13 +345,23 @@ function Build-Documentation {
                             $input_file = $previous_filename
                         }
 
+                        # Ensure that the resource-dir is set so that images can be found
+                        $attributes = Replace-Tokens -tokens $tokens -data $settings.$format.attributes.pandoc
+
+                        # Determine the reference path
+                        $resourcePath = $settings.Path
+                        if (Test-Path -Path $resourcePath -PathType Leaf) {
+                            $resourcePath = Split-Path -Path $resourcePath -Parent
+                        }
+                        $attributes += (" --resource-path=`"{0}`"" -f $resourcePath)
+
                         # Create the splat for the Invoke-Pandoc function
                         $splat = @{
                             From       = $format_mapping[$format].commands.pandoc.from
                             To         = $format_mapping[$format].commands.pandoc.to
                             Output     = $output_path
                             Path       = $input_file
-                            Attributes = Replace-Tokens -tokens $tokens -data $settings.$format.attributes.pandoc
+                            Attributes = $attributes
                         }
 
                         Invoke-Pandoc @splat
