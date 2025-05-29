@@ -20,32 +20,35 @@ variables:
 stages:
   - stage: Docs
     jobs:
-      steps:
-        - template: templates/setup.yaml
-          parameters:
-            TaskctlVersion: ${{ variables.TaskctlVersion }}
+      - job: GenerateDocs
+        displayName: Generate Documentation
 
-        - task: Bash@3
-          displayName: Pull Dotnet Image
-          inputs:
-            targetType: inline
-            script: |
-              taskctl image-pull-docs
+        steps:
+          - template: templates/setup.yaml
+            parameters:
+              TaskctlVersion: ${{ variables.TaskctlVersion }}
 
-        # Generate the documentation
-        - task: Bash@3
-          displayName: Generate Documentation
-          inputs:
-            targetType: inline
-            script: |
-              taskctl docs
+          - task: Bash@3
+            displayName: Pull Dotnet Image
+            inputs:
+              targetType: inline
+              script: |
+                taskctl image-pull-docs
 
-          # Upload the documentation
-        - task: PublishBuildArtifacts@1
-          displayName: Publish Documentation
-          inputs:
-            pathToPublish: $(Build.SourcesDirectory)/outputs/docs
-            artifactName: docs
+          # Generate the documentation
+          - task: Bash@3
+            displayName: Generate Documentation
+            inputs:
+              targetType: inline
+              script: |
+                taskctl docs
+
+            # Upload the documentation
+          - task: PublishBuildArtifacts@1
+            displayName: Publish Documentation
+            inputs:
+              pathToPublish: $(Build.SourcesDirectory)/outputs/docs
+              artifactName: docs
 
   - stage: Build
     jobs:
