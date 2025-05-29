@@ -18,6 +18,35 @@ variables:
 
 # Configure the stages
 stages:
+  - stage: Docs
+    jobs:
+      steps:
+        - template: templates/setup.yaml
+          parameters:
+            TaskctlVersion: ${{ variables.TaskctlVersion }}
+
+        - task: Bash@3
+          displayName: Pull Dotnet Image
+          inputs:
+            targetType: inline
+            script: |
+              taskctl image-pull-docs
+
+        # Generate the documentation
+        - task: Bash@3
+          displayName: Generate Documentation
+          inputs:
+            targetType: inline
+            script: |
+              taskctl docs
+
+          # Upload the documentation
+        - task: PublishBuildArtifacts@1
+          displayName: Publish Documentation
+          inputs:
+            pathToPublish: $(Build.SourcesDirectory)/outputs/docs
+            artifactName: docs
+
   - stage: Build
     jobs:
       - job: UnitTests
@@ -64,21 +93,6 @@ stages:
               script: |
                 taskctl build
 
-          - task: Bash@3
-            displayName: Pull Docs Image
-            inputs:
-              targetType: inline
-              script: |
-                taskctl image-pull-docs
-
-          # Generate the documentation
-          - task: Bash@3
-            displayName: Generate Documentation
-            inputs:
-              targetType: inline
-              script: |
-                taskctl docs
-
           # Munges the file paths by replacing the bound `/app` directory with the $(Build.SourcesDirectory) variable where the files are
           - task: Bash@3
             condition: always()
@@ -86,7 +100,7 @@ stages:
             inputs:
               targetType: inline
               script: |
-                sudo sed -i 's%/app/src/%$(Build.SourcesDirectory)/src/%' $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
+                sudo sed -i 's%/workspace/.taskctl/src/%$(Build.SourcesDirectory)/src/%' $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
 
           # Upload tests and the coverage results
           - task: PublishTestResults@2
@@ -101,13 +115,6 @@ stages:
             inputs:
               summaryFileLocation: $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
 
-          # Upload the documentation
-          - task: PublishBuildArtifacts@1
-            displayName: Publish Documentation
-            inputs:
-              pathToPublish: $(Build.SourcesDirectory)/outputs/docs
-              artifactName: docs
-
           # Upload the module files
           - task: PublishBuildArtifacts@1
             displayName: Publish Modules
@@ -116,7 +123,9 @@ stages:
               artifactName: modules
 
   - stage: Release
-    dependsOn: Build
+    dependsOn:
+      - Build
+      - Docs
     condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
     jobs:
       - job: Publish
