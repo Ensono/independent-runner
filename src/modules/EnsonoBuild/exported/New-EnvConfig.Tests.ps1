@@ -53,7 +53,7 @@ stages:
         It "will error if the path to the config file is not specified" {
 
             { New-EnvConfig -Path $testfolder/pester.yaml -ScriptPath $testfolder }
-                | Should -Throw "Specified file does not exist: $testfolder/pester.yaml`nTask failed due to errors detailed above"
+            | Should -Throw "Specified file does not exist: $testfolder/pester.yaml`nTask failed due to errors detailed above"
 
             Should -Invoke -CommandName Write-Error -Times 1
         }
@@ -127,6 +127,4 @@ stages:
             Remove-Item -Path env:\SHELL
         }
     }
-
-
 }

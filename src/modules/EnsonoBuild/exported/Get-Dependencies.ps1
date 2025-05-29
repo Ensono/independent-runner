@@ -26,7 +26,7 @@ function Get-Dependencies {
     [CmdletBinding()]
     param (
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]
         # Type of dependencies that are to be downloaded
         $type,

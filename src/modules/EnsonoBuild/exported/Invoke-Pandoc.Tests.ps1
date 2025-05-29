@@ -126,5 +126,5 @@ Describe "Invoke-Pandoc" {
         it "will set the correct output file" {
             $Session.commands.list[0] | Should -Match "-o `"$testfolder/newsletter.md`""
         }
-    }    
+    }
 }
