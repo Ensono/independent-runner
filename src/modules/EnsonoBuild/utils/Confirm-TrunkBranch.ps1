@@ -40,7 +40,9 @@ function Confirm-TrunkBranch() {
 
         "git" {
 
-            if ($names.length -eq 0) { $names = @("main", "master") }
+            if ($names.length -eq 0 -or ($names.length -eq 1 -and [String]::IsNullOrEmpty($names[0]))) { 
+                $names = @("main", "master")
+            }
 
             $discocmd = "git rev-parse --abbrev-ref HEAD"
         }
