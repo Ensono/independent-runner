@@ -1,18 +1,14 @@
 
-Describe "Set-TFVars" {
+Describe "Get-TFVars" {
 
     BeforeAll {
         # Import the function being tested
-        . $PSScriptRoot/Set-TFVars.ps1
         . $PSScriptRoot/Get-TFVars.ps1
 
         # Set variables to be used in the tests
         $name = "ernesto"
         $project = "stacks"
         $random = "randomstring"
-
-        # Mock the Write-Warning command to ensure it is being called
-        Mock -Command Write-Warning -MockWith { return $MessageData } -Verifiable
     }
 
     It "will create key/value pair string using default prefix" {
@@ -21,7 +17,7 @@ Describe "Set-TFVars" {
         $env:TF_VAR_project = $project
         $env:random = $random
 
-        $keyValuePairs = Set-TFVars | Sort-Object
+        $keyValuePairs = Get-TFVars | Sort-Object
 
         # Ensure the result is not empty
         $keyValuePairs | Should -Not -BeNullOrEmpty
@@ -32,8 +28,6 @@ Describe "Set-TFVars" {
         # Ensure that the key/value pairs are as expected
         $keyValuePairs[0] | Should -Match ('^name\s+=\s+"{0}"' -f $name)
         $keyValuePairs[1] | Should -Match ('^project\s+=\s+"{0}"' -f $project)
-
-        Should -Invoke -CommandName Write-Warning -Times 1
 
     }
 
@@ -43,7 +37,7 @@ Describe "Set-TFVars" {
         $env:OWN_VAR_project = $project
         $env:random = $random
 
-        $keyValuePairs = Set-TFVars -Prefix "OWN_VAR_*" | Sort-Object
+        $keyValuePairs = Get-TFVars -Prefix "OWN_VAR_*" | Sort-Object
 
         # Ensure the result is not empty
         $keyValuePairs | Should -Not -BeNullOrEmpty
@@ -55,6 +49,5 @@ Describe "Set-TFVars" {
         $keyValuePairs[0] | Should -Match ('^name\s+=\s+"{0}"' -f $name)
         $keyValuePairs[1] | Should -Match ('^project\s+=\s+"{0}"' -f $project)
 
-        Should -Invoke -CommandName Write-Warning -Times 1
     }
 }
