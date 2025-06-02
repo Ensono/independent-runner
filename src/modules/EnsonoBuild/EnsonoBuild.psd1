@@ -99,7 +99,6 @@
         "Publish-Confluence",
         "Publish-GitHubRelease",
         "Set-Config",
-        "Set-TFVars",
         "Stop-Task",
         "Update-BuildNumber",
         "Update-InfluxDashboard"
