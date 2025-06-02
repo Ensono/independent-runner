@@ -41,7 +41,8 @@ Describe "Set-Tokens" {
         foreach ($env in $envs) {
             if ($exclude -contains $env.Name) {
                 $tokens[$env.Name] | Should -BeNullOrEmpty
-            } else {
+            }
+            else {
                 $tokens[$env.Name] | Should -Be $env.Value
             }
         }
@@ -59,14 +60,14 @@ Describe "Set-Tokens" {
 
     It "will add extra tokens" {
 
-        $tokens = Set-Tokens -ExtraTokens @{"new" = "token"}
+        $tokens = Set-Tokens -ExtraTokens @{"new" = "token" }
 
         $tokens["new"] | Should -Be "token"
     }
 
     It "will add extra tokens and lower the keys" {
 
-        $tokens = Set-Tokens -ExtraTokens @{"New" = "token"} -Lower
+        $tokens = Set-Tokens -ExtraTokens @{"New" = "token" } -Lower
 
         $tokens["new"] | Should -Be "token"
     }

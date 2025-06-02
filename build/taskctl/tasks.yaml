@@ -27,7 +27,6 @@ tasks:
     description: Build Docs
     context: docsenv
     command:
-      # - Invoke-AsciiDoc -PDF -basepath /app -config /workspace/.taskctl/docs.json -debug
       - Build-Help -Output /workspace/.taskctl/docs/reference -Module EnsonoBuild
       - Build-Documentation -Config /workspace/.taskctl/docs.json
 

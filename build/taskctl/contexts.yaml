@@ -24,7 +24,6 @@ contexts:
       shell: pwsh
       shell_args:
         - -Command
-      enable_dind: true
     envfile:
       exclude:
         - posh_azure_subscription
@@ -35,7 +34,6 @@ contexts:
       shell: pwsh
       shell_args:
         - -Command
-      enable_dind: true
     envfile:
       exclude:
         - home
@@ -48,7 +46,6 @@ contexts:
       shell: pwsh
       shell_args:
         - -Command
-      # enable_dind: true
     envfile:
       exclude:
         - posh_azure_subscription
