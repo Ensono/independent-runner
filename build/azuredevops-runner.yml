@@ -113,9 +113,10 @@ stages:
               testResultsFiles: "**/pester-unittest-results.xml"
               testRunTitle: UnitTests
 
-          - task: PublishCodeCoverageResults@2
+          - task: PublishCodeCoverageResults@1
             condition: always()
             inputs:
+              codeCoverageTool: Cobertura
               summaryFileLocation: $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
 
           # Upload the module files

@@ -80,6 +80,7 @@
         "Get-AzureServiceVersions",
         "Get-Dependencies",
         "Get-ExternalCommands",
+        "Get-TFVars",
         "Expand-Template",
         "Invoke-Asciidoc",
         "Invoke-DotNet",
