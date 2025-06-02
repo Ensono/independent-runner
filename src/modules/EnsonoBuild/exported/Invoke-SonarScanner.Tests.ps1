@@ -20,7 +20,7 @@ Describe "Invoke-SonarScanner" {
 
     BeforeEach {
 
-        # Create a session object so that the ternal function does not
+        # Create a session object so that the internal function does not
         # execute any commands but the command that would be run can be checked
         $global:Session = @{
             commands = @{

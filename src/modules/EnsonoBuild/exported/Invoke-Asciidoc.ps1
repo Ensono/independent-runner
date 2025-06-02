@@ -67,12 +67,6 @@ function Invoke-Asciidoc() {
         [string]
         $Format, 
 
-        #[string]
-        # Path to configuration file with all the necessary settings
-        # If specified additional specific parameters are specifed, those values will
-        # override the ones in the configuration file
-        #$config,
-
         [string[]]
         $Libraries,
 

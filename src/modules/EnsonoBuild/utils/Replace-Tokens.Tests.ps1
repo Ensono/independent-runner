@@ -10,7 +10,7 @@ Describe "Replace-Tokens" {
 
     It "will replace a simple token" {
 
-        $tokens = @{"name" = "Pester"}
+        $tokens = @{"name" = "Pester" }
 
         $data = Replace-Tokens -Tokens $tokens -Data "Hello my name is {{ name }}"
 
@@ -19,7 +19,7 @@ Describe "Replace-Tokens" {
 
     It "will replace a token with different padding" {
 
-        $tokens = @{"name" = "Pester"}
+        $tokens = @{"name" = "Pester" }
 
         $data = Replace-Tokens -Tokens $tokens -Data "Hello my name is {{name  }}"
 
@@ -28,7 +28,7 @@ Describe "Replace-Tokens" {
 
     It "will replace with different delimiters" {
 
-        $tokens = @{"name" = "Pester"}
+        $tokens = @{"name" = "Pester" }
 
         $data = Replace-Tokens -Tokens $tokens -Data "Hello my name is [[name  ,," -Delimiters @("[[", ",,")
 
@@ -37,7 +37,7 @@ Describe "Replace-Tokens" {
 
     It "will replace multiple tokens" {
 
-        $tokens = @{"name" = "Pester"; "project" = "independent-runner"}
+        $tokens = @{"name" = "Pester"; "project" = "independent-runner" }
 
         $data = Replace-Tokens -Tokens $tokens -Data "{{ name }} is testing the {{ project }}"
 
@@ -46,7 +46,7 @@ Describe "Replace-Tokens" {
 
     It "will replace automatic tokens" {
 
-        $tokens = @{"name" = "Pester"}
+        $tokens = @{"name" = "Pester" }
 
         $data = Replace-Tokens -Tokens $tokens -Data "Hello my name is {{ name }} and the date is {{ date:%B %Y }}"
 
@@ -63,7 +63,7 @@ Describe "Replace-Tokens" {
     it "will replace all token instances within an array" {
 
         $data = @("{{ name }}", "{{ project }}", "{{ name }} - {{ project }}")
-        $tokens = @{"name" = "Pester"; "project" = "independent-runner"}
+        $tokens = @{"name" = "Pester"; "project" = "independent-runner" }
 
         $data = Replace-Tokens -Tokens $tokens -Data $data
 
