@@ -46,7 +46,6 @@ tasks:
     context: dotnet
     description: Create Cobertura report xml from coverage xml
     command: |
-      Import-Module /workspace/.taskctl/src/modules/EnsonoBuild/EnsonoBuild.psd1 -Force
       Invoke-DotNet -Coverage -Pattern pester-coverage.xml -Path /workspace/.taskctl -Source /workspace/.taskctl/src/modules/EnsonoBuild -Target /workspace/.taskctl/outputs/tests
 
   tests:coverage_report_html:
