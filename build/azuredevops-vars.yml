@@ -2,11 +2,11 @@
 # by the build
 variables:
   - name: TaskctlVersion
-    value: 1.5.1
+    value: 1.7.5
   - name: moduleName
     value: EnsonoBuild
 
-# Dashboard
+  # Dashboard
   - name: DASHBOARD_VERSION
     value: $(Build.BuildNumber)
   - name: DASHBOARD_TAGS
@@ -15,13 +15,13 @@ variables:
     value: deployment # Static definition within Influx Config
   # TODO: These won't exist in the new tenant but we're not using Influx currently anyway
   # - group: amido-stacks-influx-credentials-prod
-    # Group should contain:
-      # DASHBOARD_INFLUX_ORG
-      # DASHBOARD_INFLUX_BUCKET
-      # DASHBOARD_INFLUX_TOKEN
-      # DASHBOARD_INFLUX_SERVER
+  # Group should contain:
+  # DASHBOARD_INFLUX_ORG
+  # DASHBOARD_INFLUX_BUCKET
+  # DASHBOARD_INFLUX_TOKEN
+  # DASHBOARD_INFLUX_SERVER
 
-# GitHub Release
+  # GitHub Release
   - name: VERSION_NUMBER
     value: $(Build.BuildNumber)
   - name: COMMIT_ID
@@ -34,4 +34,4 @@ variables:
     value: artifacts/
   - group: release-github-credentials
     # Group should contain:
-      # API_KEY
+    # API_KEY

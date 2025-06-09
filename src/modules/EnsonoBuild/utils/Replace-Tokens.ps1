@@ -15,7 +15,7 @@ function Replace-Tokens() {
         # Hashtable of the tokens and the values to be replaced
         $tokens = @{},
 
-        [string]
+        [string[]]
         # String that should have tokens replace
         $data,
 
@@ -49,6 +49,11 @@ function Replace-Tokens() {
         $pattern = '{0}\s*{1}\s*{2}' -f $start, $item.Key, $stop
 
         $data = $data -replace $pattern, $item.Value
+    }
+
+    # ensure that an empty array is returned if the data is empty
+    if ($data.count -eq 1 -and [String]::IsNullOrEmpty($data[0])) {
+        $data = @()
     }
 
     # Return the data to the calling function

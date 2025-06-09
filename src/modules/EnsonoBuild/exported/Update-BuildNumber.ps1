@@ -28,7 +28,8 @@ function Update-BuildNumber() {
         # If the TF_BUILD environment variable is defined, then running on an Azure Devops build agent
         if (Test-Path env:TF_BUILD) {
             Write-Output ("##vso[build.updatebuildnumber]{0}" -f $buildnumber)
-        } else {
+        }
+        else {
             Write-Output $buildNumber
         }
     }

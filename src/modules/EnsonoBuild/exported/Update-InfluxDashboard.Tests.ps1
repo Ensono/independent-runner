@@ -14,9 +14,9 @@ Describe "Update-InfluxDashboard" {
         # Mocks
         Mock -CommandName Invoke-RestMethod -MockWith {}
         Mock -CommandName Write-Error -MockWith {}
-        Mock -CommandName Confirm-CSL -MockWith {$true}
-        Mock -CommandName Confirm-SemVer -MockWith {$true}
-        Mock -CommandName Confirm-IsWebAddress -MockWith {$true}  
+        Mock -CommandName Confirm-CSL -MockWith { $true }
+        Mock -CommandName Confirm-SemVer -MockWith { $true }
+        Mock -CommandName Confirm-IsWebAddress -MockWith { $true }  
         Mock -CommandName Write-Information -MockWith {}
 
     }

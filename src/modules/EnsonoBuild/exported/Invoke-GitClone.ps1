@@ -112,7 +112,8 @@ function Invoke-GitClone() {
         # Build up the command to download the zip file
         Invoke-WebRequest -Uri $repoUrl -UseBasicParsing -ErrorAction Stop -OutFile $zipPath
 
-    } catch {
+    }
+    catch {
 
         $_.Exception.Response.StatusCode
         return

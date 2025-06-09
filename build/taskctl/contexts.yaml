@@ -1,88 +1,53 @@
 contexts:
   docsenv:
-    executable:
-      bin: docker
-      args:
-        - run
-        - --rm
-        - -v
-        - ${PWD}:/app
-        - -w
-        - /app
-        - -e
-        - PSModulePath=/app/src/modules
-        - ensono/eir-asciidoctor:1.1.224
-        - pwsh
+    container:
+      name: ensono/eir-asciidoctor
+      container_args:
+        - -e PSModulePath=/workspace/.taskctl/src/modules
+      shell: pwsh
+      shell_args:
         - -Command
-    quote: "'"
     envfile:
-      generate: true
       exclude:
         - path
         - home
+        - posh_azure_subscription
 
   powershell_test:
-    executable:
-      bin: docker
-      args:
-        - run
-        - --rm
-        - -v
-        - ${PWD}:/app
-        - -v
-        - /var/run/docker.sock:/var/run/docker.sock
-        - --env-file
-        - envfile
+    container:
+      name: ensono/eir-infrastructure
+      container_args:
         - -e
-        - PSModulePath=/app/src/modules
-        - -e HOST_UIDGID=$UID:$GID
-        - -w
-        - /app
-        - ensono/eir-infrastructure:1.1.224
-        - pwsh
+        - HOST_UIDGID=$UID:$GID
+        - -e
+        - PSModulePath=/workspace/.taskctl/src/modules
+      shell: pwsh
+      shell_args:
         - -Command
-    quote: "'"
     envfile:
-      generate: true
-      include:
-        - TF_BUILD
+      exclude:
+        - posh_azure_subscription
 
   powershell:
-    executable:
-      bin: docker
-      args:
-        - run
-        - --env-file envfile
-        - --rm
-        - -v
-        - ${PWD}:/app
-        - -v
-        - /var/run/docker.sock:/var/run/docker.sock
-        - -w
-        - /app
-        - ensono/eir-infrastructure:1.1.224
-        - pwsh
+    container:
+      name: ensono/eir-infrastructure
+      shell: pwsh
+      shell_args:
         - -Command
-    quote: "'"
     envfile:
-      generate: true
       exclude:
-        - HOME
-        - PATH
+        - home
+        - path
+        - posh_azure_subscription
 
   dotnet:
-    executable:
-      bin: docker
-      args:
-        - run
-        - --rm
-        - -v
-        - ${PWD}:/app
-        - -v
-        - /var/run/docker.sock:/var/run/docker.sock
-        - -w
-        - /app
-        - ensono/eir-dotnet:1.1.224
-        - pwsh
+    container:
+      name: ensono/eir-dotnet
+      container_args:
+        - -v ${PWD}/src/modules:/modules
+      shell: pwsh
+      shell_args:
         - -Command
-    quote: "'"
+    envfile:
+      exclude:
+        - posh_azure_subscription

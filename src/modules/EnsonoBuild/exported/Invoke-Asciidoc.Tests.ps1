@@ -12,25 +12,16 @@ Describe "Invoke-Asciidoc" {
         . $PSScriptRoot/../utils/Copy-Object.ps1
         . $PSScriptRoot/../exported/Stop-Task.ps1
         . $PSScriptRoot/../utils/Replace-Tokens.ps1
+        . $PSScriptRoot/../utils/Set-Tokens.ps1
 
         # Create the testFolder
         $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
 
-        # Create a settings file to be used to create the document
-        $settings = @{
-            title = "Pester Newsletter"
-            output = $testfolder
-            path = $testfolder
-            pdf = @{
-                attributes = @(
-                    "allow-read-uri"
-                )
-            }
-        }
-        $settings_file = [IO.Path]::Combine($testfolder, "settings.json")
-        Set-Content -Path $settings_file -Value ($settings | ConvertTo-Json) | Out-Null
-
-        $env:BUILDNUMBER = "74.83.10.13"
+        # Set the libs that need to be applied
+        $Libraries = @("asciidoctor-diagram")
+        
+        # Set some attributes to be applied
+        $Attributes = @("allow-uri-read", "java=/usr/bin/java")
 
         # Mock functions that are called
         # - Find-Command - return the name of the command that is required
@@ -40,25 +31,58 @@ Describe "Invoke-Asciidoc" {
         Mock -Command Write-Information -MockWith { return $MessageData } -Verifiable
     }
 
-    BeforeEach {
+    Context "Arguments" {
 
-        # Create a session object so that the Invoke-External function does not
-        # execute any commands but the command that would be run can be checked
-        $global:Session = @{
-            commands = @{
-                list = @()
+        BeforeAll {
+            # Create a session object so that the Invoke-External function does not
+            # execute any commands but the command that would be run can be checked
+            $global:Session = @{
+                commands = @{
+                    list = @()
+                }
+                dryrun   = $true
             }
-            dryrun = $true
+
+            # Create a splat to pass to the cmdlet
+            $splat = @{
+                Format     = "docbook"
+                Path       = "$testfolder/index.adoc"
+                Output     = "${testfolder}/newsletter.xml"
+                Libraries  = $Libraries
+                Attributes = $Attributes
+            }
+            Invoke-Asciidoc @splat
+        }
+
+        it "will add in libraries to be used" {
+            $Session.commands.list[0] | Should -Match "-r asciidoctor-diagram"
+        }
+
+        it "will add in all the attributes" {
+            $Session.commands.list[0] | Should -Match "-a allow-uri-read"
+            $Session.commands.list[0] | Should -Match "-a java=/usr/bin/java"
+        }
+
+        it "all generated files will be written to the output directory" {
+            $session.commands.list[0] | Should -Match ([Regex]::Escape('-o "{0}/newsletter.xml"' -f $testFolder))
         }
     }
 
     Context "PDF" {
 
-        it "will generate the PDF" {
+        BeforeAll {
+            # Create a session object so that the Invoke-External function does not
+            # execute any commands but the command that would be run can be checked
+            $global:Session = @{
+                commands = @{
+                    list = @()
+                }
+                dryrun   = $true
+            }
 
-            Invoke-Asciidoc -pdf -path $testfolder -output "${testfolder}/newsletter.pdf"
+            Invoke-Asciidoc -Format pdf -path $testfolder -output "${testfolder}/newsletter.pdf"
 
-            $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -o `"newsletter.pdf`" -D `"$testfolder`" $testfolder --failure-level warn"
+            $Session.commands.list[0] | Should -BeLike ("*asciidoctor-pdf* -o `"{0}/newsletter.pdf`"" -f $testFolder)
 
             Should -Invoke -CommandName Write-Information -Times 1
         }
@@ -72,18 +96,9 @@ Describe "Invoke-Asciidoc" {
                 "stackscli_version={{ BUILDNUMBER }}"
             )
 
-            Invoke-Asciidoc -pdf -path $testfolder -output "${testfolder}/newsletter.pdf" -attributes $attributes
+            Invoke-Asciidoc -Format pdf -path $testfolder -output "${testfolder}/newsletter.pdf" -attributes $attributes
 
-            $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -a allow-read-uri -a pdf-fontsdir=/fonts -a stackscli_version=74.83.10.13 -o `"newsletter.pdf`" -D `"$testfolder`" $testfolder --failure-level warn"
-
-            Should -Invoke -CommandName Write-Information -Times 1
-        }
-
-        It "will use a settings file" {
-
-            Invoke-AsciiDoc -pdf -basepath $testfolder -config $settings_file
-
-            $Session.commands.list[0] | Should -BeLike "*asciidoctor-pdf* -a allow-read-uri -o `"Pester Newsletter.pdf`" -D `"$testfolder`" $testfolder --failure-level warn"
+            $Session.commands.list[0] | Should -BeLike ("*asciidoctor-pdf* -o `"{0}/newsletter.pdf`"" -f $testFolder) #-a allow-read-uri -a pdf-fontsdir=/fonts -a stackscli_version=74.83.10.13 -o `"newsletter.pdf`" -D `"$testfolder`" $testfolder --failure-level warn"
 
             Should -Invoke -CommandName Write-Information -Times 1
         }

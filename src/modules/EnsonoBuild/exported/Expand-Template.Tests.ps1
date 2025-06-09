@@ -45,7 +45,7 @@ Describe "Expand-Template" {
 
     it "uses values specified on the command line" {
 
-        $result = 'external: ${EXTERNAL}' | Expand-Template -a @{"external" = "azure"} -Pipeline
+        $result = 'external: ${EXTERNAL}' | Expand-Template -a @{"external" = "azure" } -Pipeline
 
         $result | Should -Be "external: azure"
     }

@@ -64,40 +64,19 @@ function Invoke-Asciidoc() {
     [CmdletBinding()]
     param (
 
-        [Parameter(
-            ParameterSetName="pdf"
-        )]
-        [switch]
-        # State that the document should be PDF
-        $pdf,
+        [string]
+        $Format, 
 
-        [Parameter(
-            ParameterSetName="html"
-        )]
-        [switch]
-        # State that the document should be HTML
-        $html,
+        [string[]]
+        $Libraries,
 
         [string]
-        # Path to configuration file with all the necessary settings
-        # If specified additional specific parameters are specifed, those values will
-        # override the ones in the configuration file
-        $config,
+        # Output filename
+        $Output,
 
         [string]
-        # Base path from which all paths will be derived
-        # By default this will be the current directory, but in docker this should be the dir
-        # that the directory is mapped into
-        $basepath = $(Get-Location),
-
-        [alias("folder", "template")]
-        [string]
-        # Path to the AsciiDoc template to render
-        $path,
-
-        [string]
-        # Full path for the built document
-        $output,
+        # The path to the file to convert
+        $Path,
 
         [string[]]
         # List of attributes to pass to the AsciiDoc command
@@ -114,123 +93,52 @@ function Invoke-Asciidoc() {
         $ExitCodes = @()
     )
 
-    # Define variables to be used in the function
-    $cmdline = @()
-    $extension = ""
-
-    # Create an empty config hashtable to be used to grab the settings for the generation
-    $settings = @{
-        title = ""
-        output = ""
-        path = ""
-        trunkBranch = ""
-        libs = @()
-        pdf = @{
-            attributes = @()
-        }
-        html = @{
-            attributes = @()
-        }
-    }
-
-    # Define the tokens hashtable for any replacements
-    $tokens = @{
-        "format" = $PSCmdlet.ParameterSetName
-        "basepath" = $basepath
-    }
-
-    # Add all environment variables to the tokens list
-    # This is so that any can be used in substitutions in the generation of an AsciiDoc document
-    $envs = Get-ChildItem -Path env:*
-    foreach ($env in $envs) {
-        $tokens[$env.Name] = $env.Value
-    }
-
-    # Perform the appropriate action based on the Parameter Set Name that
-    # has been selected
-    switch ($PSCmdlet.ParameterSetName) {
+    # Configure variables
+    $arguments = @()
+    $command = ""
+    switch ($Format) {
         "pdf" {
-
-            # set the correct asciidoc command
-            $cmdline += "asciidoctor-pdf"
-            $extension = ".pdf"
+            $command = Find-Command -Name "asciidoctor-pdf"
         }
-
         "html" {
-            $cmdline += "asciidoctor"
-            $extension = ".html"
+            $command = Find-Command -Name "asciidoctor"
+            $arguments += @("-b html5")
+        }
+        "docbook" {
+            $command = Find-Command -Name "asciidoctor"
+            $arguments += @("-b docbook5")
         }
     }
 
-    # Read in the configuration file, if one has been specified
-    if (Test-Path -Path $config) {
-        # Read in the config using and merge with the empty settings hashtable
-        $data = Get-Content -Path $config -Raw | ConvertFrom-Json -AsHashtable
-        $settings = Merge-Hashtables -Primary $data -Secondary $settings
-    }
+    Write-Information ("Generating {0} document: {1}" -f $Format, $Output)
 
-    # If any attributes have been set, update the settings with them
-    if ($attributes.count -gt 0) {
-        $settings.$($PSCmdlet.ParameterSetName).attributes = $attributes
-    }
-
-
-    # if any attributes have been set, iterate around them and add the correct args and ensure any tokens have
-    # been replaced
-    foreach ($attr in $settings.$($PSCmdlet.ParameterSetName).attributes) {
-
-        # Replace any values in the attribute
-        $_attr = Replace-Tokens -tokens $tokens -data $attr
-
-        $cmdline += '-a {0}' -f $_attr
-    }
-
-    # If any libraries have been specified add them to the command line as well
-    if ($settings.libs.count -gt 0) {
-        $cmdline += '-r {0}' -f ($settings.libs -join ",")
-    }
-
-    # Handle scenario where the output filename has been specified on the command line
-    # this will then override the title and the output in the tokens
-    if (![String]::IsNullOrEmpty($output)) {
-        $settings.title = Split-Path -Path $output -Leaf
-        $settings.output = Split-Path -Path $output -Parent
-    }
-
-    # Determine if the extension needs to be set on the filename
-    if ($settings.title.EndsWith($extension)) {
-        $extension = ""
-    }
-
-    if (![String]::IsNullOrEmpty($path)) {
-        $settings.path = $path
-    }
+    # Get all the tokens that are available
+    $tokens = Set-Tokens
 
     # Ensure the tokens are replaced the settings
-    $settings.output = Replace-Tokens -Tokens $tokens -Data $settings.output
-    $settings.path = Replace-Tokens -Tokens $tokens -Data $settings.path
-    $settings.title = Replace-Tokens -Tokens $tokens -Data $settings.title
+    $Output = Replace-Tokens -Tokens $tokens -Data $Output
+    $Path = Replace-Tokens -Tokens $tokens -Data $Path
 
-    # Ensure that the path exists, if it does not error out
-    if (!(Test-Path -Path $settings.path)) {
-        Stop-Task -Message ("Specified path does not exist: {0}" -f $settings.path)
-        return
+    # Add in the extra arguments
+    # $arguments += @("-o `"{0}`"" -f (Split-Path -Path $Output -Leaf))
+    $arguments += "-o `"{0}`"" -f $Output
+
+    # If there are any libraries, iterate around each of them and add to the arguments
+    if ($Libraries.count -gt 0) {
+        foreach ($lib in $Libraries) {
+            $arguments += @("-r {0}" -f $lib)
+        }
     }
 
-    # Update the cmdline with the arguments for the specifying the output filename
-    $cmdline += '-o "{0}{1}"' -f $settings.title, $extension
-    $cmdline += '-D "{0}"' -f $settings.output
-
-    Write-Information -MessageData ("Output directory: {0}" -f $settings.output) -InformationAction Continue
-
-    # Ensure that the output directory exists
-    if (!(Test-Path -Path $settings.output)) {
-        Write-Information -MessageData "Creating output directory" -InformationAction Continue
-        New-Item -ItemType Directory -Path $settings.output | Out-Null
+    # if there are any attributes add them to the arguments
+    if ($Attributes.count -gt 0) {
+        foreach ($attr in $Attributes) {
+            $arguments += @("-a {0}" -f $attr)
+        }
     }
 
     # Stitch the full command together
-    $cmd = "{0} {1} {2}" -f ($cmdline -join " "), (Replace-Tokens -Tokens $tokens $settings.path), "--failure-level ${failureLevel}"
+    $cmd = "{0} {1} {2}" -f ($command -join " "), ($arguments -join " "), (Replace-Tokens -Tokens $tokens $settings.path), "--failure-level ${failureLevel}"
 
     # Execute the command
     Invoke-External -Command $cmd -AdditionalExitCodes $ExitCodes
