@@ -7,7 +7,7 @@ function Get-TFVars() {
 
     .DESCRIPTION
     When working with a CI/CD system, such as Azure DevOps, the variables for Terraform are passed in as
-    environment variables. However this sometimes needs to be done several time, so this function creates
+    environment variables. However this sometimes needs to be done several times, so this function creates
     a valid TFVars file that can be uploaded as an artifact and used in different stages.
     
     .EXAMPLE
