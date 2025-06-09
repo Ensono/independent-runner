@@ -9,25 +9,25 @@
 @{
 
     # Script module or binary module file associated with this manifest.
-    RootModule = 'EnsonoBuild'
+    RootModule        = 'EnsonoBuild'
 
     # Version number of this module.
-    ModuleVersion = '0.1'
+    ModuleVersion     = '0.1'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
 
     # ID used to uniquely identify this module
-    GUID = '2856f323-7109-49fe-babe-138c61532d8c'
+    GUID              = '2856f323-7109-49fe-babe-138c61532d8c'
 
     # Author of this module
-    Author = 'Russell Seymour'
+    Author            = 'Russell Seymour'
 
     # Company or vendor of this module
-    CompanyName = 'Ensono'
+    CompanyName       = 'Ensono'
 
     # Copyright statement for this module
-    Copyright = '(c) Ensono. All rights reserved.'
+    Copyright         = '(c) Ensono. All rights reserved.'
 
     # Description of the functionality provided by this module
     # Description = ''
@@ -72,6 +72,7 @@
     FunctionsToExport = @(
         "Build-DockerImage",
         "Build-Documentation",
+        "Build-Help",
         "Build-PowerShellModule",
         "Confirm-Environment",
         "ConvertTo-Yaml",
@@ -79,6 +80,7 @@
         "Get-AzureServiceVersions",
         "Get-Dependencies",
         "Get-ExternalCommands",
+        "Get-TFVars",
         "Expand-Template",
         "Invoke-Asciidoc",
         "Invoke-DotNet",
@@ -88,6 +90,7 @@
         "Invoke-Inspec",
         "Invoke-Kubectl",
         "Invoke-Login",
+        "Invoke-Pandoc",
         "Invoke-SonarScanner",
         "Invoke-Templater",
         "Invoke-Terraform",
@@ -102,13 +105,13 @@
     )
 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
-    CmdletsToExport = @()
+    CmdletsToExport   = @()
 
     # Variables to export from this module
     VariablesToExport = '*'
 
     # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-    AliasesToExport = @()
+    AliasesToExport   = @()
 
     # DSC resources to export from this module
     # DscResourcesToExport = @()
@@ -120,7 +123,7 @@
     # FileList = @()
 
     # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
-    PrivateData = @{
+    PrivateData       = @{
 
         PSData = @{
 
@@ -158,5 +161,4 @@
     # Default prefix for commands exported from this module. Override the default prefix using Import-Module -Prefix.
     # DefaultCommandPrefix = ''
 
-    }
-
+}

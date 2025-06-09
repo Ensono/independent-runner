@@ -95,4 +95,3 @@ function Get-AzureServiceVersions() {
 
     return $result
 }
-

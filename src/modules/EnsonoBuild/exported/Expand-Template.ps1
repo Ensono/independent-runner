@@ -47,17 +47,17 @@ function Expand-Template() {
     param (
         [string]
         [Parameter(
-            Mandatory=$true,
-            ParameterSetName="content",
-            ValueFromPipeline=$true
+            Mandatory = $true,
+            ParameterSetName = "content",
+            ValueFromPipeline = $true
         )]
         # Content of the template to use
         $template,
 
         [string]
         [Parameter(
-            Mandatory=$true,
-            ParameterSetName="path"
+            Mandatory = $true,
+            ParameterSetName = "path"
         )]
         [Alias("i")]
         # Path to the file to use as the template
@@ -88,7 +88,8 @@ function Expand-Template() {
         if (!(Test-Path -Path $path)) {
             Write-Error -Message ("Specified path cannot be found: {0}" -f $path)
             return
-        } else {
+        }
+        else {
             $template = Get-Content -Path $path -Raw
         }
     }
@@ -131,7 +132,8 @@ function Expand-Template() {
     # if the target has been specfied write it out to the file
     if ($pipeline) {
         $data
-    } else {
+    }
+    else {
 
         if ([String]::IsNullOrEmpty($target)) {
             # use the path in the specified to work out the target
@@ -147,4 +149,3 @@ function Expand-Template() {
         Set-Content -Path $target -Value $data   
     }
 }
-

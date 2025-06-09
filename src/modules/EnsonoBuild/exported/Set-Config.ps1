@@ -32,7 +32,8 @@ function Set-Config() {
         # ensure the parent path for the commandpath exists
         if (!(Test-Path -Path (Split-Path -Path $commandpath -Parent))) {
             Write-Error -Message "Specified path for command log does not exist"
-        } else {
+        }
+        else {
 
             if (!([string]::IsNullOrEmpty((Get-Variable -Name Session -Scope Global -ErrorAction SilentlyContinue)))) {
                 $Session.commands.file = $commandpath

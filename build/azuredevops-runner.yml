@@ -1,5 +1,5 @@
 # Set the build name which will define the Build Number
-name: 1.1$(Rev:.r)
+name: 1.2$(Rev:.r)
 
 pr:
   - main
@@ -11,13 +11,45 @@ trigger:
 
 # Set the agent pool that stages should be run in
 pool:
-  vmImage: ubuntu-22.04
+  vmImage: ubuntu-24.04
 
 variables:
   - template: azuredevops-vars.yml
 
 # Configure the stages
 stages:
+  - stage: Docs
+    jobs:
+      - job: GenerateDocs
+        displayName: Generate Documentation
+
+        steps:
+          - template: templates/setup.yaml
+            parameters:
+              TaskctlVersion: ${{ variables.TaskctlVersion }}
+
+          - task: Bash@3
+            displayName: Pull Dotnet Image
+            inputs:
+              targetType: inline
+              script: |
+                taskctl image-pull-docs
+
+          # Generate the documentation
+          - task: Bash@3
+            displayName: Generate Documentation
+            inputs:
+              targetType: inline
+              script: |
+                taskctl docs
+
+            # Upload the documentation
+          - task: PublishBuildArtifacts@1
+            displayName: Publish Documentation
+            inputs:
+              pathToPublish: $(Build.SourcesDirectory)/outputs/docs
+              artifactName: docs
+
   - stage: Build
     jobs:
       - job: UnitTests
@@ -64,21 +96,6 @@ stages:
               script: |
                 taskctl build
 
-          - task: Bash@3
-            displayName: Pull Docs Image
-            inputs:
-              targetType: inline
-              script: |
-                taskctl image-pull-docs
-
-          # Generate the documentation
-          - task: Bash@3
-            displayName: Generate Documentation
-            inputs:
-              targetType: inline
-              script: |
-                taskctl docs
-
           # Munges the file paths by replacing the bound `/app` directory with the $(Build.SourcesDirectory) variable where the files are
           - task: Bash@3
             condition: always()
@@ -86,7 +103,7 @@ stages:
             inputs:
               targetType: inline
               script: |
-                sudo sed -i 's%/app/src/%$(Build.SourcesDirectory)/src/%' $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
+                sudo sed -i 's%/workspace/.taskctl/src/%$(Build.SourcesDirectory)/src/%' $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
 
           # Upload tests and the coverage results
           - task: PublishTestResults@2
@@ -99,15 +116,8 @@ stages:
           - task: PublishCodeCoverageResults@1
             condition: always()
             inputs:
-              codeCoverageTool: "Cobertura"
+              codeCoverageTool: Cobertura
               summaryFileLocation: $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
-
-          # Upload the documentation
-          - task: PublishBuildArtifacts@1
-            displayName: Publish Documentation
-            inputs:
-              pathToPublish: $(Build.SourcesDirectory)/outputs/docs
-              artifactName: docs
 
           # Upload the module files
           - task: PublishBuildArtifacts@1
@@ -117,7 +127,9 @@ stages:
               artifactName: modules
 
   - stage: Release
-    dependsOn: Build
+    dependsOn:
+      - Build
+      - Docs
     condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
     jobs:
       - job: Publish

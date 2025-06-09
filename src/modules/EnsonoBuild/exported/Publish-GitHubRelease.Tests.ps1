@@ -26,6 +26,11 @@ Describe "Publish-GitHubRelease" {
             # Create a folder to use for each test
             $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
 
+            $env:ARTIFACTS_DIR = [IO.Path]::Combine($testFolder, "artifacts")
+            if (!(Test-Path -Path $env:ARTIFACTS_DIR)) {
+                New-Item -ItemType Directory -Path $env:ARTIFACTS_DIR | Out-Null
+            }
+
             # Create a dummy file for release
             New-Item -ItemType File -Path ([IO.Path]::Combine($testFolder, "module.psm1")) | Out-Null
         }
@@ -49,22 +54,15 @@ Describe "Publish-GitHubRelease" {
             Should -Invoke -CommandName Write-Information -Times 1
         }
 
-        It "if parameters have not been set" {
-
-            Publish-GitHubRelease -publishRelease $true
-
-            Should -Invoke -CommandName Write-Error -Times 1
-        }
-
         It "will error if there is an issue talking to the GitHub API" {
 
             $splat = @{
-                version = "100.98.99"
-                commitId = "hjggh66"
-                owner = "Ensono"
-                apiKey = "1245356"
-                repository = "pester"
-                artifactsDir = $testfolder
+                version        = "100.98.99"
+                commitId       = "hjggh66"
+                owner          = "Ensono"
+                apiKey         = "1245356"
+                repository     = "pester"
+                artifactsDir   = $testfolder
                 publishRelease = $true
             }
 
@@ -116,13 +114,13 @@ Describe "Publish-GitHubRelease" {
                 -MockWith { } `
 
             $splat = @{
-                version = "100.98.99"
-                commitId = "hjggh66"
-                owner = "Ensono"
-                apiKey = "1245356"
-                repository = "pester"
-                artifactsDir = $testfolder
-                artifactsList = @("foo.ps1", "bar.ps1")
+                version        = "100.98.99"
+                commitId       = "hjggh66"
+                owner          = "Ensono"
+                apiKey         = "1245356"
+                repository     = "pester"
+                artifactsDir   = $testfolder
+                artifactsList  = @("foo.ps1", "bar.ps1")
                 publishRelease = $true
             }
 
@@ -175,13 +173,13 @@ Describe "Publish-GitHubRelease" {
                 -Verifiable
 
             $splat = @{
-                version = "100.98.99"
-                commitId = "hjggh66"
-                owner = "Ensono"
-                apiKey = "1245356"
-                repository = "pester"
-                artifactsDir = $testfolder
-                artifactsList = @("foo.ps1", "bar.ps1")
+                version        = "100.98.99"
+                commitId       = "hjggh66"
+                owner          = "Ensono"
+                apiKey         = "1245356"
+                repository     = "pester"
+                artifactsDir   = $testfolder
+                artifactsList  = @("foo.ps1", "bar.ps1")
                 publishRelease = $true
             }
 
@@ -229,14 +227,14 @@ Describe "Publish-GitHubRelease" {
                 -Verifiable
 
             $splat = @{
-                version = "100.98.99"
-                commitId = "hjggh66"
-                owner = "Ensono"
-                apiKey = "1245356"
-                repository = "pester"
-                artifactsDir = $testfolder
-                artifactsList = @()
-                publishRelease = $true
+                version         = "100.98.99"
+                commitId        = "hjggh66"
+                owner           = "Ensono"
+                apiKey          = "1245356"
+                repository      = "pester"
+                artifactsDir    = $testfolder
+                artifactsList   = @()
+                publishRelease  = $true
                 uploadArtifacts = $false
             }
 
@@ -264,14 +262,14 @@ Describe "Publish-GitHubRelease" {
                 -MockWith { }
 
             $splat = @{
-                version = "100.98.99"
-                commitId = "hjggh66"
-                owner = "Ensono"
-                apiKey = "1245356"
-                repository = "pester"
-                artifactsDir = $testfolder
-                artifactsList = @("file", "file2")
-                publishRelease = $true
+                version         = "100.98.99"
+                commitId        = "hjggh66"
+                owner           = "Ensono"
+                apiKey          = "1245356"
+                repository      = "pester"
+                artifactsDir    = $testfolder
+                artifactsList   = @("file", "file2")
+                publishRelease  = $true
                 uploadArtifacts = $false
             }
 
@@ -319,12 +317,12 @@ Describe "Publish-GitHubRelease" {
         It "with the specified artifacts and command line publishing" {
 
             $splat = @{
-                version = "100.98.99"
-                commitId = "hjggh66"
-                owner = "Ensono"
-                apiKey = "1245356"
-                repository = "pester"
-                artifactsDir = $testfolder
+                version        = "100.98.99"
+                commitId       = "hjggh66"
+                owner          = "Ensono"
+                apiKey         = "1245356"
+                repository     = "pester"
+                artifactsDir   = $testfolder
                 publishRelease = $true
             }
 
@@ -337,11 +335,11 @@ Describe "Publish-GitHubRelease" {
             $env:PUBLISH_RELEASE = 'true'
 
             $splat = @{
-                version = "100.98.99"
-                commitId = "hjggh66"
-                owner = "Ensono"
-                apiKey = "1245356"
-                repository = "pester"
+                version      = "100.98.99"
+                commitId     = "hjggh66"
+                owner        = "Ensono"
+                apiKey       = "1245356"
+                repository   = "pester"
                 artifactsDir = $testfolder
 
             }

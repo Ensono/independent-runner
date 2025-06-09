@@ -4,4 +4,4 @@ This section shows the help that is built into each of the exported commands.
 
 The help can be accessed for each command using `Get-Help <NAME>` when the module has been loaded.
 
-include::reference.adoc[]
+include::reference/index.adoc[]

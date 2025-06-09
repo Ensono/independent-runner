@@ -27,9 +27,9 @@ header:
   recto:
     columns: "<40% =20% >40%"
     left:
-      content: 'image:../images/ensono-digital.svg[Ensono Digital,100]'
+      content: "image:../../images/ensono.svg[Ensono,100]"
     center:
-      content: ''
+      content: ""
   verso:
     left:
       content: $header_recto_left_content
@@ -41,7 +41,7 @@ table:
   caption:
     side: bottom
   head:
-    background-color: #08c1a7
+    background-color: #6941eb
     font-color: #ffffff
 
 role:

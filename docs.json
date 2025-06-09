@@ -1,19 +1,38 @@
 {
-    "title": "Ensono Independent Runner",
-    "output": "{{ basepath }}/outputs/docs/{{ format }}",
-    "trunkBranch": "main",
-    "path": "{{ basepath }}/docs/index.adoc",
-    "libs": [
-        "asciidoctor-diagram",
-        "/usr/local/ensono/lib/glob-include-processor.rb"
-    ],
-    "pdf": {
-        "attributes": [
-            "pdf-theme={{ basepath }}/docs/styles/theme.yml",
-            "pdf-fontsdir=\"{{ basepath }}/docs/styles/fonts;GEM_FONTS_DIR\"",
-            "allow-uri-read",
-            "blockdiag=/usr/bin/blockdiag",
-            "skip-front-matter"
-        ]
+  "title": "Ensono Independent Runner",
+  "output": "{{ basepath }}/outputs/docs/{{ format }}",
+  "trunkBranch": "main",
+  "path": "{{ basepath }}/docs/index.adoc",
+  "formats": ["pdf", "html", "docx"],
+  "libs": {
+    "asciidoctor": [
+      "asciidoctor-diagram",
+      "/usr/local/ensono/lib/glob-include-processor.rb"
+    ]
+  },
+  "attributes": {
+    "asciidoctor": ["allow-uri-read"]
+  },
+  "pdf": {
+    "attributes": {
+      "asciidoctor": [
+        "pdf-theme={{ basepath }}/docs/styles/pdf/theme.yml",
+        "pdf-fontsdir=\"{{ basepath }}/docs/styles/pdf/fonts;GEM_FONTS_DIR\"",
+        "blockdiag=/usr/bin/blockdiag",
+        "skip-front-matter"
+      ]
     }
+  },
+  "html": {
+    "attributes": {
+      "asciidoctor": ["--embed-resources=true"]
+    }
+  },
+  "docx": {
+    "attributes": {
+      "pandoc": [
+        "--reference-doc={{ basepath }}/docs/styles/docx/reference_template.docx"
+      ]
+    }
+  }
 }

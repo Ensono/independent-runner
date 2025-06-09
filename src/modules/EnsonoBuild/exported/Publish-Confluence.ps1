@@ -113,11 +113,11 @@ function Publish-Confluence() {
     }
 
     # Build the URL to use
-    $url = Build-URI -Server $server -Path $confluencePath -query @{"title" = $title; "spaceKey" = $space; "expand" = "version"}
+    $url = Build-URI -Server $server -Path $confluencePath -query @{"title" = $title; "spaceKey" = $space; "expand" = "version" }
 
     # Call the API to get the information about the page
     $splat = @{
-        url = $url
+        url         = $url
         credentials = $credentials
     }
     
@@ -130,14 +130,14 @@ function Publish-Confluence() {
 
         # create the body object to creae the new page
         $pagebody = @{
-            type = "page"
+            type  = "page"
             title = $title
             space = @{
                 key = $space
             }
-            body = @{
+            body  = @{
                 storage = @{
-                    value = "Initial page created by the EnsonoBuild PowerShell module. This will be updated shortly."
+                    value          = "Initial page created by the EnsonoBuild PowerShell module. This will be updated shortly."
                     representation = "storage"
                 }
             }
@@ -145,21 +145,21 @@ function Publish-Confluence() {
 
         # if a parent has been specified get the ID of that page
         if (![String]::IsNullOrEmpty($parent)) {
-            $url = Build-URI -Server $server -Path $confluencePath -query @{"title" = $parent; "spaceKey" = $space; "expand" = "version"}
+            $url = Build-URI -Server $server -Path $confluencePath -query @{"title" = $parent; "spaceKey" = $space; "expand" = "version" }
             $pageDetails = Get-ConfluencePage -Url $url -Credential $credentials
 
             # If the parentId is not empty add it in as an ancestor for the page
             if (![string]::IsNullOrEmpty($pageDetails.ID)) {
-                $pagebody.ancestors = @(@{id = $pageDetails.ID})
+                $pagebody.ancestors = @(@{id = $pageDetails.ID })
             }
         }
 
         # Create the initial page using the title and the spaceKey
         # The result of this will provide a pageId that can be used to update the content
         $splat = @{
-            method = "POST"
-            url = (Build-URI -Server $server -Path $confluencePath -query @{"expand" = "version"})
-            body = (ConvertTo-Json -InputObject $pagebody -Depth 100)
+            method      = "POST"
+            url         = (Build-URI -Server $server -Path $confluencePath -query @{"expand" = "version" })
+            body        = (ConvertTo-Json -InputObject $pagebody -Depth 100)
             credentials = $credentials
         }
 
@@ -167,12 +167,14 @@ function Publish-Confluence() {
 
         if ($res -is [System.Exception]) {
             Stop-Task -Message $res.Message
-        } else {
+        }
+        else {
             $content = ConvertFrom-JSON -InputObject $res.Content
             $pageDetails.ID = $content.id
             $pageDetails.Version = $content.version.number
         }
-    } else {
+    }
+    else {
 
         # the page may need to be updated, but only do so if the checksums do not match
         if ($checksum -ieq $pageDetails.Checksum) {
@@ -196,15 +198,15 @@ function Publish-Confluence() {
 
             # set the paramneters to send to the invoke-api to upload the image
             $splat = @{
-                method = "POST"
+                method      = "POST"
                 contenttype = 'multipart/form-data' #; boundary="{0}"' -f $delimiter
-                formData = @{
+                formData    = @{
                     file = Get-Item -Path $imgPath
                 }
-                headers = @{
+                headers     = @{
                     "X-Atlassian-Token" = "nocheck"
                 }
-                url = (Build-URI -Server $server -Path ("{0}/{1}/child/attachment" -f $confluencePath, $pageDetails.ID))
+                url         = (Build-URI -Server $server -Path ("{0}/{1}/child/attachment" -f $confluencePath, $pageDetails.ID))
                 credentials = $credentials
             }
 
@@ -232,25 +234,25 @@ function Publish-Confluence() {
     # Using the ID of the page update the body
     # Update the splat of arguments to update the page with the necessary content
     $splat = @{
-        method = "PUT"
-        body = (ConvertTo-Json -InputObject @{
-            id = $pageDetails.ID
-            type = "page"
-            title = $title
-            space = @{
-                key = $space
-            }
-            body = @{
-                storage = @{
-                    value = $preparedBody
-                    representation = "storage"
+        method      = "PUT"
+        body        = (ConvertTo-Json -InputObject @{
+                id      = $pageDetails.ID
+                type    = "page"
+                title   = $title
+                space   = @{
+                    key = $space
                 }
-            }
-            version = @{
-                number = ($pageDetails.Version + 1)
-            }
-        })
-        url = (Build-URI -Server $server -Path ("{0}/{1}" -f $confluencePath, $pageDetails.ID))
+                body    = @{
+                    storage = @{
+                        value          = $preparedBody
+                        representation = "storage"
+                    }
+                }
+                version = @{
+                    number = ($pageDetails.Version + 1)
+                }
+            })
+        url         = (Build-URI -Server $server -Path ("{0}/{1}" -f $confluencePath, $pageDetails.ID))
         credentials = $credentials
     }
 
@@ -258,17 +260,17 @@ function Publish-Confluence() {
 
     # Update the page properties so that the checksum of the data is set
     $splat = @{
-        method = "PUT"
-        url = (Build-URI -Server $server -Path ("{0}/{1}/property/checksum" -f $confluencePath, $pageDetails.ID))
+        method      = "PUT"
+        url         = (Build-URI -Server $server -Path ("{0}/{1}/property/checksum" -f $confluencePath, $pageDetails.ID))
         credentials = $credentials
-        body = (ConvertTo-JSON -InputObject @{
-            value = @(
-                $checksum
-            )
-            version = @{
-                number = $pageDetails.Version
-            }
-        })
+        body        = (ConvertTo-JSON -InputObject @{
+                value   = @(
+                    $checksum
+                )
+                version = @{
+                    number = $pageDetails.Version
+                }
+            })
     }
 
     $res = Invoke-API @splat
