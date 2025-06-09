@@ -2,7 +2,7 @@
 # by the build
 variables:
   - name: TaskctlVersion
-    value: 2.0.5
+    value: 1.7.5
   - name: moduleName
     value: EnsonoBuild
 
