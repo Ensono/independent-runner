@@ -1,6 +1,16 @@
 # Set the build name which will define the Build Number
 name: 1.2$(Rev:.r)
 
+parameters:
+  - name: force_release
+    displayName: Force build and release to GitHub
+    type: boolean
+    default: false
+  - name: debug
+    displayName: Debug mode
+    type: boolean
+    default: false
+
 pr:
   - main
 
@@ -15,6 +25,8 @@ pool:
 
 variables:
   - template: azuredevops-vars.yml
+  - name: EIRCTL_DEBUG
+    value: ${{ parameters.debug }}
 
 # Configure the stages
 stages:
@@ -130,7 +142,7 @@ stages:
     dependsOn:
       - Build
       - Docs
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+    condition: or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(parameters.force_release, true))
     jobs:
       - job: Publish
         steps:
