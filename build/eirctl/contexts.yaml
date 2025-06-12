@@ -2,11 +2,11 @@ contexts:
   docsenv:
     container:
       name: ensono/eir-asciidoctor
-      container_args:
-        - -e PSModulePath=/workspace/.taskctl/src/modules
       shell: pwsh
       shell_args:
         - -Command
+    env:
+      PSModulePath: /eirctl/src/modules
     envfile:
       exclude:
         - path
@@ -16,14 +16,12 @@ contexts:
   powershell_test:
     container:
       name: ensono/eir-infrastructure
-      container_args:
-        - -e
-        - HOST_UIDGID=$UID:$GID
-        - -e
-        - PSModulePath=/workspace/.taskctl/src/modules
       shell: pwsh
       shell_args:
         - -Command
+    env:
+      PSModulePath: /eirctl/src/modules
+      HOST_UIDGID: $UID:$GID
     envfile:
       exclude:
         - posh_azure_subscription

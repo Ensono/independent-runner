@@ -103,7 +103,7 @@ stages:
             inputs:
               targetType: inline
               script: |
-                sudo sed -i 's%/workspace/.taskctl/src/%$(Build.SourcesDirectory)/src/%' $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
+                sudo sed -i 's%/eirctl/src/%$(Build.SourcesDirectory)/src/%' $(Build.SourcesDirectory)/outputs/tests/Cobertura.xml
 
           # Upload tests and the coverage results
           - task: PublishTestResults@2
