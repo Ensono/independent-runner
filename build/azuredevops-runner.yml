@@ -32,8 +32,6 @@ stages:
     jobs:
       - job: GenerateDocs
         displayName: Generate Documentation
-        env:
-          EIRCTL_DEBUG: ${{ parameters.debug }}
         steps:
           - template: templates/setup.yaml
             parameters:
