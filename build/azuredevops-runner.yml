@@ -26,14 +26,14 @@ stages:
         steps:
           - template: templates/setup.yaml
             parameters:
-              TaskctlVersion: ${{ variables.TaskctlVersion }}
+              EirctlVersion: ${{ variables.EirctlVersion }}
 
           - task: Bash@3
             displayName: Pull Dotnet Image
             inputs:
               targetType: inline
               script: |
-                taskctl image-pull-docs
+                eirctl image-pull-docs
 
           # Generate the documentation
           - task: Bash@3
@@ -41,7 +41,7 @@ stages:
             inputs:
               targetType: inline
               script: |
-                taskctl docs
+                eirctl docs
 
             # Upload the documentation
           - task: PublishBuildArtifacts@1
@@ -56,21 +56,21 @@ stages:
         steps:
           - template: templates/setup.yaml
             parameters:
-              TaskctlVersion: ${{ variables.TaskctlVersion }}
+              EirctlVersion: ${{ variables.EirctlVersion }}
 
           - task: Bash@3
             displayName: Pull Powershell Image
             inputs:
               targetType: inline
               script: |
-                taskctl image-pull
+                eirctl image-pull
 
           - task: Bash@3
             displayName: Pull Dotnet Image
             inputs:
               targetType: inline
               script: |
-                taskctl image-pull-dotnet
+                eirctl image-pull-dotnet
 
           # Ensure that no outputs already exist
           - task: Bash@3
@@ -78,15 +78,15 @@ stages:
             inputs:
               targetType: inline
               script: |
-                taskctl clean
+                eirctl clean
 
-          # Run the Taskctl pipeline to execute the tests
+          # Run the Eirctl pipeline to execute the tests
           - task: Bash@3
             displayName: Execute tests
             inputs:
               targetType: inline
               script: |
-                taskctl tests
+                eirctl tests
 
           # Run the task to generate the PowerShell module files
           - task: Bash@3
@@ -94,7 +94,7 @@ stages:
             inputs:
               targetType: inline
               script: |
-                taskctl build
+                eirctl build
 
           # Munges the file paths by replacing the bound `/app` directory with the $(Build.SourcesDirectory) variable where the files are
           - task: Bash@3
@@ -150,21 +150,21 @@ stages:
 
           - template: templates/setup.yaml
             parameters:
-              TaskctlVersion: ${{ variables.TaskctlVersion }}
+              EirctlVersion: ${{ variables.EirctlVersion }}
 
           - task: Bash@3
             displayName: Pull Powershell Image
             inputs:
               targetType: inline
               script: |
-                taskctl image-pull
+                eirctl image-pull
 
           - task: Bash@3
             displayName: Publish Release
             inputs:
               targetType: inline
               script: |
-                taskctl release
+                eirctl release
             env:
               STAGE: release
               PUBLISH_RELEASE: "true"

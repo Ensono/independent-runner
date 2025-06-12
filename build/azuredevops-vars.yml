@@ -1,8 +1,8 @@
 # This file holds the variables that will be consumed
 # by the build
 variables:
-  - name: TaskctlVersion
-    value: 1.7.5
+  - name: EirctlVersion
+    value: 0.6.5
   - name: moduleName
     value: EnsonoBuild
 
