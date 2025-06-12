@@ -27,45 +27,45 @@ tasks:
     description: Build Docs
     context: docsenv
     command:
-      - Build-Help -Output /workspace/.taskctl/docs/reference -Module EnsonoBuild
-      - Build-Documentation -Config /workspace/.taskctl/docs.json
+      - Build-Help -Output /eirctl/docs/reference -Module EnsonoBuild
+      - Build-Documentation -Config /eirctl/docs.json
 
   build:module:
     context: powershell
     description: Build the local PowerShell module
     command:
-      - Build-PowerShellModule -Path /workspace/.taskctl/src/modules -name EnsonoBuild -target /workspace/.taskctl/outputs/module -version ${env:BUILD_BUILDNUMBER}
+      - Build-PowerShellModule -Path /eirctl/src/modules -name EnsonoBuild -target /eirctl/outputs/module -version ${env:BUILD_BUILDNUMBER}
 
   tests:unit:
     context: powershell_test
     description: Run PowerShell unit tests and coverage on the module
     command:
-      - /workspace/.taskctl/build/scripts/Invoke-PesterTests.ps1 -Path /workspace/.taskctl/src/modules/EnsonoBuild -UnitTests -Coverage
+      - /eirctl/build/scripts/Invoke-PesterTests.ps1 -Path /eirctl/src/modules/EnsonoBuild -UnitTests -Coverage
 
   tests:coverage_report:
     context: dotnet
     description: Create Cobertura report xml from coverage xml
     command: |
-      Invoke-DotNet -Coverage -Pattern pester-coverage.xml -Path /workspace/.taskctl -Source /workspace/.taskctl/src/modules/EnsonoBuild -Target /workspace/.taskctl/outputs/tests
+      Invoke-DotNet -Coverage -Pattern pester-coverage.xml -Path /eirctl -Source /eirctl/src/modules/EnsonoBuild -Target /eirctl/outputs/tests
 
   tests:coverage_report_html:
     context: dotnet
     description: Create HTML report from coverage xml
     command: |
-      Import-Module /workspace/.taskctl/src/modules/EnsonoBuild/EnsonoBuild.psd1 -Force
-      Invoke-DotNet -Coverage -Type Html -Pattern Cobertura.xml -Path /workspace/.taskctl -Source src/modules/EnsonoBuild -Target /workspace/.taskctl/outputs/tests
+      Import-Module /eirctl/src/modules/EnsonoBuild/EnsonoBuild.psd1 -Force
+      Invoke-DotNet -Coverage -Type Html -Pattern Cobertura.xml -Path /eirctl -Source src/modules/EnsonoBuild -Target /eirctl/outputs/tests
 
   tests:fail_on_error:
     context: powershell
     description: A task that fails if the `.PesterErrorCode` is present from `Invoke-PesterTests.ps1`
     command:
-      - /workspace/.taskctl/build/scripts/Test-PesterExitCode.ps1
+      - /eirctl/build/scripts/Test-PesterExitCode.ps1
 
   setup:environment:
     context: powershell
     description: Ensure that the environment is configured correctly
     command:
-      - Confirm-Environment -Path /workspace/.taskctl/build/config/stage_envvars.yml
+      - Confirm-Environment -Path /eirctl/build/config/stage_envvars.yml
 
   # TODO: Re-enable when we have a new Influx
   # update:dashboard:
