@@ -45,6 +45,8 @@ stages:
               targetType: inline
               script: |
                 eirctl image-pull-docs
+            env:
+              EIRCTL_DEBUG: ${{ parameters.debug }}
 
           # Generate the documentation
           - task: Bash@3
@@ -53,6 +55,8 @@ stages:
               targetType: inline
               script: |
                 eirctl docs
+            env:
+              EIRCTL_DEBUG: ${{ parameters.debug }}
 
             # Upload the documentation
           - task: PublishBuildArtifacts@1
@@ -64,8 +68,6 @@ stages:
   - stage: Build
     jobs:
       - job: UnitTests
-        env:
-          EIRCTL_DEBUG: ${{ parameters.debug }}
         steps:
           - template: templates/setup.yaml
             parameters:
@@ -77,6 +79,8 @@ stages:
               targetType: inline
               script: |
                 eirctl image-pull
+            env:
+              EIRCTL_DEBUG: ${{ parameters.debug }}
 
           - task: Bash@3
             displayName: Pull Dotnet Image
@@ -84,6 +88,8 @@ stages:
               targetType: inline
               script: |
                 eirctl image-pull-dotnet
+            env:
+              EIRCTL_DEBUG: ${{ parameters.debug }}
 
           # Ensure that no outputs already exist
           - task: Bash@3
@@ -92,6 +98,8 @@ stages:
               targetType: inline
               script: |
                 eirctl clean
+            env:
+              EIRCTL_DEBUG: ${{ parameters.debug }}
 
           # Run the Eirctl pipeline to execute the tests
           - task: Bash@3
@@ -100,6 +108,8 @@ stages:
               targetType: inline
               script: |
                 eirctl tests
+            env:
+              EIRCTL_DEBUG: ${{ parameters.debug }}
 
           # Run the task to generate the PowerShell module files
           - task: Bash@3
@@ -108,6 +118,8 @@ stages:
               targetType: inline
               script: |
                 eirctl build
+            env:
+              EIRCTL_DEBUG: ${{ parameters.debug }}
 
           # Munges the file paths by replacing the bound `/app` directory with the $(Build.SourcesDirectory) variable where the files are
           - task: Bash@3
@@ -146,8 +158,6 @@ stages:
           - Docs
         jobs:
           - job: Publish
-            env:
-              EIRCTL_DEBUG: ${{ parameters.debug }}
             steps:
               # Download the necessary artifacts from the previous stage
               # - documentation
@@ -173,6 +183,8 @@ stages:
                   targetType: inline
                   script: |
                     eirctl image-pull
+                env:
+                  EIRCTL_DEBUG: ${{ parameters.debug }}
 
               - task: Bash@3
                 displayName: Publish Release
@@ -185,3 +197,4 @@ stages:
                   PUBLISH_RELEASE: "true"
                   DASHBOARD_INFLUX_TOKEN: $(DASHBOARD_INFLUX_TOKEN) # requires explicit mapping to be used as an env var
                   VERSION_NUMBER: $(BUILD_BUILDNUMBER)
+                  EIRCTL_DEBUG: ${{ parameters.debug }}
