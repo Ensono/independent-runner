@@ -25,8 +25,6 @@ pool:
 
 variables:
   - template: azuredevops-vars.yml
-  - name: EIRCTL_DEBUG
-    value: ${{ parameters.debug }}
 
 # Configure the stages
 stages:
@@ -34,7 +32,8 @@ stages:
     jobs:
       - job: GenerateDocs
         displayName: Generate Documentation
-
+        env:
+          EIRCTL_DEBUG: ${{ parameters.debug }}
         steps:
           - template: templates/setup.yaml
             parameters:
@@ -65,6 +64,8 @@ stages:
   - stage: Build
     jobs:
       - job: UnitTests
+        env:
+          EIRCTL_DEBUG: ${{ parameters.debug }}
         steps:
           - template: templates/setup.yaml
             parameters:
@@ -145,6 +146,8 @@ stages:
           - Docs
         jobs:
           - job: Publish
+            env:
+              EIRCTL_DEBUG: ${{ parameters.debug }}
             steps:
               # Download the necessary artifacts from the previous stage
               # - documentation
