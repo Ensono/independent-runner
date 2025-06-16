@@ -1,12 +1,12 @@
 parameters:
-  - name: TaskctlVersion
+  - name: EirctlVersion
     type: string
 
 steps:
   - task: Bash@3
-    displayName: "Install: Taskctl"
+    displayName: "Install: Eirctl"
     inputs:
       targetType: inline
       script: |
-        sudo wget https://github.com/Ensono/taskctl/releases/download/${{ parameters.TaskctlVersion }}/taskctl-linux-amd64 -O /usr/local/bin/taskctl
-        sudo chmod +x /usr/local/bin/taskctl
+        sudo wget https://github.com/Ensono/eirctl/releases/download/${{ parameters.EirctlVersion }}/eirctl-linux-amd64 -O /usr/local/bin/eirctl
+        sudo chmod +x /usr/local/bin/eirctl
