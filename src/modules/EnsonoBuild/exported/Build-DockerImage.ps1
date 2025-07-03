@@ -280,8 +280,7 @@ function Build-DockerImage() {
 
   $arguments += "-t {0}/{1}:{2}" -f $registry, $name, $tag
 
-  Write-Host ("Argumennts: {0}" -f $arguments)
-  exit
+  Write-Host ("Arguments: {0}" -f $arguments)
 
   if ($setAsLatest) {
     $arguments += "-t {0}/{1}:latest" -f $registry, $name
