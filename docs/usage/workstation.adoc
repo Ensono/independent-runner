@@ -1,6 +1,6 @@
 === Workstation
 
-All of the pipelines and tasks that are configured in `taskctl` can be run on a local workstation, as long as `taskctl` and Docker are installed.
+All of the pipelines and tasks that are configured in `eirctl` can be run on a local workstation, as long as `eirctl` and Docker are installed.
 
 Some pipelines require additional configuration using environment variables, whilst others can just be run as is.
 
@@ -19,7 +19,7 @@ To perform a full local build of the application, run the following command from
 
 [source,powershell]
 ----
-taskctl build
+eirctl build
 ----
 
 The following screenshot shows an example of running this pipeline:

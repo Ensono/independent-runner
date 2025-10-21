@@ -1,6 +1,6 @@
 == Usage
 
-By using the independent runner it is possible to run the configured pipelines using `taskctl` on a local workstation or in a CI/CD platform.
+By using the independent runner it is possible to run the configured pipelines using `eirctl` on a local workstation or in a CI/CD platform.
 
 Whenever the pipeline is run all of the environment variables set in the session will be made available in the container running the task. This is achieved by writing all of the env vars into a file that Docker reads whenever the container is started.
 
@@ -8,7 +8,7 @@ NOTE: To avoid problems with finding tools and apps in the container the PATH en
 
 This is achieved by using the `before` parameter of the pipeline context and then Docker reads this file in. For example:
 
-.Taskctl context configuration
+.Eirctl context configuration
 [[project_settings_file,{listing-caption} {counter:refnum}]]
 [source,yaml]
 ----

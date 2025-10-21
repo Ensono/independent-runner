@@ -1,5 +1,16 @@
 # Copilot Instructions for AI Coding Agents
 
+## Security and Compliance
+
+**IMPORTANT**: All AI coding assistants must adhere to security and compliance guidelines documented in [copilot-security-instructions.md](./copilot-security-instructions.md). This includes mandatory requirements for:
+- GPG commit signing (never bypass or disable)
+- Branch protection and pull request workflows
+- Production configuration change control
+- Authentication and authorization controls
+- Security standards compliance (ISO 27001, NIST, PCI DSS, GDPR, etc.)
+
+Failure to follow these security guidelines may result in policy violations and security incidents.
+
 ## Project Overview
 
 - This repository implements the Amido Independent Runner, a PowerShell-based automation toolkit for CI/CD pipelines.
@@ -12,6 +23,10 @@
   - Main entry: `src/modules/EnsonoBuild/EnsonoBuild.psm1` and manifest `EnsonoBuild.psd1`.
   - Subfolders: `api/`, `cloud/`, `command/`, `exported/`, `projects/`, `utils/`, etc. Each contains related cmdlets and tests.
   - Tests: Each cmdlet typically has a corresponding `*.Tests.ps1` file in the same directory.
+- **Test Infrastructure:**
+  - Shared test helpers in `test/TestHelpers.ps1` (e.g., `New-TestDir` for creating isolated test directories).
+  - Tests use dot-sourcing to import helpers: `. $PSScriptRoot/../../../../test/TestHelpers.ps1`
+  - Pester v5+ with TestDrive disabled in favor of explicit temporary directory management.
 - **Build Scripts:**
   - Located in `build/scripts/` (e.g., `Invoke-PesterTests.ps1`, `Build-Help.ps1`).
   - Used for running tests, generating help, and other automation tasks.
@@ -22,12 +37,16 @@
 
 - **Testing:**
   - Run all tests using: `pwsh -File ./build/scripts/Invoke-PesterTests.ps1 .`
+  - Or use containerized testing: `eirctl tests`
   - Tests may modify environment variables; always run in a separate PowerShell instance.
+  - Current status: 270 passing, 0 failing, 20 skipped, 80.25% coverage.
 - **Building Documentation:**
   - Use scripts in `build/scripts/` or refer to `docs/` for Asciidoc sources.
 - **Adding Cmdlets:**
   - Place new cmdlets in the appropriate subfolder under `src/modules/EnsonoBuild/`.
   - Add corresponding `*.Tests.ps1` files for each cmdlet.
+  - Use shared test helpers from `test/TestHelpers.ps1` for common test utilities.
+  - Import helpers with: `. $PSScriptRoot/../../../../test/TestHelpers.ps1`
 
 ## Project Conventions
 

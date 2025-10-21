@@ -29,10 +29,11 @@ Initially Taskfile was seen as the best tool to use, and indeed this was the run
 
 As PowerShell has been chosen as the main scripting language for the builds, it made sense to look at Psake which is a task runner built on PowerShell. Unfortunately Psake does not support running things in a different environment easily. Additionally people would have to learn how PowerShell works in order to modify the pipeline.
 
-Finally Taskctl was researched and adopted. This is because of several factors:
+Finally Taskctl was researched and adopted, and later forked to create Eirctl (Ensono Independent Runner Control). This was done because of several factors:
 
 - configuration file is yaml based
 - outputs from previous tasks can be retrieved by subsequent tasks
 - allows the use of contexts to run tasks, meaning that our own Docker containers can be used to provide a known environment
-- Not only can tasks be defined, but pipelines as well. This means that the different stages can be defined within the configuration can called as required by the operator (be it humand or a CI/CD agent)
-- Taskctl has the ability to produce graphs of the pipelines that have been configured
+- Not only can tasks be defined, but pipelines as well. This means that the different stages can be defined within the configuration can called as required by the operator (be it human or a CI/CD agent)
+- Eirctl has the ability to produce graphs of the pipelines that have been configured
+- The fork allows us to fix issues and add features specific to Ensono's needs
