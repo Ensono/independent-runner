@@ -2,6 +2,14 @@
 Describe "Invoke-Dotnet" {
 
     BeforeAll {
+        # Helper function to create test directories
+        function New-TestDir {
+            $tempPath = [System.IO.Path]::GetTempPath()
+            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+            return $testFolderPath
+        }
 
         # Import the function being tested
         . $PSScriptRoot/Invoke-DotNet.ps1
@@ -12,7 +20,7 @@ Describe "Invoke-Dotnet" {
         . $PSScriptRoot/../projects/Find-Projects.ps1
 
         # Create the testFolder
-        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        $testFolder = New-TestDir
 
         # Mock functions that are called
         # - Find-Command - return the name of the command that is required
@@ -37,6 +45,12 @@ Describe "Invoke-Dotnet" {
         Mock -Command Get-Location -ParameterFilter { $stackName -eq "dotnet" } -MockWith { @("dummy") }
     }
 
+    AfterAll {
+        if (Test-Path $testFolder) {
+            Remove-Item -Path $testFolder -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+
     BeforeEach {
 
         # Create a session object so that the Invoke-External function does not
@@ -45,7 +59,7 @@ Describe "Invoke-Dotnet" {
             commands = @{
                 list = @()
             }
-            dryrun = $true
+            dryrun   = $true
         }
     }
 
@@ -75,6 +89,14 @@ Describe "Invoke-Dotnet" {
     Context "Coverage" {
 
         BeforeAll {
+            # Helper function to create test directories
+            function New-TestDir {
+                $tempPath = [System.IO.Path]::GetTempPath()
+                $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+                $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+                New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+                return $testFolderPath
+            }
 
             # Create dummy coverage file in the testfolder
             New-Item -ItemType File -Path (Join-Path -Path $testFolder -ChildPath "pester.opencover.xml")
@@ -141,6 +163,14 @@ Describe "Invoke-Dotnet" {
         Context "With test files" {
 
             BeforeAll {
+                # Helper function to create test directories
+                function New-TestDir {
+                    $tempPath = [System.IO.Path]::GetTempPath()
+                    $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+                    $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+                    New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+                    return $testFolderPath
+                }
 
                 # create some tests files for the function to find
                 foreach ($file in @("pester1.UnitTests.csproj", "pester2.UnitTests.csproj", "pester3.UnitTests.csproj")) {

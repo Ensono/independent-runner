@@ -1,6 +1,14 @@
 Describe "Publish-Confluence" {
 
     BeforeAll {
+        # Helper function to create test directories
+        function New-TestDir {
+            $tempPath = [System.IO.Path]::GetTempPath()
+            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+            return $testFolderPath
+        }
 
         # Include the function under test
         . $PSScriptRoot/Publish-Confluence.ps1
@@ -56,6 +64,14 @@ Describe "Publish-Confluence" {
     Context "Adding a new page" {
 
         BeforeAll {
+        # Helper function to create test directories
+        function New-TestDir {
+            $tempPath = [System.IO.Path]::GetTempPath()
+            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+            return $testFolderPath
+        }
 
             # - Get-Confluence page mocks
             Mock -CommandName Get-ConfluencePage -MockWith {
@@ -85,8 +101,16 @@ Describe "Publish-Confluence" {
     Context "Updating a page with images" {
 
         BeforeAll {
+        # Helper function to create test directories
+        function New-TestDir {
+            $tempPath = [System.IO.Path]::GetTempPath()
+            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+            return $testFolderPath
+        }
 
-            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+            $testFolder = New-TestDir
             $testImg = [IO.Path]::Combine($testFolder, "myimage.png")
             New-Item -ItemType File -Path $testImg | Out-Null
 
@@ -133,3 +157,4 @@ Describe "Publish-Confluence" {
         }
     }
 }
+

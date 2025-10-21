@@ -3,6 +3,14 @@
 Describe "Invoke-Helm" {
 
     BeforeAll {
+        # Helper function to create test directories
+        function New-TestDir {
+            $tempPath = [System.IO.Path]::GetTempPath()
+            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+            return $testFolderPath
+        }
 
         # Import the function under test
         . $PSScriptRoot/Invoke-Helm.ps1
@@ -14,7 +22,7 @@ Describe "Invoke-Helm" {
         . $PSScriptRoot/../exported/Invoke-External.ps1
 
         # Create the testFolder
-        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        $testFolder = New-TestDir
         $valueFile = Join-Path -Path $testFolder -ChildPath "chart.yml"
         $chartFile = Join-Path -Path $testFolder -ChildPath "values.yml"
         New-Item -ItemType File -Path $valueFile
@@ -69,6 +77,14 @@ Describe "Invoke-Helm" {
         Context "Repo" {
 
             BeforeAll {
+        # Helper function to create test directories
+        function New-TestDir {
+            $tempPath = [System.IO.Path]::GetTempPath()
+            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+            return $testFolderPath
+        }
 
                 Mock -CommandName Invoke-Login `
                     -MockWith { return } `
@@ -89,6 +105,14 @@ Describe "Invoke-Helm" {
     Context "Azure" {
 
         BeforeAll {
+        # Helper function to create test directories
+        function New-TestDir {
+            $tempPath = [System.IO.Path]::GetTempPath()
+            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+            return $testFolderPath
+        }
 
             Mock -CommandName Invoke-Login `
                 -MockWith { return } `
@@ -132,6 +156,14 @@ Describe "Invoke-Helm" {
     Context "AWS" {
 
         BeforeAll {
+        # Helper function to create test directories
+        function New-TestDir {
+            $tempPath = [System.IO.Path]::GetTempPath()
+            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+            return $testFolderPath
+        }
 
             Mock -CommandName Invoke-Login `
                 -MockWith { return } `
@@ -162,3 +194,4 @@ Describe "Invoke-Helm" {
         }
     }
 }
+

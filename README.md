@@ -111,20 +111,23 @@ src/modules/EnsonoBuild/
 
 ### Running Tests
 
-**IMPORTANT**: For development, run tests directly with PowerShell to avoid container TestDrive conflicts:
+Tests can be run either directly with PowerShell or through the containerized eirctl pipeline:
 
 ```bash
-# Recommended: Direct PowerShell execution (all tests pass)
-pwsh -File ./build/scripts/Invoke-PesterTests.ps1 -Path ./src/modules/EnsonoBuild -UnitTests -Coverage
+# Option 1: Direct PowerShell execution (faster, immediate feedback)
+pwsh -File ./build/scripts/Invoke-PesterTests.ps1 .
 
-# Alternative: Container execution (may have TestDrive conflicts)
+# Option 2: Full containerized pipeline (matches CI/CD environment)
 eirctl tests
 ```
 
+Both methods now produce consistent, passing results after resolving TestDrive conflicts.
+
 ### Test Results
 
-- **290 total tests** when running directly with PowerShell
-- **84.74% code coverage** (exceeds 75% target)
+- **270 tests passing** (0 failures)
+- **20 tests skipped** (Build-DockerImage tests + Python-dependent test)
+- **80.25% code coverage** (exceeds 75% target)
 - Tests validate all PowerShell functions with mocked external dependencies
 
 ### Test Organization
@@ -180,11 +183,6 @@ pipelines:
 
 ## 🚨 Common Issues
 
-### TestDrive Conflicts
-
-- **Issue**: "A drive with the name 'TestDrive' already exists" when running `eirctl tests`
-- **Solution**: Use direct PowerShell execution: `pwsh -File ./build/scripts/Invoke-PesterTests.ps1 -Path ./src/modules/EnsonoBuild -UnitTests -Coverage`
-
 ### Permission Issues
 
 - **Issue**: Container permission errors
@@ -195,22 +193,29 @@ pipelines:
 - **Issue**: Module or command not found
 - **Solution**: Run `eirctl build` to ensure the module is built correctly
 
+### Skipped Tests
+
+Some tests are intentionally skipped in certain environments:
+
+- **Build-DockerImage tests**: Skipped due to Docker-in-Docker complexities (see [issue #44](https://github.com/Ensono/independent-runner/issues/44))
+- **YamlLint Python test**: Skipped when Python is not available in the test environment
+
 ## 🤖 For LLMs and Automation
 
 ### Quick Analysis Commands
 
 ```bash
 # Test the entire codebase
-pwsh -File ./build/scripts/Invoke-PesterTests.ps1 -Path ./src/modules/EnsonoBuild -UnitTests -Coverage
+pwsh -File ./build/scripts/Invoke-PesterTests.ps1 .
+
+# Or use containerized testing
+eirctl tests
 
 # Build and validate module
 eirctl build
 
 # Check documentation
 eirctl docs
-
-# Lint and validate (if available)
-eirctl tests
 ```
 
 ### Understanding the Codebase

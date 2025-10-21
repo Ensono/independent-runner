@@ -3,13 +3,21 @@
 Describe "Invoke-Kubectl" {
 
     BeforeAll {
+        # Helper function to create test directories
+        function New-TestDir {
+            $tempPath = [System.IO.Path]::GetTempPath()
+            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+            return $testFolderPath
+        }
         . $PSScriptRoot/Invoke-Kubectl.ps1
         . $PSScriptRoot/Invoke-Login.ps1
         . $PSScriptRoot/../command/Find-Command.ps1
         . $PSScriptRoot/../exported/Invoke-External.ps1
 
         # Create the testFolder
-        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        $testFolder = New-TestDir
         $manifestFile = Join-Path -Path $testFolder -ChildPath "manifest.yml"
         New-Item -ItemType File -Path $manifestFile
 
@@ -126,3 +134,4 @@ Describe "Invoke-Kubectl" {
         }
     }
 }
+

@@ -2,7 +2,7 @@
 # by the build
 variables:
   - name: EirctlVersion
-    value: 0.6.5
+    value: 0.9.3
   - name: moduleName
     value: EnsonoBuild
 
