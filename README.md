@@ -88,7 +88,7 @@ git commit -m "feat: your feature description"
 
 ### Module Structure
 
-```
+```text
 src/modules/EnsonoBuild/
 ├── exported/           # Public cmdlets (Build-DockerImage.ps1, etc.)
 ├── api/               # API interaction functions
@@ -122,11 +122,13 @@ eirctl tests
 ```
 
 ### Test Results
+
 - **290 total tests** when running directly with PowerShell
 - **84.74% code coverage** (exceeds 75% target)
 - Tests validate all PowerShell functions with mocked external dependencies
 
 ### Test Organization
+
 - Unit tests co-located with source files (`*.Tests.ps1`)
 - Pester v5+ framework
 - Coverage reports in JaCoCo/Cobertura format
@@ -134,13 +136,13 @@ eirctl tests
 
 ## 📁 Key Files and Directories
 
-| Path | Description |
-|------|-------------|
-| `src/modules/EnsonoBuild/` | Main PowerShell module |
-| `build/eirctl/` | Task and context definitions |
-| `docs/` | Documentation source (AsciiDoc) |
-| `outputs/` | Generated artifacts (tests, docs, module) |
-| `eirctl.yaml` | Main pipeline configuration |
+| Path                       | Description                               |
+| -------------------------- | ----------------------------------------- |
+| `src/modules/EnsonoBuild/` | Main PowerShell module                    |
+| `build/eirctl/`            | Task and context definitions              |
+| `docs/`                    | Documentation source (AsciiDoc)           |
+| `outputs/`                 | Generated artifacts (tests, docs, module) |
+| `eirctl.yaml`              | Main pipeline configuration               |
 
 ## 🔧 Configuration
 
@@ -170,7 +172,7 @@ pipelines:
     - task: tests:unit
       allow_failure: true
     - task: tests:coverage_report
-  
+
   build:
     - task: setup:environment
     - task: build:module
@@ -179,14 +181,17 @@ pipelines:
 ## 🚨 Common Issues
 
 ### TestDrive Conflicts
+
 - **Issue**: "A drive with the name 'TestDrive' already exists" when running `eirctl tests`
 - **Solution**: Use direct PowerShell execution: `pwsh -File ./build/scripts/Invoke-PesterTests.ps1 -Path ./src/modules/EnsonoBuild -UnitTests -Coverage`
 
 ### Permission Issues
+
 - **Issue**: Container permission errors
 - **Solution**: Ensure Docker is running and you have proper permissions
 
 ### Missing Dependencies
+
 - **Issue**: Module or command not found
 - **Solution**: Run `eirctl build` to ensure the module is built correctly
 
