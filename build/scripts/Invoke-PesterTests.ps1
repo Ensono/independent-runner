@@ -35,6 +35,24 @@ param (
 # Update Pester
 Update-Module -Name Pester -Force
 
+# Clean up any existing TestDrive and Pester session state from previous runs
+try {
+    # Remove any existing TestDrive
+    if (Get-PSDrive -Name "TestDrive" -ErrorAction SilentlyContinue) {
+        Remove-PSDrive -Name "TestDrive" -Force -ErrorAction SilentlyContinue
+    }
+    
+    # Clean up Pester variables that might conflict
+    Remove-Variable -Name "Pester*" -Scope Global -ErrorAction SilentlyContinue
+    
+    # Force garbage collection to clean up any lingering objects
+    [System.GC]::Collect()
+    [System.GC]::WaitForPendingFinalizers()
+} catch {
+    # Ignore errors when cleaning up
+    Write-Debug "Error during cleanup: $_"
+}
+
 $pesterErrorCodePath = "./test"
 $pesterErrorCodeFile = ".PesterErrorCode"
 $pesterErrorCodeFilePath = "${pesterErrorCodePath}/${pesterErrorCodeFile}"
@@ -70,6 +88,12 @@ $configuration.Run.PassThru = $true
 # Set the verbosity of the tests
 $configuration.Output.Verbosity = $verbosity
 
+# Configure TestDrive to avoid conflicts
+$configuration.TestDrive.Enabled = $true
+
+# Disable parallel execution to prevent TestDrive conflicts
+$configuration.Run.Throw = $true
+
 # Run Pester with the configuration
 $result = Invoke-Pester -Configuration $configuration
 
@@ -77,7 +101,9 @@ $exitCode = $LASTEXITCODE
 
 if ($IsLinux) {
     $outputRoot = ($output -Split [IO.Path]::DirectorySeparatorChar)[0] | Resolve-Path
-    chown -R $env:HOST_UIDGID $outputRoot
+    if ($env:HOST_UIDGID -and $env:HOST_UIDGID -ne '$UID:$GID') {
+        chown -R $env:HOST_UIDGID $outputRoot
+    }
 }
 
 if ($exitCode -ne 0) {
