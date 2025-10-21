@@ -5,14 +5,9 @@ Describe "Invoke-Terraform" {
     $TF_BACKEND
 
     BeforeAll {
-        # Helper function to create test directories
-        function New-TestDir {
-            $tempPath = [System.IO.Path]::GetTempPath()
-            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
-            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
-            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
-            return $testFolderPath
-        }
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
         . $PSScriptRoot/Invoke-Terraform.ps1
         . $PSScriptRoot/../exported/Invoke-External.ps1
         . $PSScriptRoot/../classes/StopTaskException.ps1

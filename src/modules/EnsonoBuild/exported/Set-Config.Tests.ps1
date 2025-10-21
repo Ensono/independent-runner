@@ -2,14 +2,9 @@
 Describe "Set-Config" {
 
     BeforeAll {
-        # Helper function to create test directories
-        function New-TestDir {
-            $tempPath = [System.IO.Path]::GetTempPath()
-            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
-            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
-            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
-            return $testFolderPath
-        }
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
         # Include the function under test
         . $PSSCriptRoot/Set-Config.ps1
@@ -40,14 +35,9 @@ Describe "Set-Config" {
     Context "Log path is valid" {
 
         BeforeAll {
-        # Helper function to create test directories
-        function New-TestDir {
-            $tempPath = [System.IO.Path]::GetTempPath()
-            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
-            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
-            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
-            return $testFolderPath
-        }
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
             
             # Create the testFolder
             $testFolder = New-TestDir
