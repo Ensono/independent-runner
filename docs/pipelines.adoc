@@ -1,10 +1,10 @@
 == Pipelines
 
-All of the necessary pipelines are defined in the `taskctl.yaml` file. These can be called as many time as necessary so can be used to build and deployment to different environments.
+All of the necessary pipelines are defined in the `eirctl.yaml` file. These can be called as many time as necessary so can be used to build and deployment to different environments.
 
 NOTE: The examples show in this section are specific to the `github.com/amido/stacks-dotnet` project, but the overall pattern will be the same for all Stacks(?) projects.
 
-Within the configuration for Taskctl there are tasks and pipelines. Each of the tasks runs any number of commands in the specified context. A pipeline can be defined using any number of tasks. By default all tasks in a pipeline are run in parallel, but this behaviour can be changed by setting dependencies.
+Within the configuration for Eirctl there are tasks and pipelines. Each of the tasks runs any number of commands in the specified context. A pipeline can be defined using any number of tasks. By default all tasks in a pipeline are run in parallel, but this behaviour can be changed by setting dependencies.
 
 There are three pipelines configured.
 
