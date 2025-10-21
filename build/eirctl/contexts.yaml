@@ -42,10 +42,12 @@ contexts:
     container:
       name: ensono/eir-dotnet
       container_args:
-        - -v ${PWD}/src/modules:/modules
+        - -v ${PWD}/src/modules:/modules:ro
       shell: pwsh
       shell_args:
         - -Command
+    env:
+      HOST_UIDGID: $UID:$GID
     envfile:
       exclude:
         - posh_azure_subscription

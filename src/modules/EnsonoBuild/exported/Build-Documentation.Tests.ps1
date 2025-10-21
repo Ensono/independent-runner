@@ -29,9 +29,13 @@ Describe "Build-Documentation" {
         # Helper Functions
         ############################################################
         function Get-TestFolder() {
-            $testFolderPath = "TestDrive:\folder"
+            # Use a regular temp directory instead of TestDrive to avoid conflicts
+            $tempPath = [System.IO.Path]::GetTempPath()
+            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+            
             if (!(Test-Path -Path $testFolderPath)) {
-                $testFolder = (New-Item $testFolderPath -ItemType Directory).FullName    
+                $testFolder = (New-Item $testFolderPath -ItemType Directory -Force).FullName    
             }
             else {
                 $testFolder = (Get-Item -Path $testFolderPath).FullName
@@ -112,17 +116,24 @@ Describe "Build-Documentation" {
             }
 
             # Get the docs document path
-            $testFolder = Get-TestFolder
-            $docsPath = Get-DocsPath $testFolder
+            $script:testFolder = Get-TestFolder
+            $docsPath = Get-DocsPath $script:testFolder
 
             $indexFile = New-Item -Type File -Path ([IO.Path]::Combine($docsPath, "index.adoc")) -Force
 
         }
 
+        AfterEach {
+            # Clean up temporary test folder
+            if ($script:testFolder -and (Test-Path $script:testFolder)) {
+                Remove-Item -Path $script:testFolder -Recurse -Force -ErrorAction SilentlyContinue
+            }
+        }
+
         it "will build up a command with a title" {
 
             $splat = @{
-                BasePath = $testFolder
+                BasePath = $script:testFolder
                 Type     = "pdf"
                 Title    = "Pester Tests"
                 Path     = [IO.Path]::Combine("docs", "index.adoc")
@@ -139,7 +150,7 @@ Describe "Build-Documentation" {
         It "will build command with attributes" {
 
             $splat = @{
-                BasePath       = $testFolder
+                BasePath       = $script:testFolder
                 Type           = "pdf"
                 Title          = "Pester Tests"
                 Path           = [IO.Path]::Combine("docs", "index.adoc")
@@ -169,19 +180,19 @@ Describe "Build-Documentation" {
                 dryrun   = $true
             }
 
-            $testFolder = Get-TestFolder
-            $docsPath = Get-DocsPath $testFolder
+            $script:testFolder = Get-TestFolder
+            $docsPath = Get-DocsPath $script:testFolder
 
             $indexFile = New-Item -Type File -Path ([IO.Path]::Combine($docsPath, "index.adoc")) -Force
 
-            $configFile = [IO.Path]::Combine($testFolder, "config.json")
+            $configFile = [IO.Path]::Combine($script:testFolder, "config.json")
             Set-Content -Path $configFile -Value $config
 
             Mock -Command Find-Command -MockWith { return $name }
 
             # Call the command and then test the output in the session
             $splat = @{
-                BasePath = $testFolder
+                BasePath = $script:testFolder
                 Type     = "pdf"
                 Config   = $configFile
                 Version  = "1.2-pester"
@@ -196,7 +207,7 @@ Describe "Build-Documentation" {
 
         It "will create a document with a version number in the file name" {
 
-            $pattern = '-o "{0}{1}output/|\\Infrastructure Testing - 1.2-pester.pdf"' -f ($testFolder -replace "\\", "\\"), $separator
+            $pattern = '-o "{0}{1}output/|\\Infrastructure Testing - 1.2-pester.pdf"' -f ($script:testFolder -replace "\\", "\\"), $separator
             $Session.commands.list[0] | Should -Match $pattern
         }
 
@@ -211,10 +222,10 @@ Describe "Build-Documentation" {
             $Session.commands.list[0] | Should -Match "-a convert=/usr/bin/convert"
             $Session.commands.list[0] | Should -Match "-a identify=/usr/bin/identify"
 
-            $pattern = '-a pdf-theme={0}/conf/pdf/theme.yml' -f ($testFolder -replace "\\", "\\")
+            $pattern = '-a pdf-theme={0}/conf/pdf/theme.yml' -f ($script:testFolder -replace "\\", "\\")
             $Session.commands.list[0] | Should -Match $pattern
 
-            $pattern = 'pdf-fontsdir="{0}/conf/fonts;GEM_FONTS_DIR"' -f ($testFolder -replace "\\", "\\")
+            $pattern = 'pdf-fontsdir="{0}/conf/fonts;GEM_FONTS_DIR"' -f ($script:testFolder -replace "\\", "\\")
             $Session.commands.list[0] | Should -Match $pattern
         }
     }
