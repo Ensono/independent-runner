@@ -2,6 +2,14 @@
 Describe "Invoke-Inspec" {
 
     BeforeAll {
+        # Helper function to create test directories
+        function New-TestDir {
+            $tempPath = [System.IO.Path]::GetTempPath()
+            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+            return $testFolderPath
+        }
 
         # Import function under test
         . $PSScriptRoot/Invoke-Inspec.ps1
@@ -16,16 +24,21 @@ Describe "Invoke-Inspec" {
         . $PSScriptRoot/../classes/StopTaskException.ps1
 
         # Create the testFolder
-        $testFolder = 'TestDrive:\folder'
+        $testFolder = New-TestDir
         if (!(Test-Path -Path $testFolder)) {
             $testFolder = (New-Item $testFolder -ItemType Directory).FullName
         }
+        
+        # Create a predictable subdirectory for inspec tests
+        $insFolder = Join-Path $testFolder "inspec_tests"
+        New-Item -ItemType Directory -Path $insFolder -Force | Out-Null
+        $testFolder = $insFolder
 
         $global:Session = @{
             commands = @{
                 list = @()
             }
-            dryrun = $true
+            dryrun   = $true
         }
 
         function inspec() {}
@@ -114,10 +127,11 @@ Describe "Invoke-Inspec" {
             # Determine the output path based on the OS
             if ($isWindows) {
                 $output = [IO.Path]::Combine($env:SystemDrive, "output", "tests")
-            } else {
+            }
+            else {
                 $output = [IO.Path]::Combine("/", "output", "tests")
             }
-            $expected = [IO.Path]::Combine($output, "inspec_tests_azure_folder.xml")
+            $expected = [IO.Path]::Combine($output, "inspec_tests_azure_inspec_tests.xml")
 
             Invoke-Inspec -exec -path $testfolder -cloud azure -output $output
 

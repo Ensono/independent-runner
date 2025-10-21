@@ -2,6 +2,14 @@
 Describe "New-EnvConfig" {
 
     BeforeAll {
+        # Helper function to create test directories
+        function New-TestDir {
+            $tempPath = [System.IO.Path]::GetTempPath()
+            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+            return $testFolderPath
+        }
 
         # Import function under test
         . $PSScriptRoot/New-EnvConfig.ps1
@@ -15,7 +23,7 @@ Describe "New-EnvConfig" {
         . $PSScriptRoot/../classes/StopTaskException.ps1
 
         # Create the testFolder
-        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        $testFolder = New-TestDir
 
         # Create file to be used for testing
         $stageVarFile = [IO.Path]::Combine($testFolder, "stagevars.yml")
@@ -128,3 +136,5 @@ stages:
         }
     }
 }
+
+

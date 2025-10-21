@@ -41,8 +41,6 @@ contexts:
   dotnet:
     container:
       name: ensono/eir-dotnet
-      container_args:
-        - -v ${PWD}/src/modules:/modules:ro
       shell: pwsh
       shell_args:
         - -Command

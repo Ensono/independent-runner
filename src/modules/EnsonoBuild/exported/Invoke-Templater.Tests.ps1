@@ -1,6 +1,14 @@
 Describe "Invoke-Templater" {
 
     BeforeAll {
+        # Helper function to create test directories
+        function New-TestDir {
+            $tempPath = [System.IO.Path]::GetTempPath()
+            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+            return $testFolderPath
+        }
 
         # Import the function under test
         . $PSScriptRoot/Invoke-Templater.ps1
@@ -9,7 +17,7 @@ Describe "Invoke-Templater" {
         . $PSScriptRoot/Expand-Template.ps1
 
         # Create the testFolder
-        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        $testFolder = New-TestDir
 
         # create two files to pass to the function
         # one with valid PS data and one without
@@ -54,6 +62,14 @@ Describe "Invoke-Templater" {
     Context "replaces values in templates" {
 
         BeforeAll {
+        # Helper function to create test directories
+        function New-TestDir {
+            $tempPath = [System.IO.Path]::GetTempPath()
+            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+            return $testFolderPath
+        }
 
             # Create env var that can be checked for
             $env:PESTER_TEMPLATER = "foobar"
@@ -134,3 +150,4 @@ Describe "Invoke-Templater" {
         }
     }
 }
+

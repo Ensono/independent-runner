@@ -2,6 +2,14 @@
 Describe "Invoke-GitClone" {
 
     BeforeAll {
+        # Helper function to create test directories
+        function New-TestDir {
+            $tempPath = [System.IO.Path]::GetTempPath()
+            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+            return $testFolderPath
+        }
 
         # Import the function being tested
         . $PSScriptRoot/Invoke-GitClone.ps1
@@ -10,7 +18,7 @@ Describe "Invoke-GitClone" {
         . $PSScriptRoot/../utils/Confirm-IsWebAddress.ps1
 
         # Create the testFolder
-        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        $testFolder = New-TestDir
 
         # Mock functions that are called
         # - Write-Error - mock this internal function to check that errors are being raised
@@ -70,6 +78,14 @@ Describe "Invoke-GitClone" {
     Context "unpacking cloned file" {
 
         BeforeAll {
+        # Helper function to create test directories
+        function New-TestDir {
+            $tempPath = [System.IO.Path]::GetTempPath()
+            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+            return $testFolderPath
+        }
 
             # Create a dummy zip file in the testfolder to work with
             New-Item -ItemType File -Path (Join-Path -Path $testFolder -ChildPath "amido_stacks-cli_main.zip")
@@ -87,3 +103,5 @@ Describe "Invoke-GitClone" {
         }
     }
 }
+
+

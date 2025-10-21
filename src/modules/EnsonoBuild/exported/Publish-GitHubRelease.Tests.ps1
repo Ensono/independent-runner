@@ -1,6 +1,14 @@
 Describe "Publish-GitHubRelease" {
 
     BeforeAll {
+        # Helper function to create test directories
+        function New-TestDir {
+            $tempPath = [System.IO.Path]::GetTempPath()
+            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+            return $testFolderPath
+        }
 
         # Include function under test
         . $PSScriptRoot/Publish-GitHubRelease.ps1
@@ -12,6 +20,14 @@ Describe "Publish-GitHubRelease" {
     Context "Errors will be thrown" {
 
         BeforeAll {
+        # Helper function to create test directories
+        function New-TestDir {
+            $tempPath = [System.IO.Path]::GetTempPath()
+            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+            return $testFolderPath
+        }
 
             # Mock commands
             Mock -CommandName Write-Error -MockWith {} -ParameterFilter { $Message.ToLower().Contains("version") }
@@ -24,7 +40,7 @@ Describe "Publish-GitHubRelease" {
         BeforeEach {
 
             # Create a folder to use for each test
-            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+            $testFolder = New-TestDir
 
             $env:ARTIFACTS_DIR = [IO.Path]::Combine($testFolder, "artifacts")
             if (!(Test-Path -Path $env:ARTIFACTS_DIR)) {
@@ -78,7 +94,7 @@ Describe "Publish-GitHubRelease" {
         BeforeEach {
 
             # Create a folder to use for each test
-            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+            $testFolder = New-TestDir
         }
 
         AfterEach {
@@ -198,7 +214,7 @@ Describe "Publish-GitHubRelease" {
         BeforeEach {
 
             # Create a folder to use for each test
-            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+            $testFolder = New-TestDir
         }
 
         AfterEach {
@@ -285,6 +301,14 @@ Describe "Publish-GitHubRelease" {
     Context "Release is created" {
 
         BeforeAll {
+        # Helper function to create test directories
+        function New-TestDir {
+            $tempPath = [System.IO.Path]::GetTempPath()
+            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+            return $testFolderPath
+        }
 
             # Mock commands
 
@@ -303,7 +327,7 @@ Describe "Publish-GitHubRelease" {
         BeforeEach {
 
             # Create a folder to use for each test
-            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+            $testFolder = New-TestDir
 
             # Create a dummy file for release
             New-Item -ItemType File -Path ([IO.Path]::Combine($testFolder, "module.psm1")) | Out-Null
@@ -352,3 +376,4 @@ Describe "Publish-GitHubRelease" {
         }
     }
 }
+

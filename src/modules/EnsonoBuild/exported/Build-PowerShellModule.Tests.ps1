@@ -12,8 +12,17 @@ Describe "Build-PowerShellModule" {
         . $PSScriptRoot/../utils/Convert-ArrayToString.ps1
         . $PSScriptRoot/../utils/Protect-Filesystem.ps1
 
+        # Helper function to create test directories
+        function New-TestDir {
+            $tempPath = [System.IO.Path]::GetTempPath()
+            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
+            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
+            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
+            return $testFolderPath
+        }
+
         # Create test folder to work with
-        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        $testFolder = New-TestDir
 
         # Mock functions
         Mock -CommandName Write-Error -MockWith { } -ParameterFilter { $Message.ToLower().Contains("required parameters are missing") }
@@ -22,6 +31,12 @@ Describe "Build-PowerShellModule" {
 
         Mock -CommandName Write-Warning -MockWith {}
         Mock -CommandName Write-Error -MockWith {}
+    }
+
+    AfterAll {
+        if (Test-Path $testFolder) {
+            Remove-Item -Path $testFolder -Recurse -Force -ErrorAction SilentlyContinue
+        }
     }
 
     Context "Errors will be generated" {
@@ -65,17 +80,25 @@ Describe "Build-PowerShellModule" {
     Context "Warnings will be generated" {
 
         BeforeAll {
-            $testFolder2 = (New-Item 'TestDrive:\folder2' -ItemType Directory).FullName
+            $script:testFolder2 = New-TestDir
             $modulesDir2 = New-Item -ItemType Directory -Path ([IO.Path]::Combine($testFolder, "src", "modules"))
         }
 
+        AfterAll {
+            if (Test-Path $script:testFolder2) {
+                Remove-Item -Path $script:testFolder2 -Recurse -Force -ErrorAction SilentlyContinue
+            }
+        }
+
         AfterEach {
-            Remove-Item -Path "${testFolder2}/*" -Recurse -Force
+            if (Test-Path "${script:testFolder2}/*") {
+                Remove-Item -Path "${script:testFolder2}/*" -Recurse -Force -ErrorAction SilentlyContinue
+            }
         }
 
         It "if the output path is a child of the current directory" {
 
-            Push-Location -Path $testFolder2
+            Push-Location -Path $script:testFolder2
 
             Build-PowerShellModule -Path $modulesDir2 -Name MyModule -Output "test_outputs"
 
@@ -89,15 +112,15 @@ Describe "Build-PowerShellModule" {
 
         BeforeEach {
 
-            $outputDir = New-Item -ItemType Directory -Path ([IO.Path]::Combine($testFolder, "outputs"))
+            $outputDir = New-Item -ItemType Directory -Path ([IO.Path]::Combine($testFolder, "outputs")) -Force
 
             Push-Location -path $outputDir
 
             # Create files in the src directory to mimic the module files
             $name = "MyModule"
-            $modulesDir = New-Item -ItemType Directory -Path ([IO.Path]::Combine($testFolder, "src", "modules"))
-            $moduleDir = New-Item -ItemType Directory -Path ([IO.Path]::Combine($modulesDir, $name))
-            $functionsDir = New-Item -ItemType Directory -Path ([IO.Path]::Combine($moduleDir, "functions"))
+            $modulesDir = New-Item -ItemType Directory -Path ([IO.Path]::Combine($testFolder, "src", "modules")) -Force
+            $moduleDir = New-Item -ItemType Directory -Path ([IO.Path]::Combine($modulesDir, $name)) -Force
+            $functionsDir = New-Item -ItemType Directory -Path ([IO.Path]::Combine($moduleDir, "functions")) -Force
 
             # Create the data file to be used
             $dataFile = New-Item -ItemType File -Path ([IO.Path]::Combine($moduleDir, ("{0}.psd1" -f $name))) -Value @"
