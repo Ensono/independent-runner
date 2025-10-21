@@ -2,14 +2,9 @@
 Describe "Invoke-Dotnet" {
 
     BeforeAll {
-        # Helper function to create test directories
-        function New-TestDir {
-            $tempPath = [System.IO.Path]::GetTempPath()
-            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
-            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
-            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
-            return $testFolderPath
-        }
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
         # Import the function being tested
         . $PSScriptRoot/Invoke-DotNet.ps1
@@ -89,15 +84,6 @@ Describe "Invoke-Dotnet" {
     Context "Coverage" {
 
         BeforeAll {
-            # Helper function to create test directories
-            function New-TestDir {
-                $tempPath = [System.IO.Path]::GetTempPath()
-                $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
-                $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
-                New-Item $testFolderPath -ItemType Directory -Force | Out-Null
-                return $testFolderPath
-            }
-
             # Create dummy coverage file in the testfolder
             New-Item -ItemType File -Path (Join-Path -Path $testFolder -ChildPath "pester.opencover.xml")
             New-Item -ItemType File -Path (Join-Path -Path $testFolder -ChildPath "pester.otherfile.xml")
@@ -163,15 +149,6 @@ Describe "Invoke-Dotnet" {
         Context "With test files" {
 
             BeforeAll {
-                # Helper function to create test directories
-                function New-TestDir {
-                    $tempPath = [System.IO.Path]::GetTempPath()
-                    $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
-                    $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
-                    New-Item $testFolderPath -ItemType Directory -Force | Out-Null
-                    return $testFolderPath
-                }
-
                 # create some tests files for the function to find
                 foreach ($file in @("pester1.UnitTests.csproj", "pester2.UnitTests.csproj", "pester3.UnitTests.csproj")) {
                     New-Item -ItemType File -Path (Join-Path -Path $testFolder -ChildPath $file)

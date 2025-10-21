@@ -1,14 +1,9 @@
 Describe "Publish-GitHubRelease" {
 
     BeforeAll {
-        # Helper function to create test directories
-        function New-TestDir {
-            $tempPath = [System.IO.Path]::GetTempPath()
-            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
-            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
-            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
-            return $testFolderPath
-        }
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
         # Include function under test
         . $PSScriptRoot/Publish-GitHubRelease.ps1
@@ -20,14 +15,9 @@ Describe "Publish-GitHubRelease" {
     Context "Errors will be thrown" {
 
         BeforeAll {
-        # Helper function to create test directories
-        function New-TestDir {
-            $tempPath = [System.IO.Path]::GetTempPath()
-            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
-            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
-            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
-            return $testFolderPath
-        }
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
             # Mock commands
             Mock -CommandName Write-Error -MockWith {} -ParameterFilter { $Message.ToLower().Contains("version") }
@@ -301,14 +291,9 @@ Describe "Publish-GitHubRelease" {
     Context "Release is created" {
 
         BeforeAll {
-        # Helper function to create test directories
-        function New-TestDir {
-            $tempPath = [System.IO.Path]::GetTempPath()
-            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
-            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
-            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
-            return $testFolderPath
-        }
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
             # Mock commands
 

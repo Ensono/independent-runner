@@ -2,14 +2,9 @@
 Describe "Invoke-External" {
 
     BeforeAll {
-        # Helper function to create test directories
-        function New-TestDir {
-            $tempPath = [System.IO.Path]::GetTempPath()
-            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
-            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
-            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
-            return $testFolderPath
-        }
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
         # Import function under test
         . $PSScriptRoot/Invoke-External.ps1
@@ -32,14 +27,9 @@ Describe "Invoke-External" {
     Context "[DRYRUN] Command file" {
 
         BeforeAll {
-        # Helper function to create test directories
-        function New-TestDir {
-            $tempPath = [System.IO.Path]::GetTempPath()
-            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
-            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
-            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
-            return $testFolderPath
-        }
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
             $cmdlogPath = [IO.Path]::Combine($testFolder, "cmdlog.txt")
 
@@ -71,14 +61,9 @@ Describe "Invoke-External" {
     Context "Multiple commands" {
 
         BeforeAll {
-        # Helper function to create test directories
-        function New-TestDir {
-            $tempPath = [System.IO.Path]::GetTempPath()
-            $uniqueFolderName = "PesterTest_" + [System.Guid]::NewGuid().ToString("N").Substring(0, 8)
-            $testFolderPath = [System.IO.Path]::Combine($tempPath, $uniqueFolderName)
-            New-Item $testFolderPath -ItemType Directory -Force | Out-Null
-            return $testFolderPath
-        }
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
             # Define the session variable
             # Set the command log file
             $global:Session = @{
