@@ -12,6 +12,7 @@ Describe "Build-Documentation" {
         . $PSScriptRoot/Build-Documentation.ps1
 
         # Include dependencies
+        . $PSScriptRoot/Invoke-External.ps1
         . $PSScriptRoot/Invoke-Asciidoc.ps1
         . $PSScriptRoot/Invoke-Pandoc.ps1
 
