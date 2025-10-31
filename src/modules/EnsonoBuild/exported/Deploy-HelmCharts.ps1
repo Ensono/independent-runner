@@ -110,7 +110,7 @@ function Deploy-HelmCharts() {
 	# Iterate around all the charts in the object
 	foreach ($chart in $helm.charts)
 	{
-		# if any names have been specified only run if the current chart is in that list
+		# If any names have been specified only run if the current chart is in that list
 		if ($Names.length -gt 0 -and $Names -notcontains $chart.name)
 		{
 			Write-Warning -Message ("Skipping chart due to names list: {0} not in [{1}]" -f $chart.name, ($Names -join ","))
