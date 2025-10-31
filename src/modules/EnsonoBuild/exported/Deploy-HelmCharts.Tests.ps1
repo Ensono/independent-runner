@@ -361,6 +361,34 @@ charts:
             Should -Invoke -CommandName Invoke-WebRequest -Times 1
             Should -Invoke -CommandName Add-Content -ParameterFilter { $Path -like "*Chart.yaml" } -Times 1
         }
+
+        It "will use default version 0.0.1 when no versioning_regex is provided" {
+            Mock -CommandName Write-Host -MockWith {}
+
+            Deploy-HelmCharts -Path "test-raw-yaml.yaml" -Provider "azure" -Identifier "test-rg" -ClusterName "test-cluster" -K8sAuthRequired $false -Dryrun
+
+            Should -Invoke -CommandName Add-Content -ParameterFilter { $Value -like "*version: 0.0.1*" } -Times 1
+        }
+
+        It "will extract version from URL when versioning_regex is provided" {
+            $testConfigVersioned = @"
+charts:
+  - name: versioned-manifest
+    enabled: true
+    location: https://example.com/manifests/v1.2.3/manifest.yaml
+    wrap_raw_yaml: true
+    versioning_regex: '/v(\d+\.\d+\.\d+)/'
+    namespace: default
+"@
+            Set-Content -Path "test-versioned-yaml.yaml" -Value $testConfigVersioned
+            Mock -CommandName Write-Host -MockWith {}
+
+            Deploy-HelmCharts -Path "test-versioned-yaml.yaml" -Provider "azure" -Identifier "test-rg" -ClusterName "test-cluster" -K8sAuthRequired $false -Dryrun
+
+            Should -Invoke -CommandName Add-Content -ParameterFilter { $Value -like "*version: 1.2.3*" } -Times 1
+
+            Remove-Item -Path "test-versioned-yaml.yaml" -Force -ErrorAction SilentlyContinue
+        }
     }
 
     Context "Rollout status checks" {

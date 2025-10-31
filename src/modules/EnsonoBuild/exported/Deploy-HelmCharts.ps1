@@ -168,6 +168,18 @@ function Deploy-HelmCharts() {
 				Remove-Item -Path "${Tempdir}/$($chart.name)" -Recurse
 			}
 
+			$chartVersion = "0.0.1"
+
+			if (! [String]::IsNullOrEmpty($chart.versioning_regex))
+			{
+				$match = $chart.location -match $chart.versioning_regex
+
+				if ($match -eq $true)
+				{
+					$chartVersion = $Matches[1]
+				}
+			}
+
 			New-Item -ItemType "Directory" -Path $Tempdir -Name $chart.name
 			New-Item -ItemType "Directory" -Path "${Tempdir}/$($chart.name)" -Name templates
 			$chartYaml = @"
@@ -177,7 +189,7 @@ description: A chart wrapper for single raw YAML files. Check the deployed resou
 
 type: application
 
-version: 0.0.1
+version: ${chartVersion}
 "@
 			Add-Content -Path "${Tempdir}/$($chart.name)/Chart.yaml" -Value $chartYaml
 			Add-Content -Path "${Tempdir}/$($chart.name)/values.yaml" -Value ""
