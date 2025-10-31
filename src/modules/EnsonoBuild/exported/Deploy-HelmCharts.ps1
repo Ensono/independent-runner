@@ -158,7 +158,7 @@ function Deploy-HelmCharts() {
 			}
 		}
 
-		# if `wrap_raw_yaml` is true then download YAML file and wrap in a dummy chart
+		# If `wrap_raw_yaml` is true then download YAML file and wrap in a dummy chart
 		if (! [String]::IsNullOrEmpty($chart.wrap_raw_yaml) -and $chart.wrap_raw_yaml -eq $true)
 		{
 			if (Test-Path -Path "${Tempdir}/$($chart.name)")
