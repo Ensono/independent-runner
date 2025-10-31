@@ -39,7 +39,7 @@ function Deploy-HelmCharts() {
 
 		[string[]]
 		# Names of charts that should be deployed.
-		# This does not override the enabled flag, but allows a subset of enabled chartts
+		# This does not override the enabled flag, but allows a subset of enabled charts
 		# to be deployed
 		$Names,
 
