@@ -61,6 +61,13 @@ stages:
 
     Context "Create script" {
 
+        BeforeEach {
+            # Ensure SHELL env var is not set for PowerShell tests
+            if (Test-Path env:\SHELL) {
+                Remove-Item env:\SHELL
+            }
+        }
+
         It "will create a PowerShell script with vars - Azure" {
 
             New-EnvConfig -Path $stageVarFile -ScriptPath $testfolder -Cloud Azure -Stage pester
@@ -99,7 +106,7 @@ stages:
 
             New-EnvConfig -Path $stageVarFile -ScriptPath $testfolder -Cloud AWS -Stage pester
 
-            $scriptPath = [IO.Path]::Combine($testFolder, "envvar-azure-pester.ps1")
+            $scriptPath = [IO.Path]::Combine($testFolder, "envvar-aws-pester.ps1")
 
             # Check that the script has been created
             Test-Path -Path $scriptPath | Should -BeTrue
@@ -115,7 +122,7 @@ stages:
 
             New-EnvConfig -Path $stageVarFile -ScriptPath $testfolder -Cloud AWS -Stage pester
 
-            $scriptPath = [IO.Path]::Combine($testFolder, "envvar-azure-pester.sh")
+            $scriptPath = [IO.Path]::Combine($testFolder, "envvar-aws-pester.sh")
 
             # Check that the script has been created
             Test-Path -Path $scriptPath | Should -BeTrue
