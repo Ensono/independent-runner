@@ -2,27 +2,51 @@
 Describe "Get-AzureServiceVersions" {
 
     BeforeAll {
-        # Include function under test
-        . $PSScriptRoot/Get-AzureServiceVersions.ps1
-
-        # Mock built in functions
+        # Create stub functions for Azure cmdlets before dot-sourcing
+        function Connect-AzAccount { }
+        function Get-AzAksVersion { }
+        
+        # Mock built-in functions
         Mock -Command Write-Error -MockWith {}
-        Mock -Command Connect-AzAccount -MockWith {}
-
-        New-Module -Name AzurePowershell -ScriptBlock {
-            function Get-AzAksVersion () {
-
-                return @(
-                    @{
-                        OrchestratorVersion = "1.24.5"
-                    },
-                    @{
-                        OrchestratorVersion = "1.25.5"
+        Mock -Command ConvertTo-SecureString -MockWith {
+            # Return a proper SecureString object
+            $secure = New-Object System.Security.SecureString
+            foreach ($char in "MockPassword".ToCharArray()) {
+                $secure.AppendChar($char)
+            }
+            return $secure
+        }
+        Mock -Command New-Object -MockWith {
+            param($TypeName, $ArgumentList)
+            # Create a proper PSCredential mock
+            if ($TypeName -eq "System.Management.Automation.PSCredential") {
+                return [PSCredential]::new($ArgumentList[0], $ArgumentList[1])
+            }
+            # For other types, call the original
+            return & (Get-Command New-Object -CommandType Cmdlet) -TypeName $TypeName -ArgumentList $ArgumentList
+        } -ParameterFilter { $TypeName -eq "System.Management.Automation.PSCredential" }
+        Mock -Command Connect-AzAccount -MockWith {
+            return @{
+                Context = @{
+                    Account = @{
+                        Id = "mock-sp"
                     }
-                )
+                }
             }
         }
+        Mock -Command Get-AzAksVersion -MockWith {
+            return @(
+                @{
+                    OrchestratorVersion = "1.24.5"
+                },
+                @{
+                    OrchestratorVersion = "1.25.5"
+                }
+            )
+        }
         
+        # Include function under test (after stubs and mocks are in place)
+        . $PSScriptRoot/Get-AzureServiceVersions.ps1
     }
 
     Context "Parameters are sane" {
