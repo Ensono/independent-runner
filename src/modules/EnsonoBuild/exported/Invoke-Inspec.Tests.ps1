@@ -24,9 +24,8 @@ Describe "Invoke-Inspec" {
         }
         
         # Create a predictable subdirectory for inspec tests
-        $insFolder = Join-Path $testFolder "inspec_tests"
-        New-Item -ItemType Directory -Path $insFolder -Force | Out-Null
-        $testFolder = $insFolder
+        $script:inspecTestFolder = Join-Path $testFolder "inspec_tests"
+        New-Item -ItemType Directory -Path $script:inspecTestFolder -Force | Out-Null
 
         $global:Session = @{
             commands = @{
@@ -34,6 +33,9 @@ Describe "Invoke-Inspec" {
             }
             dryrun   = $true
         }
+        
+        # Store the inspec test folder for use in tests
+        $script:testInspecFolder = $script:inspecTestFolder
 
         function inspec() {}
 

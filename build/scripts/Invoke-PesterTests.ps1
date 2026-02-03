@@ -110,7 +110,7 @@ catch {
 
 if ($IsLinux) {
     $outputRoot = ($output -Split [IO.Path]::DirectorySeparatorChar)[0] | Resolve-Path
-    if ($env:HOST_UIDGID -and $env:HOST_UIDGID -ne '$UID:$GID') {
+    if ($env:HOST_UIDGID) {
         chown -R $env:HOST_UIDGID $outputRoot
     }
 }

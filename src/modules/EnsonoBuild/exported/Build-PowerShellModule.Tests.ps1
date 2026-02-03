@@ -75,19 +75,19 @@ Describe "Build-PowerShellModule" {
     Context "Warnings will be generated" {
 
         BeforeAll {
-            $script:testFolder2 = New-TestDir
-            $modulesDir2 = New-Item -ItemType Directory -Path ([IO.Path]::Combine($testFolder, "src", "modules"))
+            $script:warningTestFolder = New-TestDir
+            $modulesDir2 = New-Item -ItemType Directory -Path ([IO.Path]::Combine($warningTestFolder, "src", "modules"))
         }
 
         AfterAll {
-            if (Test-Path $script:testFolder2) {
-                Remove-Item -Path $script:testFolder2 -Recurse -Force -ErrorAction SilentlyContinue
+            if (Test-Path $script:warningTestFolder) {
+                Remove-Item -Path $script:warningTestFolder -Recurse -Force -ErrorAction SilentlyContinue
             }
         }
 
         AfterEach {
-            if (Test-Path "${script:testFolder2}/*") {
-                Remove-Item -Path "${script:testFolder2}/*" -Recurse -Force -ErrorAction SilentlyContinue
+            if (Test-Path "${script:warningTestFolder}/*") {
+                Remove-Item -Path "${script:warningTestFolder}/*" -Recurse -Force -ErrorAction SilentlyContinue
             }
         }
 

@@ -19,11 +19,7 @@ Describe "Get-AzureServiceVersions" {
         Mock -Command New-Object -MockWith {
             param($TypeName, $ArgumentList)
             # Create a proper PSCredential mock
-            if ($TypeName -eq "System.Management.Automation.PSCredential") {
-                return [PSCredential]::new($ArgumentList[0], $ArgumentList[1])
-            }
-            # For other types, call the original
-            return & (Get-Command New-Object -CommandType Cmdlet) -TypeName $TypeName -ArgumentList $ArgumentList
+            return [PSCredential]::new($ArgumentList[0], $ArgumentList[1])
         } -ParameterFilter { $TypeName -eq "System.Management.Automation.PSCredential" }
         Mock -Command Connect-AzAccount -MockWith {
             return @{

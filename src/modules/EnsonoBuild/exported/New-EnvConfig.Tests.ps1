@@ -5,9 +5,6 @@ Describe "New-EnvConfig" {
         # Import test helpers
         . $PSScriptRoot/../../../../test/TestHelpers.ps1
 
-        # Create stub function for ConvertFrom-Yaml before importing dependencies
-        function ConvertFrom-Yaml { param($Yaml) }
-
         # Import function under test
         . $PSScriptRoot/New-EnvConfig.ps1
 
@@ -43,6 +40,7 @@ stages:
         # Mocks
         Mock -Command Write-Warning -MockWith {}
         Mock -Command Write-Error -MockWith {}
+        Mock -Command ConvertFrom-Yaml -MockWith { param($Yaml) return @{} }
         
         # Mock Get-Module to pretend Powershell-Yaml is installed
         Mock -Command Get-Module -MockWith {

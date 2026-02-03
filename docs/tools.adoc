@@ -34,6 +34,6 @@ Finally Taskctl was researched and adopted, and later forked to create Eirctl (E
 - configuration file is yaml based
 - outputs from previous tasks can be retrieved by subsequent tasks
 - allows the use of contexts to run tasks, meaning that our own Docker containers can be used to provide a known environment
-- Not only can tasks be defined, but pipelines as well. This means that the different stages can be defined within the configuration can called as required by the operator (be it human or a CI/CD agent)
+- Not only can tasks be defined, but pipelines as well. This means that the different stages can be defined within the configuration and can be called as required by the operator (be it human or a CI/CD agent)
 - Eirctl has the ability to produce graphs of the pipelines that have been configured
 - The fork allows us to fix issues and add features specific to Ensono's needs

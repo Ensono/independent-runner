@@ -1,7 +1,7 @@
 contexts:
   docsenv:
     container:
-      name: ensono/eir-asciidoctor
+      name: ensono/eir-asciidoctor:1.2.39
       shell: pwsh
       shell_args:
         - -Command
@@ -15,7 +15,7 @@ contexts:
 
   powershell_test:
     container:
-      name: ensono/eir-infrastructure
+      name: ensono/eir-infrastructure:1.2.39
       shell: pwsh
       shell_args:
         - -Command
@@ -28,7 +28,7 @@ contexts:
 
   powershell:
     container:
-      name: ensono/eir-infrastructure
+      name: ensono/eir-infrastructure:1.2.39
       shell: pwsh
       shell_args:
         - -Command
@@ -40,7 +40,7 @@ contexts:
 
   dotnet:
     container:
-      name: ensono/eir-dotnet
+      name: ensono/eir-dotnet:1.2.39
       shell: pwsh
       shell_args:
         - -Command
