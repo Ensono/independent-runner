@@ -111,6 +111,13 @@ stages:
 
     Context "Create script" {
 
+        BeforeEach {
+            # Ensure SHELL env var is not set for PowerShell tests
+            if (Test-Path env:\SHELL) {
+                Remove-Item env:\SHELL
+            }
+        }
+
         It "will create a PowerShell script with vars - Azure" {
             # Remove SHELL env var to ensure PowerShell script is created
             if (Test-Path env:\SHELL) {
