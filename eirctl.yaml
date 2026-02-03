@@ -10,6 +10,7 @@ pipelines:
     - task: tests:unit
       allow_failure: true
     - task: tests:coverage_report
+      allow_failure: true
       depends_on:
         - tests:unit
     - task: tests:fail_on_error

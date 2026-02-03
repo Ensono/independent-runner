@@ -21,7 +21,6 @@ contexts:
         - -Command
     env:
       PSModulePath: /eirctl/src/modules
-      HOST_UIDGID: $UID:$GID
     envfile:
       exclude:
         - posh_azure_subscription
@@ -45,7 +44,7 @@ contexts:
       shell_args:
         - -Command
     env:
-      HOST_UIDGID: $UID:$GID
+      PSModulePath: /eirctl/src/modules
     envfile:
       exclude:
         - posh_azure_subscription

@@ -110,8 +110,10 @@ catch {
 
 if ($IsLinux) {
     $outputRoot = ($output -Split [IO.Path]::DirectorySeparatorChar)[0] | Resolve-Path
-    if ($env:HOST_UIDGID) {
+    if ($env:HOST_UIDGID -and $env:HOST_UIDGID -match '^\d+:\d+$') {
         chown -R $env:HOST_UIDGID $outputRoot
+    } elseif ($env:HOST_UIDGID) {
+        Write-Warning "HOST_UIDGID is set to '${env:HOST_UIDGID}' but does not match expected format 'UID:GID'. Skipping chown."
     }
 }
 

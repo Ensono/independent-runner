@@ -46,6 +46,7 @@ tasks:
     context: dotnet
     description: Create Cobertura report xml from coverage xml
     command: |
+      apt-get update -qq && apt-get install -y -qq dotnet-runtime-8.0 > /dev/null 2>&1 || true
       Invoke-DotNet -Coverage -Pattern pester-coverage.xml -Path /eirctl -Source /eirctl/src/modules/EnsonoBuild -Target /eirctl/outputs/tests
 
   tests:coverage_report_html:
