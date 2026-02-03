@@ -122,12 +122,13 @@ Describe "Invoke-Inspec" {
 
             # Determine the output path based on the OS
             if ($isWindows) {
-                $output = [IO.Path]::Combine($env:SystemDrive, "output", "tests")
+                $output = [IO.Path]::Combine($testFolder, "output", "tests")
             }
             else {
-                $output = [IO.Path]::Combine("/", "output", "tests")
+                $output = [IO.Path]::Combine($testFolder, "output", "tests")
             }
-            $expected = [IO.Path]::Combine($output, "inspec_tests_azure_inspec_tests.xml")
+            $expectedFileName = "inspec_tests_{0}_{1}.xml" -f "azure", (Split-Path -Path $testfolder -Leaf)
+            $expected = [IO.Path]::Combine($output, $expectedFileName)
 
             Invoke-Inspec -exec -path $testfolder -cloud azure -output $output
 

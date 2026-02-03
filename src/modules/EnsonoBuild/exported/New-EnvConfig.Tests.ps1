@@ -40,7 +40,11 @@ stages:
         # Mocks
         Mock -Command Write-Warning -MockWith {}
         Mock -Command Write-Error -MockWith {}
-        Mock -Command ConvertFrom-Yaml -MockWith { param($Yaml) return @{} }
+
+        # Ensure ConvertFrom-Yaml exists so Pester can mock it when the module isn't installed
+        if (-not (Get-Command ConvertFrom-Yaml -ErrorAction SilentlyContinue)) {
+            function ConvertFrom-Yaml { param($Yaml) return @{} }
+        }
         
         # Mock Get-Module to pretend Powershell-Yaml is installed
         Mock -Command Get-Module -MockWith {
