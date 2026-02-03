@@ -8,7 +8,7 @@
     Get-StringPart is used to get part of a string based on the specified delimiter and index
 
 .EXAMPLE
-    Get-StringPart -Phrase "git clone https://github.com/amido/stacks-pipeline-templates" -Delimiter " " -Index 0
+    Get-StringPart -Phrase "git clone https://github.com/ensono/stacks-pipeline-templates" -Delimiter " " -Index 0
     "git"
 
 #>
@@ -45,4 +45,3 @@ function Get-StringPart() {
         return $parts[$item - 1]
     }
 }
-

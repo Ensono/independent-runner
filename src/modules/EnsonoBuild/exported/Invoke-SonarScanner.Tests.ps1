@@ -63,7 +63,7 @@ Describe "Invoke-SonarScanner" {
             $env:PROJECT_NAME = "env_pester"
             $env:BUILD_BUILDNUMBER = "99.98.100"
             $env:SONAR_URL = "https://env.sonar.example"
-            $env:SONAR_ORG = "AmidoStacks"
+            $env:SONAR_ORG = "EnsonoStacks"
             $env:SONAR_TOKEN = "987654"
         }
 
@@ -85,7 +85,7 @@ Describe "Invoke-SonarScanner" {
                 ProjectName  = "pester"
                 BuildVersion = "100.98.99"
                 URL          = "https://sonarscanner.example"
-                Organisation = "Amido"
+                Organisation = "Ensono"
                 Token        = "123456"
             }
 

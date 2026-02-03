@@ -7,7 +7,7 @@ function Invoke-API() {
     Internal function to call APIs for endpoints. It uses the Invoke-WebRequest cmdlet
 
     .DESCRIPTION
-    The Amido-Build module has support for publishing content to Wikis via APIs, this cmdlet
+    The Ensono-Build module has support for publishing content to Wikis via APIs, this cmdlet
     uses the Invoke-WebRequest cmdlet to configure the authentication headers and call
     the API based on the supplied host and path along with the necessary body
     

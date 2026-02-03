@@ -14,7 +14,7 @@ variables:
   - name: DASHBOARD_MEASUREMENT
     value: deployment # Static definition within Influx Config
   # TODO: These won't exist in the new tenant but we're not using Influx currently anyway
-  # - group: amido-stacks-influx-credentials-prod
+  # - group: ensono-stacks-influx-credentials-prod
   # Group should contain:
   # DASHBOARD_INFLUX_ORG
   # DASHBOARD_INFLUX_BUCKET

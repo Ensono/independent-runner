@@ -12,7 +12,7 @@ function Invoke-GitClone() {
     The repoUrl parameter is used to state where the repository should be retrieved from. This
     can be a short name or a full URL.
 
-    If a short name is provided, e.g. amido/stacks-dotnet, the cmdlet will build up the archive URL
+    If a short name is provided, e.g. ensono/stacks-dotnet, the cmdlet will build up the archive URL
     that will be used download the archive an unpack it.
 
     Git is not used to get the repository, this is so that there is no dependency on the command
@@ -27,9 +27,9 @@ function Invoke-GitClone() {
     as the repoUrl parameter.
 
     .EXAMPLE
-    Invoke-GitClone -repo amido/stacks-pipeline-templates -ref refs/tags/v2.0.6 -path support
+    Invoke-GitClone -repo ensono/stacks-pipeline-templates -ref refs/tags/v2.0.6 -path support
 
-    As the default provider is GitHub this will result in the archive https://github.com/amido/stacks-pipeline-templates/archive/refs/tags/v.2.06.zip
+    As the default provider is GitHub this will result in the archive https://github.com/ensono/stacks-pipeline-templates/archive/refs/tags/v.2.06.zip
     being downloaded and unpacked into the `support` directory.
 
     #>
