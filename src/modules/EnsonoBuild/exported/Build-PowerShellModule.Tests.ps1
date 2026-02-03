@@ -93,7 +93,7 @@ Describe "Build-PowerShellModule" {
 
         It "if the output path is a child of the current directory" {
 
-            Push-Location -Path $script:testFolder2
+            Push-Location -Path $script:warningTestFolder
 
             Build-PowerShellModule -Path $modulesDir2 -Name MyModule -Output "test_outputs"
 

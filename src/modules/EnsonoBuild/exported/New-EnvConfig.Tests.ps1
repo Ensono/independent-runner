@@ -169,7 +169,7 @@ stages:
 
             New-EnvConfig -Path $stageVarFile -ScriptPath $testFolder -Cloud AWS -Stage pester
 
-            $scriptPath = [IO.Path]::Combine($testFolder, "envvar-azure-pester.sh")
+            $scriptPath = [IO.Path]::Combine($testFolder, "envvar-aws-pester.sh")
 
             # Check that the script has been created
             Test-Path -Path $scriptPath | Should -BeTrue
