@@ -96,7 +96,12 @@ function Invoke-DotNet() {
 
         [string]
         # Any additional arguments that should be passed to the command
-        $arguments = $env:DOTNET_ARGUMENTS
+        $arguments = $env:DOTNET_ARGUMENTS,
+
+        [ValidateSet("6", "8")]
+        [string]
+        # The .NET version to use (6 or 8). If not specified, uses the default.
+        $DotNetVersion
 
     )
 
@@ -108,6 +113,22 @@ function Invoke-DotNet() {
     else {
         Write-Error "The path specified does not exist: $path"
         return
+    }
+
+    # Set the .NET version if specified
+    if (![String]::IsNullOrEmpty($DotNetVersion)) {
+        switch ($DotNetVersion) {
+            "6" {
+                $env:DOTNET_ROLL_FORWARD = "disable"
+                $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = "true"
+                Write-Information -MessageData "Using .NET 6" -InformationAction Continue
+            }
+            "8" {
+                $env:DOTNET_ROLL_FORWARD = "Major"
+                $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = "true"
+                Write-Information -MessageData "Using .NET 8" -InformationAction Continue
+            }
+        }
     }
 
     # Perform the appropriate action based on the Parameter Set Name that
@@ -155,9 +176,15 @@ function Invoke-DotNet() {
             # create a list of the full path to each coverfile
             $list = $coverFiles | ForEach-Object { $_.FullName }
 
+            # Build the environment variable prefix if .NET version is specified
+            $envPrefix = ""
+            if (![String]::IsNullOrEmpty($DotNetVersion)) {
+                $envPrefix = "DOTNET_ROLL_FORWARD={0} " -f $env:DOTNET_ROLL_FORWARD
+            }
+
             # Build up the command that should be executed
             $cmdParts = @(
-                $tool
+                $envPrefix + $tool
                 "-reports:{0}" -f ($list -join ";")
                 "-targetDir:{0}" -f $target
                 "-reporttypes:{0}" -f $type
