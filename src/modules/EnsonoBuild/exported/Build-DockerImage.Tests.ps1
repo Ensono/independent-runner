@@ -1,10 +1,5 @@
 BeforeDiscovery {
-
-    # Skip Build-DockerImage tests due to mock/environment issues
-    # These tests have complex Docker interactions that don't work reliably in test environments
-    # GitHub Issue: https://github.com/Ensono/independent-runner/issues/44
-    # TODO: Refactor these tests to work with current Pester and mock frameworks
-    $skipDockerTests = 1  # Always skip for now
+   $skipDockerTests = 0  # Enable Docker tests locally
 }
 
 Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
