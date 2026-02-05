@@ -98,7 +98,7 @@ These are only required for release pipelines and should NOT be set locally:
 | `ARTIFACTS_DIR`   | Output artifacts directory | Usually `./outputs`                                           |
 | `REPOSITORY`      | Repository name            | `independent-runner`                                          |
 
-**⚠️ SECURITY WARNING**: Never commit API keys or tokens to the repository. Use secure secret management in CI/CD pipelines.
+**⚠️ SECURITY WARNING**: Never commit API keys or tokens to the repository. Use secure secret management in CI/CD pipelines. Ensure that `.eirctl` and `/local` are ignored before committing as these may contain sensitive information.
 
 ## 5. TEST – Run the Test Suite
 
