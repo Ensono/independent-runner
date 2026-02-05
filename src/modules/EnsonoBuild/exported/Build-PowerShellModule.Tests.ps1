@@ -86,7 +86,7 @@ Describe "Build-PowerShellModule" {
         }
 
         AfterEach {
-            if (Test-Path "${script:warningTestFolder}/*") {
+            if (-not [string]::IsNullOrEmpty($script:warningTestFolder) -and (Test-Path "${script:warningTestFolder}/*")) {
                 Remove-Item -Path "${script:warningTestFolder}/*" -Recurse -Force -ErrorAction SilentlyContinue
             }
         }
