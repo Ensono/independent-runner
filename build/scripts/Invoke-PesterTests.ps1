@@ -96,18 +96,6 @@ $result = Invoke-Pester -Configuration $configuration
 
 $exitCode = $LASTEXITCODE
 
-# Clean up Pester TestDrive after tests complete to prevent conflicts
-try {
-    if (Get-PSDrive -Name "TestDrive" -ErrorAction SilentlyContinue) {
-        Remove-PSDrive -Name "TestDrive" -Force -ErrorAction SilentlyContinue
-    }
-    Remove-Variable -Name "Pester*" -Scope Global -ErrorAction SilentlyContinue
-    [System.GC]::Collect()
-}
-catch {
-    Write-Debug "Error during post-test cleanup: $_"
-}
-
 if ($IsLinux) {
     $outputRoot = ($output -Split [IO.Path]::DirectorySeparatorChar)[0] | Resolve-Path
     if ($env:HOST_UIDGID -and $env:HOST_UIDGID -match '^\d+:\d+$') {
