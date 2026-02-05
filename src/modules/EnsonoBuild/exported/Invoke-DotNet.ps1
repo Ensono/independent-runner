@@ -98,11 +98,11 @@ function Invoke-DotNet() {
         # Any additional arguments that should be passed to the command
         $arguments = $env:DOTNET_ARGUMENTS,
 
-        [ValidateSet("6", "8")]
+        [ValidateSet("Minor", "Major", "LatestPatch", "LatestMinor", "LatestMajor", "Disable")]
         [string]
-        # The .NET version to use (6 or 8). If not specified, uses the default.
-        $DotNetVersion
-
+        # The roll forward policy to use when running the command. This will be set as an environment variable before the command is run
+        # https://learn.microsoft.com/en-us/dotnet/core/versions/selection
+        $RollForward
     )
 
     # If a working directory has been specified and it exists, change to that dir
@@ -115,20 +115,12 @@ function Invoke-DotNet() {
         return
     }
 
+    $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = "true"
+    $env:DOTNET_ROOT = "/usr/local/dotnet/dotnet"
+
     # Set the .NET version if specified
-    if (![String]::IsNullOrEmpty($DotNetVersion)) {
-        switch ($DotNetVersion) {
-            "6" {
-                $env:DOTNET_ROLL_FORWARD = "disable"
-                $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = "true"
-                Write-Information -MessageData "Using .NET 6" -InformationAction Continue
-            }
-            "8" {
-                $env:DOTNET_ROLL_FORWARD = "Major"
-                $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = "true"
-                Write-Information -MessageData "Using .NET 8" -InformationAction Continue
-            }
-        }
+    if (![String]::IsNullOrEmpty($RollForward)) {
+        $env:DOTNET_ROLL_FORWARD = $RollForward
     }
 
     # Perform the appropriate action based on the Parameter Set Name that
@@ -146,10 +138,12 @@ function Invoke-DotNet() {
         }
 
         "coverage" {
+            # Find the path to the command to run
+            $dotnet = Find-Command -Name "dotnet"
 
             # Find the path to the the reportgenerator command
-            $tool = Find-Command -Name "reportgenerator"
-            
+            $reportgenerator = Find-Command -Name "reportgenerator"
+
             # Set the pattern if it has not been defined
             if ([String]::IsNullOrEmpty($pattern)) {
                 $pattern = "*.opencover.xml"
@@ -176,15 +170,11 @@ function Invoke-DotNet() {
             # create a list of the full path to each coverfile
             $list = $coverFiles | ForEach-Object { $_.FullName }
 
-            # Build the environment variable prefix if .NET version is specified
-            $envPrefix = ""
-            if (![String]::IsNullOrEmpty($DotNetVersion)) {
-                $envPrefix = "DOTNET_ROLL_FORWARD={0} " -f $env:DOTNET_ROLL_FORWARD
-            }
-
             # Build up the command that should be executed
             $cmdParts = @(
-                $envPrefix + $tool
+                $dotnet
+                "run"
+                $reportgenerator
                 "-reports:{0}" -f ($list -join ";")
                 "-targetDir:{0}" -f $target
                 "-reporttypes:{0}" -f $type
