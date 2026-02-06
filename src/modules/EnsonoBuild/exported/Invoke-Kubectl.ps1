@@ -114,8 +114,7 @@ function Invoke-Kubectl() {
             "apply" {
                 # Check that some arguments have been set
                 if ($arguments.Count -eq 0) {
-                    Write-Error -Message "No manifest files have been specified"
-                    exit 1
+                    Stop-Task -ExitCode 1 -Message "No manifest files have been specified"
                 }
 
                 # Iterate around the arguments that have been specified and deploy each one

@@ -13,6 +13,7 @@ Describe "Invoke-Helm" {
         # Import dependent functions
         . $PSScriptRoot/Invoke-Login.ps1
         . $PSScriptRoot/../command/Find-Command.ps1
+        . $PSScriptRoot/../classes/StopTaskException.ps1
         . $PSScriptRoot/../exported/Stop-Task.ps1
         . $PSScriptRoot/../exported/Invoke-External.ps1
 
@@ -174,4 +175,3 @@ Describe "Invoke-Helm" {
         }
     }
 }
-

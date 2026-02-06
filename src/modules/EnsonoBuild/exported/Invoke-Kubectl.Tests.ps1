@@ -10,6 +10,8 @@ Describe "Invoke-Kubectl" {
         . $PSScriptRoot/Invoke-Login.ps1
         . $PSScriptRoot/../command/Find-Command.ps1
         . $PSScriptRoot/../exported/Invoke-External.ps1
+        . $PSScriptRoot/../classes/StopTaskException.ps1
+        . $PSScriptRoot/../exported/Stop-Task.ps1
 
         # Create the testFolder
         $testFolder = New-TestDir
@@ -129,4 +131,3 @@ Describe "Invoke-Kubectl" {
         }
     }
 }
-

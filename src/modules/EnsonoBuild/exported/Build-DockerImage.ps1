@@ -218,8 +218,7 @@ function Build-DockerImage() {
         $moduleName = "Az.ContainerRegistry"
         $module = Get-Module -ListAvailable -Name $moduleName
         if ([string]::IsNullOrEmpty($module)) {
-          Write-Error -Message ("{0} module is not available" -f $moduleName)
-          exit 2
+          Stop-Task -ExitCode 2 -Message ("{0} module is not available" -f $moduleName)
         }
         else {
           Import-Module -Name $moduleName
@@ -252,7 +251,7 @@ function Build-DockerImage() {
     Invoke-External -Command $cmd
 
     if ($LASTEXITCODE -ne 0) {
-      exit $LASTEXITCODE
+      Stop-Task -ExitCode $LASTEXITCODE
     }
 
     # Set the build_and_push to tru
@@ -308,7 +307,7 @@ function Build-DockerImage() {
   Invoke-External -Command $cmd
 
   if ($LASTEXITCODE -ne 0) {
-    exit $LASTEXITCODE
+    Stop-Task -ExitCode $LASTEXITCODE
   }
 
 }

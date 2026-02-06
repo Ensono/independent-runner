@@ -31,6 +31,8 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
         . $PSScriptRoot/../cloud/Connect-Azure.ps1
         . $PSScriptRoot/../utils/Confirm-TrunkBranch.ps1
         . $PSScriptRoot/../utils/Get-CPUArchitecture.ps1
+        . $PSScriptRoot/../classes/StopTaskException.ps1
+        . $PSScriptRoot/../exported/Stop-Task.ps1
 
         # Write function to mimic the Get-AzContainerRegistryCredential which is supplied
         # by the PowerShell AZ Module, but this might not be available in the test environment
