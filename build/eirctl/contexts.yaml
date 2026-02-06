@@ -47,4 +47,7 @@ contexts:
       PSModulePath: /eirctl/src/modules
     envfile:
       exclude:
+        - home
+        - path
         - posh_azure_subscription
+        - dotnet_root
