@@ -35,6 +35,16 @@ function Invoke-Terraform() {
     the name and value of the output. This is then piped to Out-File which means that the data will be save to the
     named file for use with other commands.
 
+    .EXAMPLE
+    Invoke-Terraform -test
+
+    Run all Terraform test files (*.tftest.hcl) in the current directory. Requires Terraform >= 1.6.0.
+
+    .EXAMPLE
+    Invoke-Terraform -test -filter "tests/main.tftest.hcl"
+
+    Run only the specified Terraform test file. The -filter parameter is passed directly to `terraform test -filter=`.
+
     #>
 
     [CmdletBinding()]
