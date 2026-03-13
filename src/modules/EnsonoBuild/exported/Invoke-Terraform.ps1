@@ -101,6 +101,20 @@ function Invoke-Terraform() {
         $yaml,
 
         [Parameter(
+            ParameterSetName = "test"
+        )]
+        [switch]
+        # Run Terraform tests
+        $test,
+
+        [Parameter(
+            ParameterSetName = "test"
+        )]
+        [string]
+        # Filter expression to select specific test files
+        $filter,
+
+        [Parameter(
             ParameterSetName = "validate"
         )]
         [switch]
@@ -308,6 +322,22 @@ function Invoke-Terraform() {
                     $data | ConvertTo-Json -Depth $JsonDepth -Compress
                 }
             }
+        }
+
+        # Run Terraform tests
+        "test" {
+
+            $command = "{0} test" -f $terraform
+
+            if (![string]::IsNullOrEmpty($filter)) {
+                $command += " -filter={0}" -f $filter
+            }
+
+            if ($arguments.Count -gt 0 -and ![String]::IsNullOrEmpty($arguments[0])) {
+                $command += " {0}" -f ($arguments -join " ")
+            }
+
+            Invoke-External -Command $command
         }
 
         # Valiate the templates

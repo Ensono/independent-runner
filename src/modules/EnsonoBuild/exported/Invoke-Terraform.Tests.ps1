@@ -347,6 +347,47 @@ Describe "Invoke-Terraform" {
         }
     }
 
+    Context "Test" {
+        It "will run terraform test with no filter" {
+            Mock `
+                -Command Invoke-External `
+                -Verifiable `
+                -MockWith { } `
+                -ParameterFilter { $commands -eq "terraform test" }
+
+            Invoke-Terraform -test
+
+            Should -InvokeVerifiable
+            Should -Invoke Invoke-External -Exactly 1
+        }
+
+        It "will run terraform test with a filter for specific test files" {
+            Mock `
+                -Command Invoke-External `
+                -Verifiable `
+                -MockWith { } `
+                -ParameterFilter { $commands -eq "terraform test -filter=tests/main.tftest.hcl" }
+
+            Invoke-Terraform -test -filter "tests/main.tftest.hcl"
+
+            Should -InvokeVerifiable
+            Should -Invoke Invoke-External -Exactly 1
+        }
+
+        It "will run terraform test with a filter and additional arguments" {
+            Mock `
+                -Command Invoke-External `
+                -Verifiable `
+                -MockWith { } `
+                -ParameterFilter { $commands -eq "terraform test -filter=tests/main.tftest.hcl -verbose" }
+
+            Invoke-Terraform -test -filter "tests/main.tftest.hcl" -arguments "-verbose"
+
+            Should -InvokeVerifiable
+            Should -Invoke Invoke-External -Exactly 1
+        }
+    }
+
     Context "Validate" {
         It "will run the commands to perform validation checks" {
             Mock `
