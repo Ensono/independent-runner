@@ -337,17 +337,36 @@ function Invoke-Terraform() {
         # Run Terraform tests
         "test" {
 
-            $command = "{0} test" -f $terraform
+            $testCommand = "{0} test" -f $terraform
 
             if (![string]::IsNullOrEmpty($filter)) {
-                $command += " -filter={0}" -f $filter
+                $testCommand += " -filter={0}" -f $filter
             }
 
-            if ($arguments.Count -gt 0 -and ![String]::IsNullOrEmpty($arguments[0])) {
-                $command += " {0}" -f ($arguments -join " ")
+            if ($PSBoundParameters.ContainsKey('arguments') -and $arguments.Count -gt 0 -and ![String]::IsNullOrEmpty($arguments[0])) {
+                $testCommand += " {0}" -f ($arguments -join " ")
             }
 
-            Invoke-External -Command $command
+            # Run init with false backend before running tests
+            $commands = @()
+            $commands += "{0} init -backend=false" -f $terraform
+            $commands += $testCommand
+
+            Invoke-External -Command $commands
+
+            # After tests have run, delete the terraform dir and lock file
+            # This is so that it does not interfere with the deployment of the infrastructure
+            # when a valid backend is initialised
+            Write-Information -MessageData "Removing Terraform init files for 'false' backend"
+            $removals = @(
+                ".terraform",
+                ".terraform.lock.hcl"
+            )
+            foreach ($item in $removals) {
+                if (Test-Path -Path $item) {
+                    Remove-Item -Path $item -Recurse -Force
+                }
+            }
         }
 
         # Valiate the templates
