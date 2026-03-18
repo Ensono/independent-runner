@@ -9,7 +9,7 @@ function Invoke-Terraform() {
     Terraform as required
 
     .DESCRIPTION
-    The Independent Runner uses Terraform to built up the resources that are required, primairly for ED Stacks,
+    The Independent Runner uses Terraform to build up the resources that are required, primarily for Ensono Stacks,
     but can be for any Terraform defined infrastructure.
 
     It is a wrapper for the Terraform command and will generate the necessary command from the inputs that the
@@ -19,26 +19,26 @@ function Invoke-Terraform() {
     .EXAMPLE
     Invoke-Terraform -init -arguments "false"
 
-    Initialise the Terraform files with a fase backend. This is useful for validation.
+    Initialise the Terraform files with a false backend. This is useful for validation.
 
     .EXAMPLE
     Invoke-Terraform -plan properties "-input=false", "-out=tf.plan"
 
     Plan the Terraform deployment using the files in the current directory. The properties that have been passed
-    are appended directly to the end of the Terraform command. In this example no missing inputs are requests and
+    are appended directly to the end of the Terraform command. In this example no missing inputs are requested and
     the plan is written out to the `tf.plan` file.
 
     .EXAMPLE
     Invoke-Terraform -output -path src/terraform -yaml | Out-File tfoutput.yaml
 
     This command will get the outputs from the Terraform state and output them as Yaml format. It will only output
-    the name and value of the output. This is then piped to Out-File which means that the data will be save to the
+    the name and value of the output. This is then piped to Out-File which means that the data will be saved to the
     named file for use with other commands.
 
     .EXAMPLE
     Invoke-Terraform -test
 
-    Run all Terraform test files (*.tftest.hcl) in the current directory. Requires Terraform >= 1.6.0.
+    Run all Terraform test files (*.tftest.hcl) in the current directory.
 
     .EXAMPLE
     Invoke-Terraform -test -filter "tests/main.tftest.hcl"
