@@ -495,6 +495,49 @@ Describe "Invoke-Terraform" {
 
             Remove-Item Env:\TF_BACKEND
         }
+
+        It "will error when -fullInit is used without backend arguments" {
+            Mock `
+                -Command Invoke-External `
+                -MockWith { }
+
+            Invoke-Terraform -test -fullInit
+
+            Should -Invoke Write-Error -Exactly 1 -ParameterFilter { $Message -like "No properties have been specified for the backend*" -and $ErrorAction -eq "Stop" }
+            Should -Invoke Invoke-External -Exactly 0
+        }
+
+        It "will run terraform init with backend config and test when -fullInit is specified" {
+            Mock `
+                -Command Invoke-External `
+                -Verifiable `
+                -MockWith { } `
+                -ParameterFilter { (Compare-Object -ReferenceObject $commands -DifferenceObject @("terraform init -backend-config='key=tfstate' -backend-config='access_key=123456'", "terraform test")).length -eq 0 }
+
+            Mock -Command Remove-Item -MockWith { }
+
+            Invoke-Terraform -test -fullInit -arguments "key=tfstate,access_key=123456"
+
+            Should -InvokeVerifiable
+            Should -Invoke Invoke-External -Exactly 1
+            Should -Invoke Remove-Item -Exactly 0
+        }
+
+        It "will run terraform init with backend config and test with filter when -fullInit is specified" {
+            Mock `
+                -Command Invoke-External `
+                -Verifiable `
+                -MockWith { } `
+                -ParameterFilter { (Compare-Object -ReferenceObject $commands -DifferenceObject @("terraform init -backend-config='key=tfstate' -backend-config='access_key=123456'", "terraform test -filter=tests/main.tftest.hcl")).length -eq 0 }
+
+            Mock -Command Remove-Item -MockWith { }
+
+            Invoke-Terraform -test -fullInit -filter "tests/main.tftest.hcl" -arguments "key=tfstate,access_key=123456"
+
+            Should -InvokeVerifiable
+            Should -Invoke Invoke-External -Exactly 1
+            Should -Invoke Remove-Item -Exactly 0
+        }
     }
 
     Context "Validate" {
