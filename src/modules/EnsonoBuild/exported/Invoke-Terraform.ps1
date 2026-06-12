@@ -9,7 +9,7 @@ function Invoke-Terraform() {
     Terraform as required
 
     .DESCRIPTION
-    The Independent Runner uses Terraform to built up the resources that are required, primairly for ED Stacks,
+    The Independent Runner uses Terraform to build up the resources that are required, primarily for Ensono Stacks,
     but can be for any Terraform defined infrastructure.
 
     It is a wrapper for the Terraform command and will generate the necessary command from the inputs that the
@@ -19,21 +19,37 @@ function Invoke-Terraform() {
     .EXAMPLE
     Invoke-Terraform -init -arguments "false"
 
-    Initialise the Terraform files with a fase backend. This is useful for validation.
+    Initialise the Terraform files with a false backend. This is useful for validation.
 
     .EXAMPLE
     Invoke-Terraform -plan properties "-input=false", "-out=tf.plan"
 
     Plan the Terraform deployment using the files in the current directory. The properties that have been passed
-    are appended directly to the end of the Terraform command. In this example no missing inputs are requests and
+    are appended directly to the end of the Terraform command. In this example no missing inputs are requested and
     the plan is written out to the `tf.plan` file.
 
     .EXAMPLE
     Invoke-Terraform -output -path src/terraform -yaml | Out-File tfoutput.yaml
 
     This command will get the outputs from the Terraform state and output them as Yaml format. It will only output
-    the name and value of the output. This is then piped to Out-File which means that the data will be save to the
+    the name and value of the output. This is then piped to Out-File which means that the data will be saved to the
     named file for use with other commands.
+
+    .EXAMPLE
+    Invoke-Terraform -test
+
+    Run all Terraform test files (*.tftest.hcl) in the current directory.
+
+    .EXAMPLE
+    Invoke-Terraform -test -filter "tests/main.tftest.hcl"
+
+    Run only the specified Terraform test file. The -filter parameter is passed directly to `terraform test -filter=`.
+
+    .EXAMPLE
+    Invoke-Terraform -test -fullInit -arguments "container_name=tfstate","key=my.tfstate"
+
+    Run Terraform tests with a full backend init. This is useful when test files contain `run` blocks
+    with `command = apply` that require real infrastructure and a configured backend.
 
     #>
 
@@ -99,6 +115,28 @@ function Invoke-Terraform() {
         [switch]
         # Set the output to be Yaml
         $yaml,
+
+        [Parameter(
+            ParameterSetName = "test"
+        )]
+        [switch]
+        # Run Terraform tests
+        $test,
+
+        [Parameter(
+            ParameterSetName = "test"
+        )]
+        [string]
+        # Filter expression to select specific test files
+        $filter,
+
+        [Parameter(
+            ParameterSetName = "test"
+        )]
+        [switch]
+        # Perform a full init with backend config instead of -backend=false.
+        # Use when tests contain run blocks with command = apply.
+        $fullInit,
 
         [Parameter(
             ParameterSetName = "validate"
@@ -306,6 +344,55 @@ function Invoke-Terraform() {
                 }
                 else {
                     $data | ConvertTo-Json -Depth $JsonDepth -Compress
+                }
+            }
+        }
+
+        # Run Terraform tests
+        "test" {
+
+            $testCommand = "{0} test" -f $terraform
+
+            if (![string]::IsNullOrEmpty($filter)) {
+                $testCommand += " -filter={0}" -f $filter
+            }
+
+            if (!$fullInit -and $PSBoundParameters.ContainsKey('arguments') -and $arguments.Count -gt 0 -and ![String]::IsNullOrEmpty($arguments[0])) {
+                $testCommand += " {0}" -f ($arguments -join " ")
+            }
+
+            # Build init command based on whether full backend init is requested
+            $commands = @()
+            if ($fullInit) {
+                if ($arguments.Count -eq 0 -or ($arguments.Count -eq 1 -and [String]::IsNullOrEmpty($arguments[0]))) {
+                    Write-Error -Message "No properties have been specified for the backend. -fullInit requires backend arguments." -ErrorAction Stop
+                    return
+                }
+                $a = @()
+                foreach ($arg in $arguments) {
+                    $a += "-backend-config='{0}'" -f $arg
+                }
+                $commands += "{0} init {1}" -f $terraform, ($a -join " ")
+            } else {
+                $commands += "{0} init -backend=false" -f $terraform
+            }
+            $commands += $testCommand
+
+            Invoke-External -Command $commands
+
+            # After tests have run, delete the terraform dir and lock file
+            # This is so that it does not interfere with the deployment of the infrastructure
+            # when a valid backend is initialised
+            if (!$fullInit) {
+                Write-Information -MessageData "Removing Terraform init files for 'false' backend"
+                $removals = @(
+                    ".terraform",
+                    ".terraform.lock.hcl"
+                )
+                foreach ($item in $removals) {
+                    if (Test-Path -Path $item) {
+                        Remove-Item -Path $item -Recurse -Force
+                    }
                 }
             }
         }

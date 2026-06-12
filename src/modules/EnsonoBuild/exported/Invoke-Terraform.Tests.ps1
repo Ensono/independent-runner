@@ -347,6 +347,199 @@ Describe "Invoke-Terraform" {
         }
     }
 
+    Context "Test" {
+        It "will run terraform init and test with no filter" {
+            Mock `
+                -Command Invoke-External `
+                -Verifiable `
+                -MockWith { } `
+                -ParameterFilter { (Compare-Object -ReferenceObject $commands -DifferenceObject @("terraform init -backend=false", "terraform test")).length -eq 0 }
+
+            Mock `
+                -Command Test-Path `
+                -Verifiable `
+                -MockWith { return $true } `
+                -ParameterFilter { $Path -eq ".terraform" }
+
+            Mock `
+                -Command Remove-Item `
+                -Verifiable `
+                -MockWith { } `
+                -ParameterFilter { $Path -eq ".terraform" -and $Recurse.IsPresent -and $Force.IsPresent }
+
+            Mock `
+                -Command Test-Path `
+                -Verifiable `
+                -MockWith { return $true } `
+                -ParameterFilter { $Path -eq ".terraform.lock.hcl" }
+
+            Mock `
+                -Command Remove-Item `
+                -Verifiable `
+                -MockWith { } `
+                -ParameterFilter { $Path -eq ".terraform.lock.hcl" -and $Recurse.IsPresent -and $Force.IsPresent }
+
+            Invoke-Terraform -test
+
+            Should -InvokeVerifiable
+            Should -Invoke Invoke-External -Exactly 1
+        }
+
+        It "will run terraform init and test with a filter for specific test files" {
+            Mock `
+                -Command Invoke-External `
+                -Verifiable `
+                -MockWith { } `
+                -ParameterFilter { (Compare-Object -ReferenceObject $commands -DifferenceObject @("terraform init -backend=false", "terraform test -filter=tests/main.tftest.hcl")).length -eq 0 }
+
+            Mock `
+                -Command Test-Path `
+                -Verifiable `
+                -MockWith { return $true } `
+                -ParameterFilter { $Path -eq ".terraform" }
+
+            Mock `
+                -Command Remove-Item `
+                -Verifiable `
+                -MockWith { } `
+                -ParameterFilter { $Path -eq ".terraform" -and $Recurse.IsPresent -and $Force.IsPresent }
+
+            Mock `
+                -Command Test-Path `
+                -Verifiable `
+                -MockWith { return $true } `
+                -ParameterFilter { $Path -eq ".terraform.lock.hcl" }
+
+            Mock `
+                -Command Remove-Item `
+                -Verifiable `
+                -MockWith { } `
+                -ParameterFilter { $Path -eq ".terraform.lock.hcl" -and $Recurse.IsPresent -and $Force.IsPresent }
+
+            Invoke-Terraform -test -filter "tests/main.tftest.hcl"
+
+            Should -InvokeVerifiable
+            Should -Invoke Invoke-External -Exactly 1
+        }
+
+        It "will run terraform init and test with a filter and additional arguments" {
+            Mock `
+                -Command Invoke-External `
+                -Verifiable `
+                -MockWith { } `
+                -ParameterFilter { (Compare-Object -ReferenceObject $commands -DifferenceObject @("terraform init -backend=false", "terraform test -filter=tests/main.tftest.hcl -verbose")).length -eq 0 }
+
+            Mock `
+                -Command Test-Path `
+                -Verifiable `
+                -MockWith { return $true } `
+                -ParameterFilter { $Path -eq ".terraform" }
+
+            Mock `
+                -Command Remove-Item `
+                -Verifiable `
+                -MockWith { } `
+                -ParameterFilter { $Path -eq ".terraform" -and $Recurse.IsPresent -and $Force.IsPresent }
+
+            Mock `
+                -Command Test-Path `
+                -Verifiable `
+                -MockWith { return $true } `
+                -ParameterFilter { $Path -eq ".terraform.lock.hcl" }
+
+            Mock `
+                -Command Remove-Item `
+                -Verifiable `
+                -MockWith { } `
+                -ParameterFilter { $Path -eq ".terraform.lock.hcl" -and $Recurse.IsPresent -and $Force.IsPresent }
+
+            Invoke-Terraform -test -filter "tests/main.tftest.hcl" -arguments "-verbose"
+
+            Should -InvokeVerifiable
+            Should -Invoke Invoke-External -Exactly 1
+        }
+
+        It "will not append TF_BACKEND environment variable to terraform test" {
+            $env:TF_BACKEND = "key=tfstate,access_key=123456"
+
+            Mock `
+                -Command Invoke-External `
+                -Verifiable `
+                -MockWith { } `
+                -ParameterFilter { (Compare-Object -ReferenceObject $commands -DifferenceObject @("terraform init -backend=false", "terraform test")).length -eq 0 }
+
+            Mock `
+                -Command Test-Path `
+                -MockWith { return $true } `
+                -ParameterFilter { $Path -eq ".terraform" }
+
+            Mock `
+                -Command Remove-Item `
+                -MockWith { } `
+                -ParameterFilter { $Path -eq ".terraform" -and $Recurse.IsPresent -and $Force.IsPresent }
+
+            Mock `
+                -Command Test-Path `
+                -MockWith { return $true } `
+                -ParameterFilter { $Path -eq ".terraform.lock.hcl" }
+
+            Mock `
+                -Command Remove-Item `
+                -MockWith { } `
+                -ParameterFilter { $Path -eq ".terraform.lock.hcl" -and $Recurse.IsPresent -and $Force.IsPresent }
+
+            Invoke-Terraform -test
+
+            Should -InvokeVerifiable
+            Should -Invoke Invoke-External -Exactly 1
+
+            Remove-Item Env:\TF_BACKEND
+        }
+
+        It "will error when -fullInit is used without backend arguments" {
+            Mock `
+                -Command Invoke-External `
+                -MockWith { }
+
+            Invoke-Terraform -test -fullInit
+
+            Should -Invoke Write-Error -Exactly 1 -ParameterFilter { $Message -like "No properties have been specified for the backend*" -and $ErrorAction -eq "Stop" }
+            Should -Invoke Invoke-External -Exactly 0
+        }
+
+        It "will run terraform init with backend config and test when -fullInit is specified" {
+            Mock `
+                -Command Invoke-External `
+                -Verifiable `
+                -MockWith { } `
+                -ParameterFilter { (Compare-Object -ReferenceObject $commands -DifferenceObject @("terraform init -backend-config='key=tfstate' -backend-config='access_key=123456'", "terraform test")).length -eq 0 }
+
+            Mock -Command Remove-Item -MockWith { }
+
+            Invoke-Terraform -test -fullInit -arguments "key=tfstate,access_key=123456"
+
+            Should -InvokeVerifiable
+            Should -Invoke Invoke-External -Exactly 1
+            Should -Invoke Remove-Item -Exactly 0
+        }
+
+        It "will run terraform init with backend config and test with filter when -fullInit is specified" {
+            Mock `
+                -Command Invoke-External `
+                -Verifiable `
+                -MockWith { } `
+                -ParameterFilter { (Compare-Object -ReferenceObject $commands -DifferenceObject @("terraform init -backend-config='key=tfstate' -backend-config='access_key=123456'", "terraform test -filter=tests/main.tftest.hcl")).length -eq 0 }
+
+            Mock -Command Remove-Item -MockWith { }
+
+            Invoke-Terraform -test -fullInit -filter "tests/main.tftest.hcl" -arguments "key=tfstate,access_key=123456"
+
+            Should -InvokeVerifiable
+            Should -Invoke Invoke-External -Exactly 1
+            Should -Invoke Remove-Item -Exactly 0
+        }
+    }
+
     Context "Validate" {
         It "will run the commands to perform validation checks" {
             Mock `
