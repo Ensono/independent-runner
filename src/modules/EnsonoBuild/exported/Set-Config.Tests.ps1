@@ -2,6 +2,9 @@
 Describe "Set-Config" {
 
     BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
         # Include the function under test
         . $PSSCriptRoot/Set-Config.ps1
@@ -32,9 +35,12 @@ Describe "Set-Config" {
     Context "Log path is valid" {
 
         BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
             
             # Create the testFolder
-            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+            $testFolder = New-TestDir
 
             $cmdLogFile = [IO.Path]::Combine($testFolder, "cmdlog.txt")
         }
@@ -47,3 +53,4 @@ Describe "Set-Config" {
         }
     }
 }
+

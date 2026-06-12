@@ -1,6 +1,9 @@
 Describe "Publish-Confluence" {
 
     BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
         # Include the function under test
         . $PSScriptRoot/Publish-Confluence.ps1
@@ -56,6 +59,9 @@ Describe "Publish-Confluence" {
     Context "Adding a new page" {
 
         BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
             # - Get-Confluence page mocks
             Mock -CommandName Get-ConfluencePage -MockWith {
@@ -85,8 +91,11 @@ Describe "Publish-Confluence" {
     Context "Updating a page with images" {
 
         BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
 
-            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+
+            $testFolder = New-TestDir
             $testImg = [IO.Path]::Combine($testFolder, "myimage.png")
             New-Item -ItemType File -Path $testImg | Out-Null
 
@@ -133,3 +142,4 @@ Describe "Publish-Confluence" {
         }
     }
 }
+

@@ -5,12 +5,15 @@ Describe "Invoke-Terraform" {
     $TF_BACKEND
 
     BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
         . $PSScriptRoot/Invoke-Terraform.ps1
         . $PSScriptRoot/../exported/Invoke-External.ps1
         . $PSScriptRoot/../classes/StopTaskException.ps1
 
         # Create the testFolder
-        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        $testFolder = New-TestDir
 
         # Create a dummy version of Terrform to use
         $terraform = New-Item -ItemType File -Path ([IO.Path]::Combine($testFolder, "1.5.1", "bin", "terraform")) -Force
@@ -387,3 +390,4 @@ Describe "Invoke-Terraform" {
         }
     }
 }
+

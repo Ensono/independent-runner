@@ -1,6 +1,9 @@
 Describe "Invoke-Templater" {
 
     BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
         # Import the function under test
         . $PSScriptRoot/Invoke-Templater.ps1
@@ -9,7 +12,7 @@ Describe "Invoke-Templater" {
         . $PSScriptRoot/Expand-Template.ps1
 
         # Create the testFolder
-        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        $testFolder = New-TestDir
 
         # create two files to pass to the function
         # one with valid PS data and one without
@@ -54,6 +57,9 @@ Describe "Invoke-Templater" {
     Context "replaces values in templates" {
 
         BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
             # Create env var that can be checked for
             $env:PESTER_TEMPLATER = "foobar"
@@ -134,3 +140,4 @@ Describe "Invoke-Templater" {
         }
     }
 }
+

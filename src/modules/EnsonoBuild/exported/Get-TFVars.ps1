@@ -12,7 +12,7 @@ function Get-TFVars() {
     
     .EXAMPLE
 
-    Set-TFVars | Out-File -FilePath "terraform.tfvars"
+    Get-TFVars | Out-File -FilePath "terraform.tfvars"
 
     Find all of the environment variables that start with the default prefix (TF_VAR_*) and write them to
     the file "terraform.tfvars"
@@ -23,14 +23,14 @@ function Get-TFVars() {
     param (
 
         [string]
-        # Prefix to look for in enviornment variables
+        # Prefix to look for in environment variables
         $prefix = "TF_VAR_*"
     )
 
     # configure hashtable of found variables
     $tfvars = @{}
 
-    # Output the values of the enviornment variables
+    # Output the values of the environment variables
     Get-ChildItem -Path env: | Where-Object name -like $prefix | ForEach-Object {
 
         # Get th name of the variable, without the prefix

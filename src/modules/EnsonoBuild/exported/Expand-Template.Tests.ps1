@@ -6,12 +6,22 @@ Describe "Expand-Template" {
         # Import function under test
         . $PSScriptRoot/Expand-Template.ps1
 
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
+
         # set environment variables to use
         $env:TEST_NAME = "pester"
         $env:TEST_COMPONENT = "core"
 
         # Create the testFolder
-        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        $testFolder = New-TestDir
+    }
+
+    AfterAll {
+        if (Test-Path $testFolder) {
+            Remove-Item -Path $testFolder -Recurse -Force -ErrorAction SilentlyContinue
+        }
     }
 
     it "will replace the variable in the template with the variable value" {

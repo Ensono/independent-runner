@@ -3,13 +3,18 @@
 Describe "Invoke-Kubectl" {
 
     BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
         . $PSScriptRoot/Invoke-Kubectl.ps1
         . $PSScriptRoot/Invoke-Login.ps1
         . $PSScriptRoot/../command/Find-Command.ps1
         . $PSScriptRoot/../exported/Invoke-External.ps1
+        . $PSScriptRoot/../classes/StopTaskException.ps1
+        . $PSScriptRoot/../exported/Stop-Task.ps1
 
         # Create the testFolder
-        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        $testFolder = New-TestDir
         $manifestFile = Join-Path -Path $testFolder -ChildPath "manifest.yml"
         New-Item -ItemType File -Path $manifestFile
 

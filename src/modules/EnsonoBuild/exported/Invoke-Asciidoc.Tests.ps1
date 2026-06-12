@@ -14,8 +14,12 @@ Describe "Invoke-Asciidoc" {
         . $PSScriptRoot/../utils/Replace-Tokens.ps1
         . $PSScriptRoot/../utils/Set-Tokens.ps1
 
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
+
         # Create the testFolder
-        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        $testFolder = New-TestDir
 
         # Set the libs that need to be applied
         $Libraries = @("asciidoctor-diagram")
@@ -29,6 +33,12 @@ Describe "Invoke-Asciidoc" {
 
         # - Write-Information - mock this internal function to check that the working directory is being defined
         Mock -Command Write-Information -MockWith { return $MessageData } -Verifiable
+    }
+
+    AfterAll {
+        if (Test-Path $testFolder) {
+            Remove-Item -Path $testFolder -Recurse -Force -ErrorAction SilentlyContinue
+        }
     }
 
     Context "Arguments" {

@@ -1,7 +1,7 @@
 contexts:
   docsenv:
     container:
-      name: ensono/eir-asciidoctor
+      name: ensono/eir-asciidoctor:1.2.39
       shell: pwsh
       shell_args:
         - -Command
@@ -15,20 +15,19 @@ contexts:
 
   powershell_test:
     container:
-      name: ensono/eir-infrastructure
+      name: ensono/eir-infrastructure:1.2.39
       shell: pwsh
       shell_args:
         - -Command
     env:
       PSModulePath: /eirctl/src/modules
-      HOST_UIDGID: $UID:$GID
     envfile:
       exclude:
         - posh_azure_subscription
 
   powershell:
     container:
-      name: ensono/eir-infrastructure
+      name: ensono/eir-infrastructure:1.2.39
       shell: pwsh
       shell_args:
         - -Command
@@ -40,12 +39,15 @@ contexts:
 
   dotnet:
     container:
-      name: ensono/eir-dotnet
-      container_args:
-        - -v ${PWD}/src/modules:/modules
+      name: ensono/eir-dotnet:1.2.39
       shell: pwsh
       shell_args:
         - -Command
+    env:
+      PSModulePath: /eirctl/src/modules
     envfile:
       exclude:
+        - home
+        - path
         - posh_azure_subscription
+        - dotnet_root

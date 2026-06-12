@@ -35,6 +35,24 @@ param (
 # Update Pester
 Update-Module -Name Pester -Force
 
+# Clean up any existing TestDrive and Pester session state from previous runs
+try {
+    # Remove any existing TestDrive
+    if (Get-PSDrive -Name "TestDrive" -ErrorAction SilentlyContinue) {
+        Remove-PSDrive -Name "TestDrive" -Force -ErrorAction SilentlyContinue
+    }
+    
+    # Clean up Pester variables that might conflict
+    Remove-Variable -Name "Pester*" -Scope Global -ErrorAction SilentlyContinue
+    
+    # Force garbage collection to clean up any lingering objects
+    [System.GC]::Collect()
+    [System.GC]::WaitForPendingFinalizers()
+} catch {
+    # Ignore errors when cleaning up
+    Write-Debug "Error during cleanup: $_"
+}
+
 $pesterErrorCodePath = "./test"
 $pesterErrorCodeFile = ".PesterErrorCode"
 $pesterErrorCodeFilePath = "${pesterErrorCodePath}/${pesterErrorCodeFile}"
@@ -70,6 +88,9 @@ $configuration.Run.PassThru = $true
 # Set the verbosity of the tests
 $configuration.Output.Verbosity = $verbosity
 
+# Disable TestDrive to avoid conflicts - tests use temp directories instead
+$configuration.TestDrive.Enabled = $false
+
 # Run Pester with the configuration
 $result = Invoke-Pester -Configuration $configuration
 
@@ -77,7 +98,11 @@ $exitCode = $LASTEXITCODE
 
 if ($IsLinux) {
     $outputRoot = ($output -Split [IO.Path]::DirectorySeparatorChar)[0] | Resolve-Path
-    chown -R $env:HOST_UIDGID $outputRoot
+    if ($env:HOST_UIDGID -and $env:HOST_UIDGID -match '^\d+:\d+$') {
+        chown -R $env:HOST_UIDGID $outputRoot
+    } elseif ($env:HOST_UIDGID) {
+        Write-Warning "HOST_UIDGID is set to '${env:HOST_UIDGID}' but does not match expected format 'UID:GID'. Skipping chown."
+    }
 }
 
 if ($exitCode -ne 0) {

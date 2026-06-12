@@ -2,6 +2,9 @@
 Describe "Invoke-GitClone" {
 
     BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
         # Import the function being tested
         . $PSScriptRoot/Invoke-GitClone.ps1
@@ -10,7 +13,7 @@ Describe "Invoke-GitClone" {
         . $PSScriptRoot/../utils/Confirm-IsWebAddress.ps1
 
         # Create the testFolder
-        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        $testFolder = New-TestDir
 
         # Mock functions that are called
         # - Write-Error - mock this internal function to check that errors are being raised
@@ -34,7 +37,7 @@ Describe "Invoke-GitClone" {
 
         It "will error" {
 
-            Invoke-GitClone -Type pestergit -Repo "amido/stacks-dotnet"
+            Invoke-GitClone -Type pestergit -Repo "ensono/stacks-dotnet"
 
             Should -Invoke -CommandName Write-Error -Times 1
         }
@@ -50,13 +53,13 @@ Describe "Invoke-GitClone" {
         }
 
         It "will generate a valid GitHub URL if shorthand repo is specified" {
-            $result = $(Invoke-GitClone -Type github -Repo "amido/stacks-dotnet" -Verbose) 4>&1
+            $result = $(Invoke-GitClone -Type github -Repo "ensono/stacks-dotnet" -Verbose) 4>&1
 
-            $result[0] | Should -Be "https://github.com/amido/stacks-dotnet/archive/main.zip"
+            $result[0] | Should -Be "https://github.com/ensono/stacks-dotnet/archive/main.zip"
         }
 
         It "will not modify a repo that is a URL" {
-            $url = "https://github.com/amido/stacks-cli/archive/main.zip"
+            $url = "https://github.com/ensono/stacks-cli/archive/main.zip"
 
             $result = $(Invoke-GitClone -Type github -Repo $url -Verbose) 4>&1
 
@@ -70,16 +73,19 @@ Describe "Invoke-GitClone" {
     Context "unpacking cloned file" {
 
         BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
             # Create a dummy zip file in the testfolder to work with
-            New-Item -ItemType File -Path (Join-Path -Path $testFolder -ChildPath "amido_stacks-cli_main.zip")
+            New-Item -ItemType File -Path (Join-Path -Path $testFolder -ChildPath "ensono_stacks-cli_main.zip")
         }
 
         It "will attempt to unpack the downloaded zip file" {
 
-            $result = $(Invoke-GitClone -Type github -Repo "amido/stacks-cli" -Path $testFolder -Verbose) 4>&1
+            $result = $(Invoke-GitClone -Type github -Repo "ensono/stacks-cli" -Path $testFolder -Verbose) 4>&1
 
-            $result[1] | Should -Be ([IO.Path]::Combine($testFolder, "amido_stacks-cli_main.zip"))
+            $result[1] | Should -Be ([IO.Path]::Combine($testFolder, "ensono_stacks-cli_main.zip"))
 
             Should -Invoke -CommandName Expand-Archive -Times 1
             Should -Invoke -CommandName Move-Item -Times 1

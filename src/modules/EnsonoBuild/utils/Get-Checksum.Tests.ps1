@@ -5,11 +5,21 @@ Describe "Get-Checksum" {
         # Include the function under test
         . $PSScriptRoot/Get-Checksum.ps1
 
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
+
         # Create the testFolder
-        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        $testFolder = New-TestDir
         
         $testFile = [IO.Path]::Combine($testFolder, "content.txt")
         Set-Content -Path $testFile -Value "Hello World!" -NoNewline
+    }
+
+    AfterAll {
+        if (Test-Path $testFolder) {
+            Remove-Item -Path $testFolder -Recurse -Force -ErrorAction SilentlyContinue
+        }
     }
 
     It "will get null if null is provided" {

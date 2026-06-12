@@ -46,14 +46,14 @@ tasks:
     context: dotnet
     description: Create Cobertura report xml from coverage xml
     command: |
-      Invoke-DotNet -Coverage -Pattern pester-coverage.xml -Path /eirctl -Source /eirctl/src/modules/EnsonoBuild -Target /eirctl/outputs/tests
+      Invoke-DotNet -Coverage -RollForward Major -Pattern pester-coverage.xml -Path /eirctl -Source /eirctl/src/modules/EnsonoBuild -Target /eirctl/outputs/tests
 
   tests:coverage_report_html:
     context: dotnet
     description: Create HTML report from coverage xml
     command: |
       Import-Module /eirctl/src/modules/EnsonoBuild/EnsonoBuild.psd1 -Force
-      Invoke-DotNet -Coverage -Type Html -Pattern Cobertura.xml -Path /eirctl -Source src/modules/EnsonoBuild -Target /eirctl/outputs/tests
+      Invoke-DotNet -Coverage -Type Html -RollForward Major -Pattern Cobertura.xml -Path /eirctl -Source src/modules/EnsonoBuild -Target /eirctl/outputs/tests
 
   tests:fail_on_error:
     context: powershell

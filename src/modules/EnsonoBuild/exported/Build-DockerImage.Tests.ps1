@@ -1,11 +1,5 @@
 BeforeDiscovery {
-
-    # Determine if being run on Azure DevOps, and skip the Build-DockerImage tests if it is
-    # TODO: This has been done to prevent an issue with running tests in ADO. GitHub Issue - https://github.com/Ensono/independent-runner/issues/44
-    $skipDockerTests = 0
-    if ((Test-Path -Path env:\TF_BUILD)) {
-        $skipDockerTests = 1
-    }
+   $skipDockerTests = 0  # Enable Docker tests locally
 }
 
 Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
@@ -37,6 +31,8 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
         . $PSScriptRoot/../cloud/Connect-Azure.ps1
         . $PSScriptRoot/../utils/Confirm-TrunkBranch.ps1
         . $PSScriptRoot/../utils/Get-CPUArchitecture.ps1
+        . $PSScriptRoot/../classes/StopTaskException.ps1
+        . $PSScriptRoot/../exported/Stop-Task.ps1
 
         # Write function to mimic the Get-AzContainerRegistryCredential which is supplied
         # by the PowerShell AZ Module, but this might not be available in the test environment
@@ -86,7 +82,10 @@ Describe "Build-DockerImage" -Skip:($skipDockerTests -eq 1) {
 
     Context "Check mandatory parameters" {
 
-        BeforeAll {
+        BeforeEach {
+            # Reset mock invocation history
+            $Session.commands.list = @()
+            
             Mock -CommandName Write-Error -MockWith {} -Verifiable
             Mock -CommandName Write-Information -MockWith {} -Verifiable
         }

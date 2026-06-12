@@ -3,6 +3,9 @@
 Describe "Invoke-Helm" {
 
     BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
         # Import the function under test
         . $PSScriptRoot/Invoke-Helm.ps1
@@ -10,11 +13,12 @@ Describe "Invoke-Helm" {
         # Import dependent functions
         . $PSScriptRoot/Invoke-Login.ps1
         . $PSScriptRoot/../command/Find-Command.ps1
+        . $PSScriptRoot/../classes/StopTaskException.ps1
         . $PSScriptRoot/../exported/Stop-Task.ps1
         . $PSScriptRoot/../exported/Invoke-External.ps1
 
         # Create the testFolder
-        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        $testFolder = New-TestDir
         $valueFile = Join-Path -Path $testFolder -ChildPath "chart.yml"
         $chartFile = Join-Path -Path $testFolder -ChildPath "values.yml"
         New-Item -ItemType File -Path $valueFile
@@ -69,6 +73,9 @@ Describe "Invoke-Helm" {
         Context "Repo" {
 
             BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
                 Mock -CommandName Invoke-Login `
                     -MockWith { return } `
@@ -89,6 +96,9 @@ Describe "Invoke-Helm" {
     Context "Azure" {
 
         BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
             Mock -CommandName Invoke-Login `
                 -MockWith { return } `
@@ -132,6 +142,9 @@ Describe "Invoke-Helm" {
     Context "AWS" {
 
         BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
             Mock -CommandName Invoke-Login `
                 -MockWith { return } `

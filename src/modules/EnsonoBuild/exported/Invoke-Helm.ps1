@@ -130,8 +130,7 @@ function Invoke-Helm() {
 
     # if there are missing parameters throw an error
     if ($missing.length -gt 0) {
-        Write-Error -Message ("Required parameters are missing: {0}" -f ($missing -join ", "))
-        exit 1
+        Stop-Task -ExitCode 1 -Message ("Required parameters are missing: {0}" -f ($missing -join ", "))
     }
 
     $login =  {

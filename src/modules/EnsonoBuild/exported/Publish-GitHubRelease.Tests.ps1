@@ -1,6 +1,9 @@
 Describe "Publish-GitHubRelease" {
 
     BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
         # Include function under test
         . $PSScriptRoot/Publish-GitHubRelease.ps1
@@ -12,6 +15,9 @@ Describe "Publish-GitHubRelease" {
     Context "Errors will be thrown" {
 
         BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
             # Mock commands
             Mock -CommandName Write-Error -MockWith {} -ParameterFilter { $Message.ToLower().Contains("version") }
@@ -24,7 +30,7 @@ Describe "Publish-GitHubRelease" {
         BeforeEach {
 
             # Create a folder to use for each test
-            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+            $testFolder = New-TestDir
 
             $env:ARTIFACTS_DIR = [IO.Path]::Combine($testFolder, "artifacts")
             if (!(Test-Path -Path $env:ARTIFACTS_DIR)) {
@@ -78,7 +84,7 @@ Describe "Publish-GitHubRelease" {
         BeforeEach {
 
             # Create a folder to use for each test
-            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+            $testFolder = New-TestDir
         }
 
         AfterEach {
@@ -198,7 +204,7 @@ Describe "Publish-GitHubRelease" {
         BeforeEach {
 
             # Create a folder to use for each test
-            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+            $testFolder = New-TestDir
         }
 
         AfterEach {
@@ -285,6 +291,9 @@ Describe "Publish-GitHubRelease" {
     Context "Release is created" {
 
         BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
             # Mock commands
 
@@ -303,7 +312,7 @@ Describe "Publish-GitHubRelease" {
         BeforeEach {
 
             # Create a folder to use for each test
-            $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+            $testFolder = New-TestDir
 
             # Create a dummy file for release
             New-Item -ItemType File -Path ([IO.Path]::Combine($testFolder, "module.psm1")) | Out-Null
@@ -352,3 +361,4 @@ Describe "Publish-GitHubRelease" {
         }
     }
 }
+

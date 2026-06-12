@@ -5,11 +5,21 @@ Describe "Find-Command" {
         # Include the function under test
         . $PSScriptRoot/Find-Command.ps1
 
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
+
         # Create the testFolder
-        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        $testFolder = New-TestDir
 
         # Mock
         Mock -Command Write-Error -MockWith {}
+    }
+
+    AfterAll {
+        if (Test-Path $testFolder) {
+            Remove-Item -Path $testFolder -Recurse -Force -ErrorAction SilentlyContinue
+        }
     }
 
     Context "Command cannot be found" {

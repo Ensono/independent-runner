@@ -96,8 +96,13 @@ function Invoke-DotNet() {
 
         [string]
         # Any additional arguments that should be passed to the command
-        $arguments = $env:DOTNET_ARGUMENTS
+        $arguments = $env:DOTNET_ARGUMENTS,
 
+        [ValidateSet("Minor", "Major", "LatestPatch", "LatestMinor", "LatestMajor", "Disable")]
+        [string]
+        # The roll forward policy to use when running the command. This will be set as an environment variable before the command is run
+        # https://learn.microsoft.com/en-us/dotnet/core/versions/selection
+        $RollForward
     )
 
     # If a working directory has been specified and it exists, change to that dir
@@ -108,6 +113,14 @@ function Invoke-DotNet() {
     else {
         Write-Error "The path specified does not exist: $path"
         return
+    }
+
+    $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = "true"
+    $env:DOTNET_ROOT = "/usr/local/dotnet/dotnet"
+
+    # Set the .NET version if specified
+    if (![String]::IsNullOrEmpty($RollForward)) {
+        $env:DOTNET_ROLL_FORWARD = $RollForward
     }
 
     # Perform the appropriate action based on the Parameter Set Name that
@@ -125,10 +138,12 @@ function Invoke-DotNet() {
         }
 
         "coverage" {
+            # Find the path to the command to run
+            $dotnet = Find-Command -Name "dotnet"
 
             # Find the path to the the reportgenerator command
-            $tool = Find-Command -Name "reportgenerator"
-            
+            $reportgenerator = Find-Command -Name "reportgenerator"
+
             # Set the pattern if it has not been defined
             if ([String]::IsNullOrEmpty($pattern)) {
                 $pattern = "*.opencover.xml"
@@ -157,7 +172,9 @@ function Invoke-DotNet() {
 
             # Build up the command that should be executed
             $cmdParts = @(
-                $tool
+                $dotnet
+                "run"
+                $reportgenerator
                 "-reports:{0}" -f ($list -join ";")
                 "-targetDir:{0}" -f $target
                 "-reporttypes:{0}" -f $type

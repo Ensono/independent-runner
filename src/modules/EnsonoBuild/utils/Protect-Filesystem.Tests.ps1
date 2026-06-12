@@ -8,6 +8,10 @@ Describe "Protect-Filesystem" {
         # Include dependent functions
         . $PSScriptRoot/Confirm-Parameters.ps1
 
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
+
         # Mock functions
         Mock -CommandName Write-Error -MockWith {}
         Mock -CommandName Write-Warning -MockWith {} -ParameterFilter { $Message.ToLower().Contains("specified output path does not exist, creating")}
@@ -16,11 +20,13 @@ Describe "Protect-Filesystem" {
 
     BeforeEach {
         # Create test folder to work with
-        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        $testFolder = New-TestDir
     }
 
     AfterEach {
-        Remove-Item -Path $testFolder -Recurse -Force
+        if (Test-Path $testFolder) {
+            Remove-Item -Path $testFolder -Recurse -Force -ErrorAction SilentlyContinue
+        }
     }
 
     It "will throw an error if path is not specified" {

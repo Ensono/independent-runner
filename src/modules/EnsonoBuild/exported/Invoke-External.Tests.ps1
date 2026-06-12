@@ -2,6 +2,9 @@
 Describe "Invoke-External" {
 
     BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
         # Import function under test
         . $PSScriptRoot/Invoke-External.ps1
@@ -13,7 +16,7 @@ Describe "Invoke-External" {
         . $PSScriptRoot/../classes/StopTaskException.ps1
 
         # Create the testFolder
-        $testFolder = (New-Item 'TestDrive:\folder' -ItemType Directory).FullName
+        $testFolder = New-TestDir
 
         # Mocks
         # Invoke-Expression - mock the command that runs the command
@@ -24,6 +27,9 @@ Describe "Invoke-External" {
     Context "[DRYRUN] Command file" {
 
         BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
 
             $cmdlogPath = [IO.Path]::Combine($testFolder, "cmdlog.txt")
 
@@ -55,6 +61,9 @@ Describe "Invoke-External" {
     Context "Multiple commands" {
 
         BeforeAll {
+        # Import test helpers
+        . $PSScriptRoot/../../../../test/TestHelpers.ps1
+
             # Define the session variable
             # Set the command log file
             $global:Session = @{
@@ -86,3 +95,4 @@ Describe "Invoke-External" {
         }
     }
 }
+
